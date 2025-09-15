@@ -2,6 +2,18 @@ import * as React from "react";
 
 import { cn } from "@/lib/utils";
 
+/**
+ * Table component - Must be used with TableHeader and TableHead components
+ * for proper accessibility. Example:
+ * <Table>
+ *   <TableHeader>
+ *     <TableRow>
+ *       <TableHead>Header</TableHead>
+ *     </TableRow>
+ *   </TableHeader>
+ *   <TableBody>...</TableBody>
+ * </Table>
+ */
 const Table = React.forwardRef<HTMLTableElement, React.HTMLAttributes<HTMLTableElement>>(
   ({ className, ...props }, ref) => (
     <div className="relative w-full overflow-auto">
