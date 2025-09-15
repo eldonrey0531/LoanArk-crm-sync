@@ -1,11 +1,10 @@
 // src/api/hubspot.ts
-const HUBSPOT_API_KEY = import.meta.env.VITE_HUBSPOT_API_KEY || process.env.HUBSPOT_API_KEY;
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 
 export async function testHubSpotConnection() {
   try {
-    const response = await fetch('https://api.hubapi.com/crm/v3/objects/contacts?limit=1', {
+    const response = await fetch(`${API_BASE_URL}/api/hubspot/test`, {
       headers: {
-        'Authorization': `Bearer ${HUBSPOT_API_KEY}`,
         'Content-Type': 'application/json'
       }
     });
@@ -16,9 +15,9 @@ export async function testHubSpotConnection() {
     }
 
     const data = await response.json();
-    return { 
-      connected: true, 
-      total: data.total || 0 
+    return {
+      connected: true,
+      total: data.total || 0
     };
   } catch (error) {
     console.error('HubSpot connection error:', error);
@@ -28,17 +27,16 @@ export async function testHubSpotConnection() {
 
 export async function fetchHubSpotContacts(limit = 25) {
   try {
-    const response = await fetch('https://api.hubapi.com/crm/v3/objects/contacts/search', {
+    const response = await fetch(`${API_BASE_URL}/api/hubspot/contacts/latest`, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${HUBSPOT_API_KEY}`,
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
         filterGroups: [],
-        sorts: [{ 
-          propertyName: 'createdate', 
-          direction: 'DESCENDING' 
+        sorts: [{
+          propertyName: 'createdate',
+          direction: 'DESCENDING'
         }],
         properties: [
           'firstname',
