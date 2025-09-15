@@ -115,8 +115,19 @@ export const useHubSpotSync = () => {
 
   return useMutation({
     mutationFn: async () => {
-      const { data, error } = await supabase.functions.invoke("hubspot-sync");
-      if (error) throw error;
+      const response = await fetch('/api/hubspot-sync', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Sync failed');
+      }
+      
+      const data = await response.json();
       return data;
     },
     onSuccess: () => {
