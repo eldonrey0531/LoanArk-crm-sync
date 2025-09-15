@@ -12,6 +12,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { LineChart, Line, AreaChart, Area, XAxis, YAxis, CartesianGrid, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
+import { useContacts, useContactStats, useSyncLogs, useHubSpotSync } from "@/hooks/useContacts";
+import { toast } from "@/hooks/use-toast";
 
 // Mock data
 const syncData = [
@@ -38,6 +40,37 @@ const recentActivity = [
 ];
 
 export default function Dashboard() {
+  const { data: contacts, isLoading: contactsLoading } = useContacts();
+  const { data: stats, isLoading: statsLoading } = useContactStats();
+  const { data: syncLogs, isLoading: logsLoading } = useSyncLogs();
+  const hubSpotSync = useHubSpotSync();
+
+  const handleManualSync = async () => {
+    try {
+      toast({
+        title: "Starting HubSpot sync...",
+        description: "This may take a few moments.",
+      });
+      
+      await hubSpotSync.mutateAsync();
+      
+      toast({
+        title: "Sync completed successfully!",
+        description: "Contacts have been updated from HubSpot.",
+      });
+    } catch (error) {
+      toast({
+        title: "Sync failed",
+        description: error instanceof Error ? error.message : "An error occurred during sync.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleRefresh = () => {
+    window.location.reload();
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -47,13 +80,17 @@ export default function Dashboard() {
           <p className="text-muted-foreground mt-1">Real-time contact management and sync monitoring</p>
         </div>
         <div className="flex space-x-2">
-          <Button variant="outline" size="sm">
+          <Button variant="outline" size="sm" onClick={handleRefresh}>
             <RefreshCw className="w-4 h-4 mr-2" />
             Refresh Data
           </Button>
-          <Button size="sm">
-            <Database className="w-4 h-4 mr-2" />
-            Manual Sync
+          <Button 
+            size="sm" 
+            onClick={handleManualSync}
+            disabled={hubSpotSync.isPending}
+          >
+            <Database className={`w-4 h-4 mr-2 ${hubSpotSync.isPending ? 'animate-spin' : ''}`} />
+            {hubSpotSync.isPending ? 'Syncing...' : 'Manual Sync'}
           </Button>
         </div>
       </div>
@@ -66,9 +103,13 @@ export default function Dashboard() {
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">1,257</div>
+            <div className="text-2xl font-bold">
+              {statsLoading ? "Loading..." : stats?.totalContacts || 0}
+            </div>
             <p className="text-xs text-muted-foreground">
-              <span className="text-success">+23</span> from last week
+              <span className="text-success">
+                {stats?.withEmail || 0}
+              </span> with email addresses
             </p>
           </CardContent>
         </Card>
@@ -79,9 +120,13 @@ export default function Dashboard() {
             <UserCheck className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-primary">234</div>
+            <div className="text-2xl font-bold text-primary">
+              {statsLoading ? "Loading..." : stats?.verifiedCount || 0}
+            </div>
             <p className="text-xs text-muted-foreground">
-              <span className="text-success">+5</span> this month
+              <span className="text-warning">
+                {stats?.pendingCount || 0}
+              </span> pending verification
             </p>
           </CardContent>
         </Card>

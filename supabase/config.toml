@@ -1,1 +1,16 @@
 project_id = "opwagkvnbgxjkcvauyfq"
+
+[api]
+enabled = true
+port = 54321
+
+[db]
+enabled = true
+port = 54322
+
+[studio]
+enabled = true
+port = 54323
+
+[functions.hubspot-sync]
+verify_jwt = false
