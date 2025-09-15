@@ -11,7 +11,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { RefreshCw, CheckCircle2, XCircle, Database, TableIcon } from 'lucide-react';
+import { RefreshCw, CheckCircle2, XCircle, Database, TableIcon, Plus } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 
@@ -132,6 +132,90 @@ export default function LatestCreated() {
     setDatabaseTables(tableInfo);
   };
 
+  // Add test data to verify table works
+  const addTestData = async () => {
+    setLoading(true);
+    try {
+      // Create sample test data
+      const testContacts = [
+        {
+          hs_object_id: 'test-001',
+          email: 'john.doe@example.com',
+          firstname: 'John',
+          lastname: 'Doe',
+          phone: '555-0101',
+          mobilephone: '555-0201',
+          address: '123 Main St',
+          city: 'New York',
+          state: 'NY',
+          zip: '10001',
+          createdate: new Date().toISOString(),
+          lastmodifieddate: new Date().toISOString(),
+          email_verification_status: 'verified',
+          sync_source: 'manual_test',
+          client_type_vip_status: 'Gold',
+          client_type_prospects: 'Active'
+        },
+        {
+          hs_object_id: 'test-002',
+          email: 'jane.smith@example.com',
+          firstname: 'Jane',
+          lastname: 'Smith',
+          phone: '555-0102',
+          mobilephone: '555-0202',
+          address: '456 Oak Ave',
+          city: 'Los Angeles',
+          state: 'CA',
+          zip: '90001',
+          createdate: new Date(Date.now() - 86400000).toISOString(), // Yesterday
+          lastmodifieddate: new Date().toISOString(),
+          email_verification_status: 'pending',
+          sync_source: 'manual_test',
+          client_type_vip_status: 'Silver',
+          client_type_prospects: 'Prospect'
+        },
+        {
+          hs_object_id: 'test-003',
+          email: 'bob.wilson@example.com',
+          firstname: 'Bob',
+          lastname: 'Wilson',
+          phone: '555-0103',
+          mobilephone: '555-0203',
+          address: '789 Pine Rd',
+          city: 'Chicago',
+          state: 'IL',
+          zip: '60601',
+          createdate: new Date(Date.now() - 172800000).toISOString(), // 2 days ago
+          lastmodifieddate: new Date().toISOString(),
+          email_verification_status: 'verified',
+          sync_source: 'manual_test',
+          client_type_vip_status: 'Platinum',
+          client_type_prospects: 'Active'
+        }
+      ];
+
+      const { data, error } = await supabase
+        .from('contacts')
+        .insert(testContacts)
+        .select();
+
+      if (error) {
+        console.error('Insert error:', error);
+        toast.error(`Failed to add test data: ${error.message}`);
+      } else {
+        toast.success(`✅ Added ${data?.length || 0} test contacts!`);
+        // Refresh the data
+        await fetchLatestContacts();
+        await fetchDatabaseInfo();
+      }
+    } catch (err: any) {
+      toast.error('Error adding test data');
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // Fetch latest 100 contacts by createdate
   const fetchLatestContacts = async () => {
     setLoading(true);
@@ -239,6 +323,14 @@ export default function LatestCreated() {
               <RefreshCw className={`mr-2 h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
               Refresh Data
             </Button>
+            <Button
+              onClick={addTestData}
+              disabled={loading}
+              variant="secondary"
+            >
+              <Plus className={`mr-2 h-4 w-4`} />
+              Add Test Data
+            </Button>
           </div>
         </CardContent>
       </Card>
@@ -257,7 +349,7 @@ export default function LatestCreated() {
               </p>
               {isConnected && (
                 <p className="text-sm text-muted-foreground mt-2">
-                  The contacts table exists but is empty. Run a HubSpot sync to import data.
+                  The contacts table exists but is empty. Click "Add Test Data" or run a HubSpot sync to import data.
                 </p>
               )}
             </div>
