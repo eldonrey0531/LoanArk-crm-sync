@@ -11,7 +11,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { RefreshCw, CheckCircle2, XCircle, Database, TableIcon, Plus } from 'lucide-react';
+import { RefreshCw, CheckCircle2, XCircle, Database } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 
@@ -29,188 +29,31 @@ interface Contact {
   client_type_prospects: string | null;
 }
 
-interface TableInfo {
-  table_name: string;
-  row_count: number;
-}
-
 export default function LatestCreated() {
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [loading, setLoading] = useState(false);
   const [isConnected, setIsConnected] = useState<boolean | null>(null);
   const [totalCount, setTotalCount] = useState(0);
-  const [databaseTables, setDatabaseTables] = useState<TableInfo[]>([]);
-  const [debugLoading, setDebugLoading] = useState(false);
 
-  // Test Supabase connection and get table info
+  // Test Supabase connection
   const testConnection = async () => {
     setLoading(true);
     try {
-      // Test connection by counting contacts
       const { count, error } = await supabase
         .from('contacts')
         .select('*', { count: 'exact', head: true });
 
       if (error) {
-        console.error('Connection error:', error);
         setIsConnected(false);
         toast.error(`Connection failed: ${error.message}`);
       } else {
         setIsConnected(true);
         setTotalCount(count || 0);
         toast.success(`✅ Connected! Found ${count || 0} contacts in database`);
-
-        // Fetch database info after successful connection
-        await fetchDatabaseInfo();
       }
     } catch (err: any) {
       setIsConnected(false);
       toast.error('Failed to connect to Supabase');
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Fetch all tables and their counts
-  const fetchDatabaseInfo = async () => {
-    setDebugLoading(true);
-    try {
-      // Get list of tables using Supabase's information_schema
-      const { data: tables, error: tablesError } = await supabase.rpc('get_tables_info');
-
-      if (tablesError) {
-        console.log('Using fallback method to check tables...');
-        // Fallback: manually check known tables
-        await checkKnownTables();
-        return;
-      }
-
-      if (tables) {
-        setDatabaseTables(tables);
-      }
-    } catch (err) {
-      console.log('RPC not available, checking known tables...');
-      // Fallback method
-      await checkKnownTables();
-    } finally {
-      setDebugLoading(false);
-    }
-  };
-
-  // Fallback method to check known tables
-  const checkKnownTables = async () => {
-    const knownTables = [
-      'contacts',
-      'sync_jobs',
-      'sync_logs',
-      'hubspot_cache',
-      'hubspot_contacts',
-      'hubspot_modified_contacts'
-    ];
-
-    const tableInfo: TableInfo[] = [];
-
-    for (const tableName of knownTables) {
-      try {
-        const { count, error } = await supabase
-          .from(tableName)
-          .select('*', { count: 'exact', head: true });
-
-        if (!error) {
-          tableInfo.push({
-            table_name: tableName,
-            row_count: count || 0
-          });
-        }
-      } catch (err) {
-        // Table doesn't exist or no access
-        console.log(`Table ${tableName} not accessible`);
-      }
-    }
-
-    setDatabaseTables(tableInfo);
-  };
-
-  // Add test data to verify table works
-  const addTestData = async () => {
-    setLoading(true);
-    try {
-      // Create sample test data
-      const testContacts = [
-        {
-          hs_object_id: 'test-001',
-          email: 'john.doe@example.com',
-          firstname: 'John',
-          lastname: 'Doe',
-          phone: '555-0101',
-          mobilephone: '555-0201',
-          address: '123 Main St',
-          city: 'New York',
-          state: 'NY',
-          zip: '10001',
-          createdate: new Date().toISOString(),
-          lastmodifieddate: new Date().toISOString(),
-          email_verification_status: 'verified',
-          sync_source: 'manual_test',
-          client_type_vip_status: 'Gold',
-          client_type_prospects: 'Active'
-        },
-        {
-          hs_object_id: 'test-002',
-          email: 'jane.smith@example.com',
-          firstname: 'Jane',
-          lastname: 'Smith',
-          phone: '555-0102',
-          mobilephone: '555-0202',
-          address: '456 Oak Ave',
-          city: 'Los Angeles',
-          state: 'CA',
-          zip: '90001',
-          createdate: new Date(Date.now() - 86400000).toISOString(), // Yesterday
-          lastmodifieddate: new Date().toISOString(),
-          email_verification_status: 'pending',
-          sync_source: 'manual_test',
-          client_type_vip_status: 'Silver',
-          client_type_prospects: 'Prospect'
-        },
-        {
-          hs_object_id: 'test-003',
-          email: 'bob.wilson@example.com',
-          firstname: 'Bob',
-          lastname: 'Wilson',
-          phone: '555-0103',
-          mobilephone: '555-0203',
-          address: '789 Pine Rd',
-          city: 'Chicago',
-          state: 'IL',
-          zip: '60601',
-          createdate: new Date(Date.now() - 172800000).toISOString(), // 2 days ago
-          lastmodifieddate: new Date().toISOString(),
-          email_verification_status: 'verified',
-          sync_source: 'manual_test',
-          client_type_vip_status: 'Platinum',
-          client_type_prospects: 'Active'
-        }
-      ];
-
-      const { data, error } = await supabase
-        .from('contacts')
-        .insert(testContacts)
-        .select();
-
-      if (error) {
-        console.error('Insert error:', error);
-        toast.error(`Failed to add test data: ${error.message}`);
-      } else {
-        toast.success(`✅ Added ${data?.length || 0} test contacts!`);
-        // Refresh the data
-        await fetchLatestContacts();
-        await fetchDatabaseInfo();
-      }
-    } catch (err: any) {
-      toast.error('Error adding test data');
-      console.error(err);
     } finally {
       setLoading(false);
     }
@@ -227,7 +70,6 @@ export default function LatestCreated() {
         .limit(100);
 
       if (error) {
-        console.error('Fetch error:', error);
         toast.error(`Failed to fetch contacts: ${error.message}`);
         return;
       }
@@ -236,13 +78,11 @@ export default function LatestCreated() {
       setTotalCount(count || 0);
       setIsConnected(true);
 
-      toast.success(`Loaded ${data?.length || 0} latest contacts`);
-
-      // Also fetch database info
-      await fetchDatabaseInfo();
+      if (data && data.length > 0) {
+        toast.success(`Loaded ${data.length} latest contacts`);
+      }
     } catch (err: any) {
       toast.error('Error fetching contacts');
-      console.error(err);
     } finally {
       setLoading(false);
     }
@@ -262,9 +102,6 @@ export default function LatestCreated() {
       return dateString;
     }
   };
-
-  // Calculate total records across all tables
-  const totalRecords = databaseTables.reduce((sum, table) => sum + table.row_count, 0);
 
   return (
     <div className="container mx-auto py-6 space-y-6">
@@ -300,7 +137,7 @@ export default function LatestCreated() {
               {totalCount > 0 && (
                 <Badge variant="outline">
                   <Database className="mr-1 h-3 w-3" />
-                  {totalCount} total contacts
+                  {totalCount.toLocaleString()} total contacts
                 </Badge>
               )}
             </div>
@@ -323,14 +160,6 @@ export default function LatestCreated() {
               <RefreshCw className={`mr-2 h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
               Refresh Data
             </Button>
-            <Button
-              onClick={addTestData}
-              disabled={loading}
-              variant="secondary"
-            >
-              <Plus className={`mr-2 h-4 w-4`} />
-              Add Test Data
-            </Button>
           </div>
         </CardContent>
       </Card>
@@ -338,20 +167,17 @@ export default function LatestCreated() {
       {/* Contacts Table */}
       <Card>
         <CardHeader>
-          <CardTitle>Contact List ({contacts.length} records)</CardTitle>
+          <CardTitle>
+            Contact List ({contacts.length} of {totalCount.toLocaleString()} records)
+          </CardTitle>
         </CardHeader>
         <CardContent>
           {contacts.length === 0 ? (
             <div className="text-center py-8">
               <Database className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
               <p className="text-muted-foreground">
-                No contacts found. Click "Test Connection" to verify Supabase connection.
+                No contacts found. Click "Refresh Data" to load contacts.
               </p>
-              {isConnected && (
-                <p className="text-sm text-muted-foreground mt-2">
-                  The contacts table exists but is empty. Click "Add Test Data" or run a HubSpot sync to import data.
-                </p>
-              )}
             </div>
           ) : (
             <div className="overflow-x-auto">
@@ -422,75 +248,6 @@ export default function LatestCreated() {
               </Table>
             </div>
           )}
-        </CardContent>
-      </Card>
-
-      {/* Enhanced Debug Information */}
-      <Card>
-        <CardHeader>
-          <div className="flex justify-between items-center">
-            <CardTitle className="text-sm">Debug Information</CardTitle>
-            <Button
-              size="sm"
-              variant="ghost"
-              onClick={fetchDatabaseInfo}
-              disabled={debugLoading}
-            >
-              <RefreshCw className={`h-3 w-3 ${debugLoading ? 'animate-spin' : ''}`} />
-            </Button>
-          </div>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {/* Connection Info */}
-          <div className="space-y-2">
-            <h4 className="text-sm font-semibold flex items-center gap-2">
-              <Database className="h-4 w-4" />
-              Connection Details
-            </h4>
-            <div className="text-xs space-y-1 font-mono bg-muted p-3 rounded">
-              <p>Supabase URL: {import.meta.env.VITE_SUPABASE_URL || 'Not set'}</p>
-              <p>Connection Status: <span className={isConnected ? 'text-green-600' : 'text-red-600'}>{String(isConnected)}</span></p>
-              <p>Anon Key Set: {import.meta.env.VITE_SUPABASE_ANON_KEY ? '✅ Yes' : '❌ No'}</p>
-            </div>
-          </div>
-
-          {/* Database Tables Info */}
-          <div className="space-y-2">
-            <h4 className="text-sm font-semibold flex items-center gap-2">
-              <TableIcon className="h-4 w-4" />
-              Database Tables ({databaseTables.length} tables, {totalRecords} total records)
-            </h4>
-            <div className="bg-muted rounded p-3">
-              {databaseTables.length === 0 ? (
-                <p className="text-xs text-muted-foreground">
-                  No tables found or unable to fetch table information.
-                </p>
-              ) : (
-                <div className="space-y-1">
-                  {databaseTables.map((table) => (
-                    <div key={table.table_name} className="flex justify-between text-xs font-mono">
-                      <span className="text-blue-600">{table.table_name}</span>
-                      <span className={table.row_count > 0 ? 'text-green-600' : 'text-gray-500'}>
-                        {table.row_count} records
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Quick Stats */}
-          <div className="grid grid-cols-2 gap-2 text-xs">
-            <div className="bg-muted p-2 rounded">
-              <p className="text-muted-foreground">Contacts Table</p>
-              <p className="font-semibold">{totalCount} records</p>
-            </div>
-            <div className="bg-muted p-2 rounded">
-              <p className="text-muted-foreground">Displayed</p>
-              <p className="font-semibold">{contacts.length} records</p>
-            </div>
-          </div>
         </CardContent>
       </Card>
     </div>
