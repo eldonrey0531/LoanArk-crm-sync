@@ -1,5 +1,6 @@
 
 import { useEffect, useState } from 'react';
+import { testHubSpotConnection, fetchHubSpotContacts } from '@/api/hubspot';
 import { supabase } from '@/integrations/supabase/client';
 import { 
   Table, 
@@ -38,6 +39,38 @@ export default function LatestCreated() {
   const [hubspotCount, setHubspotCount] = useState(0);
 
   useEffect(() => {
+    // Debug: Check if environment variables are loaded
+    console.log('Environment check:');
+    console.log('VITE_HUBSPOT_API_KEY exists:', !!import.meta.env.VITE_HUBSPOT_API_KEY);
+    console.log('VITE_SUPABASE_URL:', import.meta.env.VITE_SUPABASE_URL);
+
+    // Debug: Test direct API call
+    const testDirectAPI = async () => {
+      const apiKey = import.meta.env.VITE_HUBSPOT_API_KEY;
+      if (!apiKey) {
+        console.error('No HubSpot API key found in environment variables');
+        return;
+      }
+      try {
+        const response = await fetch('https://api.hubapi.com/crm/v3/objects/contacts?limit=1', {
+          headers: {
+            'Authorization': `Bearer ${apiKey}`,
+          }
+        });
+        console.log('Direct API test response:', response.status, response.statusText);
+        if (response.ok) {
+          const data = await response.json();
+          console.log('HubSpot API working! Total contacts:', data.total);
+        } else {
+          const error = await response.text();
+          console.error('HubSpot API error:', error);
+        }
+      } catch (error) {
+        console.error('Network error:', error);
+      }
+    };
+    testDirectAPI();
+
     testConnections();
     fetchAllData();
   }, []);
@@ -60,9 +93,13 @@ export default function LatestCreated() {
 
   const testHubspotConnection = async () => {
     try {
-      // Using a simple fetch to test HubSpot connection
-      setHubspotConnected(true); // Temporarily set to true for testing
-      setHubspotCount(0); // Will be updated when API is connected
+      const result = await testHubSpotConnection();
+      setHubspotConnected(result.connected);
+      if (result.connected) {
+        setHubspotCount(result.total);
+      } else {
+        console.error('HubSpot connection failed:', result.error);
+      }
     } catch (error) {
       console.error('HubSpot connection error:', error);
       setHubspotConnected(false);
@@ -114,12 +151,20 @@ export default function LatestCreated() {
   };
 
   const fetchHubspotData = async () => {
-    // Temporarily using mock data until HubSpot API is connected
     try {
-      // This will be replaced with actual API call
-      setHubspotData([]);
+      const data = await fetchHubSpotContacts(25);
+      if (data && data.results) {
+        const formattedData = data.results.map((record: any) => ({
+          hs_object_id: record.id || record.properties?.hs_object_id || 'N/A',
+          name: `${record.properties?.firstname || ''} ${record.properties?.lastname || ''}`.trim() || 'N/A',
+          email: record.properties?.email || 'N/A',
+          email_verification_status: record.properties?.email ? 'verified' : 'unverified'
+        }));
+        setHubspotData(formattedData);
+      }
     } catch (error) {
       console.error('Error fetching HubSpot data:', error);
+      setHubspotData([]);
     }
   };
 
