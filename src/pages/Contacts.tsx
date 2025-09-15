@@ -22,178 +22,58 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-
-// Mock contact data
-const hubspotContacts = [
-  {
-    id: "hs-001",
-    name: "John Smith",
-    email: "john.smith@example.com",
-    phone: "+1 (555) 123-4567",
-    clientType: "VIP Client",
-    lastModified: "2024-01-15 10:30:00",
-    inSupabase: true,
-    syncStatus: "synced"
-  },
-  {
-    id: "hs-002", 
-    name: "Sarah Johnson",
-    email: "sarah.johnson@example.com",
-    phone: "+1 (555) 234-5678",
-    clientType: "Prospect",
-    lastModified: "2024-01-15 09:15:00",
-    inSupabase: false,
-    syncStatus: "pending"
-  },
-  {
-    id: "hs-003",
-    name: "Mike Wilson", 
-    email: "mike.wilson@example.com",
-    phone: "+1 (555) 345-6789",
-    clientType: "Lead",
-    lastModified: "2024-01-15 08:45:00",
-    inSupabase: true,
-    syncStatus: "conflict"
-  }
-];
-
-const supabaseContacts = [
-  {
-    id: "sb-001",
-    hsObjectId: "hs-001",
-    name: "John Smith",
-    email: "john.smith@example.com", 
-    phone: "+1 (555) 123-4567",
-    clientType: "VIP Client",
-    lastModified: "2024-01-15 10:30:00",
-    syncStatus: "synced"
-  },
-  {
-    id: "sb-003",
-    hsObjectId: "hs-003",
-    name: "Michael Wilson", // Different name - conflict!
-    email: "mike.wilson@example.com",
-    phone: "+1 (555) 345-6789", 
-    clientType: "VIP Client", // Different type - conflict!
-    lastModified: "2024-01-15 07:30:00",
-    syncStatus: "conflict"
-  },
-  {
-    id: "sb-004",
-    hsObjectId: null,
-    name: "Emma Davis",
-    email: "emma.davis@example.com",
-    phone: "+1 (555) 456-7890",
-    clientType: "Lead",
-    lastModified: "2024-01-15 11:00:00",
-    syncStatus: "local_only"
-  }
-];
-
-function ContactTable({ contacts, type, onSync }: { 
-  contacts: any[], 
-  type: 'hubspot' | 'supabase',
-  onSync: (id: string) => void 
-}) {
-  return (
-    <div className="rounded-md border">
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead className="w-[100px]">Status</TableHead>
-            <TableHead>Name</TableHead>
-            <TableHead>Email</TableHead>
-            <TableHead>Phone</TableHead>
-            <TableHead>Client Type</TableHead>
-            <TableHead>Last Modified</TableHead>
-            <TableHead className="text-right">Actions</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {contacts.map((contact) => (
-            <TableRow key={contact.id}>
-              <TableCell>
-                <Badge 
-                  variant={
-                    contact.syncStatus === 'synced' ? 'secondary' :
-                    contact.syncStatus === 'conflict' ? 'destructive' :
-                    contact.syncStatus === 'pending' ? 'secondary' :
-                    'outline'
-                  }
-                  className={
-                    contact.syncStatus === 'synced' ? 'bg-success-muted text-success' :
-                    contact.syncStatus === 'conflict' ? 'bg-destructive text-destructive-foreground' :
-                    contact.syncStatus === 'pending' ? 'bg-warning-muted text-warning' :
-                    'bg-muted text-muted-foreground'
-                  }
-                >
-                  {contact.syncStatus === 'synced' ? 'Synced' :
-                   contact.syncStatus === 'conflict' ? 'Conflict' :
-                   contact.syncStatus === 'pending' ? 'Pending' :
-                   'Local Only'}
-                </Badge>
-              </TableCell>
-              <TableCell className="font-medium">{contact.name}</TableCell>
-              <TableCell>
-                <div className="flex items-center space-x-2">
-                  <Mail className="w-4 h-4 text-muted-foreground" />
-                  <span>{contact.email}</span>
-                </div>
-              </TableCell>
-              <TableCell>
-                <div className="flex items-center space-x-2">
-                  <Phone className="w-4 h-4 text-muted-foreground" />
-                  <span>{contact.phone}</span>
-                </div>
-              </TableCell>
-              <TableCell>
-                <Badge variant="outline" className={
-                  contact.clientType === 'VIP Client' ? 'border-primary text-primary' :
-                  contact.clientType === 'Prospect' ? 'border-warning text-warning' :
-                  'border-muted-foreground text-muted-foreground'
-                }>
-                  {contact.clientType}
-                </Badge>
-              </TableCell>
-              <TableCell className="text-sm text-muted-foreground">
-                {contact.lastModified}
-              </TableCell>
-              <TableCell className="text-right">
-                <div className="flex justify-end space-x-2">
-                  <Button variant="ghost" size="sm">
-                    <Eye className="w-4 h-4" />
-                  </Button>
-                  {type === 'supabase' && (
-                    <Button variant="ghost" size="sm">
-                      <Edit className="w-4 h-4" />
-                    </Button>
-                  )}
-                  <Button 
-                    variant="ghost" 
-                    size="sm"
-                    onClick={() => onSync(contact.id)}
-                    disabled={contact.syncStatus === 'synced'}
-                  >
-                    <ArrowRight className="w-4 h-4" />
-                  </Button>
-                </div>
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </div>
-  );
-}
+import { useContacts, useContactStats, useHubSpotSync } from "@/hooks/useContacts";
+import { toast } from "@/hooks/use-toast";
 
 export default function Contacts() {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterType, setFilterType] = useState("all");
+  
+  const { data: contacts, isLoading, error } = useContacts();
+  const { data: stats } = useContactStats();
+  const hubSpotSync = useHubSpotSync();
 
-  const handleSync = (id: string) => {
-    console.log("Syncing contact:", id);
-    // Will implement actual sync logic later
+  const handleSync = async (id: string) => {
+    try {
+      await hubSpotSync.mutateAsync();
+      toast({
+        title: "Sync completed",
+        description: "Contact data has been synchronized.",
+      });
+    } catch (error) {
+      toast({
+        title: "Sync failed",
+        description: error instanceof Error ? error.message : "An error occurred.",
+        variant: "destructive",
+      });
+    }
   };
+
+  const handleRefresh = () => {
+    window.location.reload();
+  };
+
+  // Filter contacts based on search and filter criteria
+  const filteredContacts = contacts?.filter(contact => {
+    const matchesSearch = !searchTerm || 
+      contact.firstname?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      contact.lastname?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      contact.email?.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    return matchesSearch;
+  }) || [];
+
+  if (error) {
+    return (
+      <div className="text-center py-12">
+        <p className="text-destructive">Error loading contacts: {error.message}</p>
+        <Button onClick={handleRefresh} className="mt-4">
+          <RefreshCw className="w-4 h-4 mr-2" />
+          Retry
+        </Button>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -208,7 +88,7 @@ export default function Contacts() {
             <Download className="w-4 h-4 mr-2" />
             Export
           </Button>
-          <Button variant="outline" size="sm">
+          <Button variant="outline" size="sm" onClick={handleRefresh}>
             <RefreshCw className="w-4 h-4 mr-2" />
             Refresh
           </Button>
@@ -223,41 +103,49 @@ export default function Contacts() {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">HubSpot Contacts</CardTitle>
+            <CardTitle className="text-sm font-medium">Total Contacts</CardTitle>
             <Users className="h-4 w-4 text-chart-1" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-chart-1">{hubspotContacts.length}</div>
+            <div className="text-2xl font-bold text-chart-1">
+              {isLoading ? "Loading..." : stats?.totalContacts || 0}
+            </div>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Supabase Contacts</CardTitle>
+            <CardTitle className="text-sm font-medium">With Email</CardTitle>
             <Users className="h-4 w-4 text-chart-2" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-chart-2">{supabaseContacts.length}</div>
+            <div className="text-2xl font-bold text-chart-2">
+              {isLoading ? "Loading..." : stats?.withEmail || 0}
+            </div>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Conflicts</CardTitle>
-            <UserCheck className="h-4 w-4 text-destructive" />
+            <CardTitle className="text-sm font-medium">Verified Emails</CardTitle>
+            <UserCheck className="h-4 w-4 text-success" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-destructive">1</div>
+            <div className="text-2xl font-bold text-success">
+              {isLoading ? "Loading..." : stats?.verifiedCount || 0}
+            </div>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Pending Sync</CardTitle>
+            <CardTitle className="text-sm font-medium">Pending Verification</CardTitle>
             <RefreshCw className="h-4 w-4 text-warning" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-warning">1</div>
+            <div className="text-2xl font-bold text-warning">
+              {isLoading ? "Loading..." : stats?.pendingCount || 0}
+            </div>
           </CardContent>
         </Card>
       </div>
@@ -307,13 +195,78 @@ export default function Contacts() {
         <TabsContent value="hubspot" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>HubSpot Contacts (Read-Only)</CardTitle>
+              <CardTitle>Contact Database</CardTitle>
               <p className="text-sm text-muted-foreground">
-                Live data from HubSpot. Use "Pull to Supabase" to sync individual contacts.
+                Contacts synced from HubSpot and stored in Supabase database.
               </p>
             </CardHeader>
             <CardContent>
-              <ContactTable contacts={hubspotContacts} type="hubspot" onSync={handleSync} />
+              {isLoading ? (
+                <div className="text-center py-8">
+                  <RefreshCw className="w-6 h-6 animate-spin mx-auto mb-2" />
+                  <p>Loading contacts...</p>
+                </div>
+              ) : filteredContacts.length === 0 ? (
+                <div className="text-center py-12">
+                  <Users className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
+                  <h3 className="text-lg font-medium mb-2">No contacts found</h3>
+                  <p className="text-muted-foreground mb-4">
+                    {searchTerm ? "Try adjusting your search terms." : "Start by syncing contacts from HubSpot."}
+                  </p>
+                  <Button onClick={() => handleSync('all')}>
+                    <RefreshCw className="w-4 h-4 mr-2" />
+                    Sync from HubSpot
+                  </Button>
+                </div>
+              ) : (
+                <div className="rounded-md border">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Name</TableHead>
+                        <TableHead>Email</TableHead>
+                        <TableHead>Phone</TableHead>
+                        <TableHead>Last Modified</TableHead>
+                        <TableHead className="text-right">Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {filteredContacts.map((contact) => (
+                        <TableRow key={contact.id}>
+                          <TableCell className="font-medium">
+                            {[contact.firstname, contact.lastname].filter(Boolean).join(' ') || 'No Name'}
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center space-x-2">
+                              <Mail className="w-4 h-4 text-muted-foreground" />
+                              <span>{contact.email || 'No email'}</span>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center space-x-2">
+                              <Phone className="w-4 h-4 text-muted-foreground" />
+                              <span>{contact.phone || 'No phone'}</span>
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-sm text-muted-foreground">
+                            {new Date(contact.updated_at).toLocaleDateString()}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <div className="flex justify-end space-x-2">
+                              <Button variant="ghost" size="sm">
+                                <Eye className="w-4 h-4" />
+                              </Button>
+                              <Button variant="ghost" size="sm">
+                                <Edit className="w-4 h-4" />
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
@@ -321,13 +274,44 @@ export default function Contacts() {
         <TabsContent value="supabase" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Supabase Contacts (Editable)</CardTitle>
+              <CardTitle>Sync Management</CardTitle>
               <p className="text-sm text-muted-foreground">
-                Local database contacts. Changes can be pushed back to HubSpot.
+                Control synchronization between HubSpot and your local database.
               </p>
             </CardHeader>
-            <CardContent>
-              <ContactTable contacts={supabaseContacts} type="supabase" onSync={handleSync} />
+            <CardContent className="space-y-4">
+              <div className="flex justify-between items-center p-4 bg-muted/30 rounded-lg">
+                <div>
+                  <h4 className="font-medium">HubSpot Sync</h4>
+                  <p className="text-sm text-muted-foreground">
+                    Pull latest contacts from HubSpot API
+                  </p>
+                </div>
+                <Button 
+                  onClick={() => handleSync('all')}
+                  disabled={hubSpotSync.isPending}
+                >
+                  {hubSpotSync.isPending ? (
+                    <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                  ) : (
+                    <ArrowRight className="w-4 h-4 mr-2" />
+                  )}
+                  {hubSpotSync.isPending ? 'Syncing...' : 'Start Sync'}
+                </Button>
+              </div>
+              
+              {stats && (
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="text-center p-4 bg-muted/30 rounded-lg">
+                    <div className="text-2xl font-bold text-primary">{stats.totalContacts}</div>
+                    <p className="text-sm text-muted-foreground">Total Contacts</p>
+                  </div>
+                  <div className="text-center p-4 bg-muted/30 rounded-lg">
+                    <div className="text-2xl font-bold text-success">{stats.withEmail}</div>
+                    <p className="text-sm text-muted-foreground">With Email</p>
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
