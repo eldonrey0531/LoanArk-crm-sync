@@ -11,12 +11,12 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { RefreshCw, CheckCircle2, XCircle, Database } from 'lucide-react';
+import { RefreshCw, CheckCircle2, XCircle, Database, Users } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 
-interface Contact {
-  id: string;
+interface SupabaseContact {
+  id: number;
   hs_object_id: string;
   email: string | null;
   firstname: string | null;
@@ -29,11 +29,27 @@ interface Contact {
   client_type_prospects: string | null;
 }
 
+interface HubSpotContact {
+  id: number;
+  hs_object_id: string;
+  email: string | null;
+  firstname: string | null;
+  lastname: string | null;
+  phone: string | null;
+  company: string | null;
+  createdate: string | null;
+  hs_lastmodifieddate: string | null;
+  lifecyclestage: string | null;
+  email_verification_status: string | null;
+}
+
 export default function LatestCreated() {
-  const [contacts, setContacts] = useState<Contact[]>([]);
+  const [supabaseContacts, setSupabaseContacts] = useState<SupabaseContact[]>([]);
+  const [hubspotContacts, setHubspotContacts] = useState<HubSpotContact[]>([]);
   const [loading, setLoading] = useState(false);
   const [isConnected, setIsConnected] = useState<boolean | null>(null);
-  const [totalCount, setTotalCount] = useState(0);
+  const [supabaseTotalCount, setSupabaseTotalCount] = useState(0);
+  const [hubspotTotalCount, setHubspotTotalCount] = useState(0);
 
   // Test Supabase connection
   const testConnection = async () => {
@@ -48,7 +64,7 @@ export default function LatestCreated() {
         toast.error(`Connection failed: ${error.message}`);
       } else {
         setIsConnected(true);
-        setTotalCount(count || 0);
+        setSupabaseTotalCount(count || 0);
         toast.success(`✅ Connected! Found ${count || 0} contacts in database`);
       }
     } catch (err: any) {
@@ -59,30 +75,67 @@ export default function LatestCreated() {
     }
   };
 
-  // Fetch latest 100 contacts by createdate
-  const fetchLatestContacts = async () => {
-    setLoading(true);
+  // Fetch latest 25 contacts from Supabase
+  const fetchSupabaseContacts = async () => {
     try {
       const { data, error, count } = await supabase
         .from('contacts')
         .select('*', { count: 'exact' })
         .order('createdate', { ascending: false, nullsFirst: false })
-        .limit(100);
+        .limit(25);
 
       if (error) {
-        toast.error(`Failed to fetch contacts: ${error.message}`);
+        toast.error(`Failed to fetch Supabase contacts: ${error.message}`);
         return;
       }
 
-      setContacts(data || []);
-      setTotalCount(count || 0);
-      setIsConnected(true);
+      setSupabaseContacts(data || []);
+      setSupabaseTotalCount(count || 0);
 
       if (data && data.length > 0) {
-        toast.success(`Loaded ${data.length} latest contacts`);
+        toast.success(`Loaded ${data.length} latest Supabase contacts`);
       }
     } catch (err: any) {
-      toast.error('Error fetching contacts');
+      toast.error('Error fetching Supabase contacts');
+    }
+  };
+
+  // Fetch latest 25 contacts from HubSpot table
+  const fetchHubspotContacts = async () => {
+    try {
+      const { data, error, count } = await supabase
+        .from('hubspot_contacts')
+        .select('*', { count: 'exact' })
+        .order('createdate', { ascending: false, nullsFirst: false })
+        .limit(25);
+
+      if (error) {
+        toast.error(`Failed to fetch HubSpot contacts: ${error.message}`);
+        return;
+      }
+
+      setHubspotContacts(data || []);
+      setHubspotTotalCount(count || 0);
+
+      if (data && data.length > 0) {
+        toast.success(`Loaded ${data.length} latest HubSpot contacts`);
+      }
+    } catch (err: any) {
+      toast.error('Error fetching HubSpot contacts');
+    }
+  };
+
+  // Fetch all data
+  const fetchAllData = async () => {
+    setLoading(true);
+    try {
+      await Promise.all([
+        fetchSupabaseContacts(),
+        fetchHubspotContacts()
+      ]);
+      setIsConnected(true);
+    } catch (err: any) {
+      toast.error('Error fetching data');
     } finally {
       setLoading(false);
     }
@@ -90,7 +143,7 @@ export default function LatestCreated() {
 
   // Auto-fetch on component mount
   useEffect(() => {
-    fetchLatestContacts();
+    fetchAllData();
   }, []);
 
   // Format date for display
@@ -110,15 +163,15 @@ export default function LatestCreated() {
         <CardHeader>
           <div className="flex justify-between items-center">
             <div>
-              <CardTitle className="text-2xl">Latest Created Contacts</CardTitle>
+              <CardTitle className="text-2xl">Latest Created Records - Dual View</CardTitle>
               <p className="text-sm text-muted-foreground mt-1">
-                Top 100 most recently created contacts from Supabase
+                Top 25 most recently created contacts from both Supabase and HubSpot
               </p>
             </div>
             <div className="flex gap-2 items-center">
               {/* Connection Status Badge */}
               {isConnected !== null && (
-                <Badge variant={isConnected ? "success" : "destructive"}>
+                <Badge variant={isConnected ? "default" : "destructive"}>
                   {isConnected ? (
                     <>
                       <CheckCircle2 className="mr-1 h-3 w-3" />
@@ -133,11 +186,17 @@ export default function LatestCreated() {
                 </Badge>
               )}
 
-              {/* Total Count Badge */}
-              {totalCount > 0 && (
+              {/* Total Count Badges */}
+              {supabaseTotalCount > 0 && (
                 <Badge variant="outline">
                   <Database className="mr-1 h-3 w-3" />
-                  {totalCount.toLocaleString()} total contacts
+                  Supabase: {supabaseTotalCount.toLocaleString()}
+                </Badge>
+              )}
+              {hubspotTotalCount > 0 && (
+                <Badge variant="outline">
+                  <Users className="mr-1 h-3 w-3" />
+                  HubSpot: {hubspotTotalCount.toLocaleString()}
                 </Badge>
               )}
             </div>
@@ -154,102 +213,182 @@ export default function LatestCreated() {
               Test Connection
             </Button>
             <Button
-              onClick={fetchLatestContacts}
+              onClick={fetchAllData}
               disabled={loading}
             >
               <RefreshCw className={`mr-2 h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
-              Refresh Data
+              Refresh All Data
             </Button>
           </div>
         </CardContent>
       </Card>
 
-      {/* Contacts Table */}
-      <Card>
-        <CardHeader>
-          <CardTitle>
-            Contact List ({contacts.length} of {totalCount.toLocaleString()} records)
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {contacts.length === 0 ? (
-            <div className="text-center py-8">
-              <Database className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-              <p className="text-muted-foreground">
-                No contacts found. Click "Refresh Data" to load contacts.
-              </p>
-            </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="w-[50px]">#</TableHead>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Email</TableHead>
-                    <TableHead>Phone</TableHead>
-                    <TableHead>Client Type</TableHead>
-                    <TableHead>Created Date</TableHead>
-                    <TableHead>Last Modified</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {contacts.map((contact, index) => (
-                    <TableRow key={contact.id || contact.hs_object_id}>
-                      <TableCell className="font-medium">{index + 1}</TableCell>
-                      <TableCell>
-                        {contact.firstname || contact.lastname ? (
-                          <div>
-                            <span className="font-medium">
-                              {contact.firstname} {contact.lastname}
-                            </span>
-                          </div>
-                        ) : (
-                          <span className="text-muted-foreground">No name</span>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        {contact.email || (
-                          <span className="text-muted-foreground">No email</span>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        {contact.phone || contact.mobilephone || (
-                          <span className="text-muted-foreground">No phone</span>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex gap-1">
-                          {contact.client_type_vip_status && (
-                            <Badge variant="secondary" className="text-xs">
-                              VIP: {contact.client_type_vip_status}
-                            </Badge>
-                          )}
-                          {contact.client_type_prospects && (
-                            <Badge variant="outline" className="text-xs">
-                              {contact.client_type_prospects}
-                            </Badge>
-                          )}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <span className="text-sm">
-                          {formatDate(contact.createdate)}
-                        </span>
-                      </TableCell>
-                      <TableCell>
-                        <span className="text-sm text-muted-foreground">
-                          {formatDate(contact.lastmodifieddate)}
-                        </span>
-                      </TableCell>
+      {/* Dual Table Display */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Supabase Contacts Table */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Database className="h-5 w-5" />
+              Supabase Contacts ({supabaseContacts.length} of {supabaseTotalCount.toLocaleString()})
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {supabaseContacts.length === 0 ? (
+              <div className="text-center py-8">
+                <Database className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+                <p className="text-muted-foreground">
+                  No Supabase contacts found. Click "Refresh All Data" to load contacts.
+                </p>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="w-[50px]">#</TableHead>
+                      <TableHead>Name</TableHead>
+                      <TableHead>Email</TableHead>
+                      <TableHead>Phone</TableHead>
+                      <TableHead>Type</TableHead>
+                      <TableHead>Created</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+                  </TableHeader>
+                  <TableBody>
+                    {supabaseContacts.map((contact, index) => (
+                      <TableRow key={contact.id}>
+                        <TableCell className="font-medium">{index + 1}</TableCell>
+                        <TableCell>
+                          {contact.firstname || contact.lastname ? (
+                            <div>
+                              <span className="font-medium">
+                                {contact.firstname} {contact.lastname}
+                              </span>
+                            </div>
+                          ) : (
+                            <span className="text-muted-foreground">No name</span>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          {contact.email || (
+                            <span className="text-muted-foreground">No email</span>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          {contact.phone || contact.mobilephone || (
+                            <span className="text-muted-foreground">No phone</span>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex gap-1 flex-wrap">
+                            {contact.client_type_vip_status && (
+                              <Badge variant="secondary" className="text-xs">
+                                VIP
+                              </Badge>
+                            )}
+                            {contact.client_type_prospects && (
+                              <Badge variant="outline" className="text-xs">
+                                Prospect
+                              </Badge>
+                            )}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <span className="text-sm">
+                            {formatDate(contact.createdate)}
+                          </span>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* HubSpot Contacts Table */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Users className="h-5 w-5" />
+              HubSpot Contacts ({hubspotContacts.length} of {hubspotTotalCount.toLocaleString()})
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {hubspotContacts.length === 0 ? (
+              <div className="text-center py-8">
+                <Users className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+                <p className="text-muted-foreground">
+                  No HubSpot contacts found. Click "Refresh All Data" to load contacts.
+                </p>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="w-[50px]">#</TableHead>
+                      <TableHead>Name</TableHead>
+                      <TableHead>Email</TableHead>
+                      <TableHead>Company</TableHead>
+                      <TableHead>Stage</TableHead>
+                      <TableHead>Created</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {hubspotContacts.map((contact, index) => (
+                      <TableRow key={contact.id}>
+                        <TableCell className="font-medium">{index + 1}</TableCell>
+                        <TableCell>
+                          {contact.firstname || contact.lastname ? (
+                            <div>
+                              <span className="font-medium">
+                                {contact.firstname} {contact.lastname}
+                              </span>
+                            </div>
+                          ) : (
+                            <span className="text-muted-foreground">No name</span>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-1">
+                            {contact.email || (
+                              <span className="text-muted-foreground">No email</span>
+                            )}
+                            {contact.email_verification_status === 'valid' && (
+                              <CheckCircle2 className="h-3 w-3 text-green-500" />
+                            )}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          {contact.company || (
+                            <span className="text-muted-foreground">No company</span>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          {contact.lifecyclestage ? (
+                            <Badge variant="outline" className="text-xs">
+                              {contact.lifecyclestage}
+                            </Badge>
+                          ) : (
+                            <span className="text-muted-foreground">-</span>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          <span className="text-sm">
+                            {formatDate(contact.createdate)}
+                          </span>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }
