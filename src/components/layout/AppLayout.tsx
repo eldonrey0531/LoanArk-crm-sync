@@ -9,7 +9,9 @@ import {
   Menu,
   X,
   Bell,
-  Search
+  Search,
+  Calendar,
+  Clock
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -18,6 +20,8 @@ import { Input } from "@/components/ui/input";
 const navigation = [
   { name: "Dashboard", href: "/", icon: BarChart3 },
   { name: "Contacts", href: "/contacts", icon: Users },
+  { name: "Latest Created", href: "/latest-created", icon: Calendar },
+  { name: "Latest Updated", href: "/latest-updated", icon: Clock },
   { name: "Sync Monitor", href: "/sync", icon: RotateCw },
   { name: "Logs & Audit", href: "/logs", icon: FileText },
   { name: "Settings", href: "/settings", icon: Settings },

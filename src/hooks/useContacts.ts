@@ -78,6 +78,38 @@ export const useSyncLogs = () => {
   });
 };
 
+export const useTop100ByCreated = () => {
+  return useQuery({
+    queryKey: ["contacts-top-100-created"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("contacts")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .limit(100);
+
+      if (error) throw error;
+      return data as Contact[];
+    },
+  });
+};
+
+export const useTop100ByUpdated = () => {
+  return useQuery({
+    queryKey: ["contacts-top-100-updated"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("contacts")
+        .select("*")
+        .order("updated_at", { ascending: false })
+        .limit(100);
+
+      if (error) throw error;
+      return data as Contact[];
+    },
+  });
+};
+
 export const useHubSpotSync = () => {
   const queryClient = useQueryClient();
 
@@ -92,6 +124,8 @@ export const useHubSpotSync = () => {
       queryClient.invalidateQueries({ queryKey: ["contacts"] });
       queryClient.invalidateQueries({ queryKey: ["contact-stats"] });
       queryClient.invalidateQueries({ queryKey: ["sync-logs"] });
+      queryClient.invalidateQueries({ queryKey: ["contacts-top-100-created"] });
+      queryClient.invalidateQueries({ queryKey: ["contacts-top-100-updated"] });
     },
   });
 };

@@ -6,6 +6,8 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AppLayout } from "./components/layout/AppLayout";
 import Dashboard from "./pages/Dashboard";
 import Contacts from "./pages/Contacts";
+import LatestCreated from "./pages/LatestCreated";
+import LatestUpdated from "./pages/LatestUpdated";
 import SyncMonitor from "./pages/SyncMonitor";
 import Logs from "./pages/Logs";
 import Settings from "./pages/Settings";
@@ -23,6 +25,8 @@ const App = () => (
           <Route path="/" element={<AppLayout />}>
             <Route index element={<Dashboard />} />
             <Route path="contacts" element={<Contacts />} />
+            <Route path="latest-created" element={<LatestCreated />} />
+            <Route path="latest-updated" element={<LatestUpdated />} />
             <Route path="sync" element={<SyncMonitor />} />
             <Route path="logs" element={<Logs />} />
             <Route path="settings" element={<Settings />} />
