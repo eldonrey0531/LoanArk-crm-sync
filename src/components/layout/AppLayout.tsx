@@ -29,7 +29,7 @@ export function AppLayout() {
   const location = useLocation();
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className='min-h-screen bg-background'>
       {/* Sidebar */}
       <div
         className={cn(
@@ -38,21 +38,30 @@ export function AppLayout() {
         )}
       >
         {/* Sidebar Header */}
-        <div className="flex h-16 items-center justify-between px-4 border-b border-white/10">
-          {sidebarOpen && <span className="text-xl font-semibold">LoanArk CRM</span>}
+        <div className='flex h-16 items-center justify-between px-4 border-b border-white/10'>
+          {sidebarOpen && (
+            <span className='text-xl font-semibold'>LoanArk CRM</span>
+          )}
           <Button
-            variant="ghost"
-            size="icon"
+            variant='ghost'
+            size='icon'
             onClick={() => setSidebarOpen(!sidebarOpen)}
-            className={cn('text-white hover:bg-gray-800', !sidebarOpen && 'mx-auto')}
+            className={cn(
+              'text-white hover:bg-gray-800',
+              !sidebarOpen && 'mx-auto'
+            )}
           >
-            {sidebarOpen ? <ChevronLeft size={20} /> : <ChevronRight size={20} />}
+            {sidebarOpen ? (
+              <ChevronLeft size={20} />
+            ) : (
+              <ChevronRight size={20} />
+            )}
           </Button>
         </div>
 
         {/* Sidebar Navigation */}
-        <nav className="flex-1 space-y-1 px-2 py-4">
-          {navigation.map((item) => {
+        <nav className='flex-1 space-y-1 px-2 py-4'>
+          {navigation.map(item => {
             const Icon = item.icon;
             const isActive = location.pathname === item.href;
 
@@ -69,8 +78,15 @@ export function AppLayout() {
                 )}
                 title={!sidebarOpen ? item.name : undefined}
               >
-                <Icon className={cn('flex-shrink-0', sidebarOpen ? 'w-5 h-5 mr-3' : 'w-5 h-5')} />
-                {sidebarOpen && <span className="text-sm font-medium">{item.name}</span>}
+                <Icon
+                  className={cn(
+                    'flex-shrink-0',
+                    sidebarOpen ? 'w-5 h-5 mr-3' : 'w-5 h-5'
+                  )}
+                />
+                {sidebarOpen && (
+                  <span className='text-sm font-medium'>{item.name}</span>
+                )}
               </Link>
             );
           })}
@@ -78,8 +94,8 @@ export function AppLayout() {
 
         {/* Sidebar Footer */}
         {sidebarOpen && (
-          <div className="border-t border-gray-800 p-4 mt-auto">
-            <div className="text-xs text-gray-400">
+          <div className='border-t border-gray-800 p-4 mt-auto'>
+            <div className='text-xs text-gray-400'>
               <div>Version 1.0.0</div>
               <div>© 2025 LoanArk</div>
             </div>
@@ -94,7 +110,7 @@ export function AppLayout() {
           sidebarOpen ? 'lg:pl-64' : 'lg:pl-16'
         )}
       >
-        <main className="min-h-screen">
+        <main className='min-h-screen'>
           <Outlet />
         </main>
       </div>

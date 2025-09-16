@@ -11,7 +11,14 @@ import {
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Loader2, RefreshCw, CheckCircle, XCircle, Database, Cloud } from 'lucide-react';
+import {
+  Loader2,
+  RefreshCw,
+  CheckCircle,
+  XCircle,
+  Database,
+  Cloud,
+} from 'lucide-react';
 import { useHubSpot } from '@/contexts/HubSpotContext';
 import { formatCreateDate } from '@/utils/dateFormatter';
 
@@ -78,7 +85,9 @@ export default function LatestCreated() {
   const fetchSupabaseData = async () => {
     const { data, error } = await supabase
       .from('contacts')
-      .select('hs_object_id, firstname, lastname, email, email_verification_status, createdate')
+      .select(
+        'hs_object_id, firstname, lastname, email, email_verification_status, createdate'
+      )
       .order('createdate', { ascending: false })
       .limit(25);
 
@@ -125,7 +134,8 @@ export default function LatestCreated() {
             hs_object_id: record.id,
             name: `${record.properties.firstname || ''} ${record.properties.lastname || ''}`.trim(),
             email: record.properties.email || 'N/A',
-            email_verification_status: record.properties.email_verification_status || 'unverified',
+            email_verification_status:
+              record.properties.email_verification_status || 'unverified',
             createdate: record.properties.createdate || '',
           })) || [];
 
@@ -140,79 +150,81 @@ export default function LatestCreated() {
     const statusLower = status?.toLowerCase() || 'unverified';
 
     if (statusLower === 'verified') {
-      return <Badge className="bg-green-100 text-green-800">Verified</Badge>;
+      return <Badge className='bg-green-100 text-green-800'>Verified</Badge>;
     } else if (statusLower === 'pending') {
-      return <Badge className="bg-yellow-100 text-yellow-800">Pending</Badge>;
+      return <Badge className='bg-yellow-100 text-yellow-800'>Pending</Badge>;
     } else {
-      return <Badge className="bg-gray-100 text-gray-800">Unverified</Badge>;
+      return <Badge className='bg-gray-100 text-gray-800'>Unverified</Badge>;
     }
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className='min-h-screen bg-gray-50'>
       {/* Full width container with minimal padding */}
-      <div className="px-4 py-6">
+      <div className='px-4 py-6'>
         {/* Header Section */}
-        <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+        <div className='bg-white rounded-lg shadow-sm p-6 mb-6'>
+          <h1 className='text-3xl font-bold text-gray-900 mb-2'>
             Latest Created Records - Dual View
           </h1>
-          <p className="text-gray-600 mb-4">
+          <p className='text-gray-600 mb-4'>
             Top 25 most recently created contacts from both Supabase and HubSpot
           </p>
 
           {/* Connection Status */}
-          <div className="flex flex-wrap gap-6 items-center">
+          <div className='flex flex-wrap gap-6 items-center'>
             {/* Supabase Connection Status */}
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2">
+            <div className='flex items-center gap-4'>
+              <div className='flex items-center gap-2'>
                 {supabaseConnected ? (
-                  <CheckCircle className="h-5 w-5 text-green-500" />
+                  <CheckCircle className='h-5 w-5 text-green-500' />
                 ) : (
-                  <XCircle className="h-5 w-5 text-red-500" />
+                  <XCircle className='h-5 w-5 text-red-500' />
                 )}
-                <span className="font-medium">Connected</span>
+                <span className='font-medium'>Connected</span>
               </div>
 
-              <div className="flex items-center gap-2 text-gray-600">
-                <Database className="h-5 w-5" />
+              <div className='flex items-center gap-2 text-gray-600'>
+                <Database className='h-5 w-5' />
                 <span>Supabase: {supabaseCount.toLocaleString()}</span>
               </div>
 
-              <Button variant="outline" size="sm" onClick={testConnections}>
+              <Button variant='outline' size='sm' onClick={testConnections}>
                 Test Connection
               </Button>
             </div>
 
             {/* HubSpot Connection Status */}
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2">
+            <div className='flex items-center gap-4'>
+              <div className='flex items-center gap-2'>
                 {(() => {
                   if (hubspotLoading) {
-                    return <Loader2 className="h-5 w-5 animate-spin text-gray-500" />;
+                    return (
+                      <Loader2 className='h-5 w-5 animate-spin text-gray-500' />
+                    );
                   }
                   if (hubspotConnected) {
-                    return <CheckCircle className="h-5 w-5 text-green-500" />;
+                    return <CheckCircle className='h-5 w-5 text-green-500' />;
                   }
-                  return <XCircle className="h-5 w-5 text-red-500" />;
+                  return <XCircle className='h-5 w-5 text-red-500' />;
                 })()}
-                <span className="font-medium">Connected</span>
+                <span className='font-medium'>Connected</span>
               </div>
 
-              <div className="flex items-center gap-2 text-gray-600">
-                <Cloud className="h-5 w-5" />
+              <div className='flex items-center gap-2 text-gray-600'>
+                <Cloud className='h-5 w-5' />
                 <span>HubSpot: {hubspotCount.toLocaleString()}</span>
               </div>
 
               <Button
-                variant="outline"
-                size="sm"
+                variant='outline'
+                size='sm'
                 onClick={checkHubSpotConnection}
                 disabled={hubspotLoading}
               >
                 {hubspotLoading ? (
                   <>
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    <Loader2 className='h-4 w-4 mr-2 animate-spin' />
                     Testing...
                   </>
                 ) : (
@@ -222,56 +234,70 @@ export default function LatestCreated() {
             </div>
 
             {/* Error Display */}
-            {hubspotError && <div className="text-red-600 text-sm">Error: {hubspotError}</div>}
+            {hubspotError && (
+              <div className='text-red-600 text-sm'>Error: {hubspotError}</div>
+            )}
 
-            <Button onClick={fetchAllData} size="sm" className="ml-auto">
-              <RefreshCw className="h-4 w-4 mr-2" />
+            <Button onClick={fetchAllData} size='sm' className='ml-auto'>
+              <RefreshCw className='h-4 w-4 mr-2' />
               Refresh All Data
             </Button>
           </div>
         </div>
 
         {loading ? (
-          <div className="flex justify-center items-center h-64">
-            <Loader2 className="h-8 w-8 animate-spin text-gray-500" />
+          <div className='flex justify-center items-center h-64'>
+            <Loader2 className='h-8 w-8 animate-spin text-gray-500' />
           </div>
         ) : (
-          <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+          <div className='grid grid-cols-1 xl:grid-cols-2 gap-6'>
             {/* Supabase Table */}
-            <Card className="shadow-sm border-0">
-              <CardHeader className="bg-blue-600 text-white px-6 py-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Database className="h-5 w-5" />
-                    <h2 className="text-lg font-semibold">Supabase Database</h2>
+            <Card className='shadow-sm border-0'>
+              <CardHeader className='bg-blue-600 text-white px-6 py-4'>
+                <div className='flex items-center justify-between'>
+                  <div className='flex items-center gap-2'>
+                    <Database className='h-5 w-5' />
+                    <h2 className='text-lg font-semibold'>Supabase Database</h2>
                   </div>
-                  <Badge variant="secondary" className="bg-white/20 text-white">
+                  <Badge variant='secondary' className='bg-white/20 text-white'>
                     {supabaseData.length} Records
                   </Badge>
                 </div>
               </CardHeader>
-              <CardContent className="p-0">
-                <div className="overflow-x-auto">
+              <CardContent className='p-0'>
+                <div className='overflow-x-auto'>
                   <Table>
                     <TableHeader>
-                      <TableRow className="bg-gray-50">
-                        <TableHead className="font-semibold">HS Object ID</TableHead>
-                        <TableHead className="font-semibold">Name</TableHead>
-                        <TableHead className="font-semibold">Email</TableHead>
-                        <TableHead className="font-semibold">Email Status</TableHead>
-                        <TableHead className="font-semibold">Created Date</TableHead>
+                      <TableRow className='bg-gray-50'>
+                        <TableHead className='font-semibold'>
+                          HS Object ID
+                        </TableHead>
+                        <TableHead className='font-semibold'>Name</TableHead>
+                        <TableHead className='font-semibold'>Email</TableHead>
+                        <TableHead className='font-semibold'>
+                          Email Status
+                        </TableHead>
+                        <TableHead className='font-semibold'>
+                          Created Date
+                        </TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {supabaseData.map((record, index) => (
                         <TableRow key={record.hs_object_id || index}>
-                          <TableCell className="font-mono text-sm">
+                          <TableCell className='font-mono text-sm'>
                             {record.hs_object_id || 'N/A'}
                           </TableCell>
-                          <TableCell className="font-medium">{record.name || 'N/A'}</TableCell>
-                          <TableCell className="text-gray-600">{record.email || 'N/A'}</TableCell>
-                          <TableCell>{getStatusBadge(record.email_verification_status)}</TableCell>
-                          <TableCell className="text-sm text-gray-600">
+                          <TableCell className='font-medium'>
+                            {record.name || 'N/A'}
+                          </TableCell>
+                          <TableCell className='text-gray-600'>
+                            {record.email || 'N/A'}
+                          </TableCell>
+                          <TableCell>
+                            {getStatusBadge(record.email_verification_status)}
+                          </TableCell>
+                          <TableCell className='text-sm text-gray-600'>
                             {formatCreateDate(record.createdate)}
                           </TableCell>
                         </TableRow>
@@ -283,40 +309,52 @@ export default function LatestCreated() {
             </Card>
 
             {/* HubSpot Table */}
-            <Card className="shadow-sm border-0">
-              <CardHeader className="bg-orange-500 text-white px-6 py-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Cloud className="h-5 w-5" />
-                    <h2 className="text-lg font-semibold">HubSpot CRM</h2>
+            <Card className='shadow-sm border-0'>
+              <CardHeader className='bg-orange-500 text-white px-6 py-4'>
+                <div className='flex items-center justify-between'>
+                  <div className='flex items-center gap-2'>
+                    <Cloud className='h-5 w-5' />
+                    <h2 className='text-lg font-semibold'>HubSpot CRM</h2>
                   </div>
-                  <Badge variant="secondary" className="bg-white/20 text-white">
+                  <Badge variant='secondary' className='bg-white/20 text-white'>
                     {hubspotData.length} Records
                   </Badge>
                 </div>
               </CardHeader>
-              <CardContent className="p-0">
-                <div className="overflow-x-auto">
+              <CardContent className='p-0'>
+                <div className='overflow-x-auto'>
                   <Table>
                     <TableHeader>
-                      <TableRow className="bg-gray-50">
-                        <TableHead className="font-semibold">HS Object ID</TableHead>
-                        <TableHead className="font-semibold">Name</TableHead>
-                        <TableHead className="font-semibold">Email</TableHead>
-                        <TableHead className="font-semibold">Email Status</TableHead>
-                        <TableHead className="font-semibold">Created Date</TableHead>
+                      <TableRow className='bg-gray-50'>
+                        <TableHead className='font-semibold'>
+                          HS Object ID
+                        </TableHead>
+                        <TableHead className='font-semibold'>Name</TableHead>
+                        <TableHead className='font-semibold'>Email</TableHead>
+                        <TableHead className='font-semibold'>
+                          Email Status
+                        </TableHead>
+                        <TableHead className='font-semibold'>
+                          Created Date
+                        </TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {hubspotData.map((record, index) => (
                         <TableRow key={record.hs_object_id || index}>
-                          <TableCell className="font-mono text-sm">
+                          <TableCell className='font-mono text-sm'>
                             {record.hs_object_id || 'N/A'}
                           </TableCell>
-                          <TableCell className="font-medium">{record.name || 'N/A'}</TableCell>
-                          <TableCell className="text-gray-600">{record.email || 'N/A'}</TableCell>
-                          <TableCell>{getStatusBadge(record.email_verification_status)}</TableCell>
-                          <TableCell className="text-sm text-gray-600">
+                          <TableCell className='font-medium'>
+                            {record.name || 'N/A'}
+                          </TableCell>
+                          <TableCell className='text-gray-600'>
+                            {record.email || 'N/A'}
+                          </TableCell>
+                          <TableCell>
+                            {getStatusBadge(record.email_verification_status)}
+                          </TableCell>
+                          <TableCell className='text-sm text-gray-600'>
                             {formatCreateDate(record.createdate)}
                           </TableCell>
                         </TableRow>

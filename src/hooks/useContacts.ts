@@ -57,20 +57,26 @@ export const useContactStats = () => {
         }
 
         // Get contacts with email verification status
-        const { data: verificationData, error: verificationError } = await supabase
-          .from('contacts')
-          .select('email_verification_status')
-          .not('email', 'is', null);
+        const { data: verificationData, error: verificationError } =
+          await supabase
+            .from('contacts')
+            .select('email_verification_status')
+            .not('email', 'is', null);
 
         if (verificationError) {
-          console.warn('Failed to get verification data:', verificationError.message);
+          console.warn(
+            'Failed to get verification data:',
+            verificationError.message
+          );
           // Don't throw here, return partial data
         }
 
         const verifiedCount =
-          verificationData?.filter((c) => c.email_verification_status === 'valid').length || 0;
+          verificationData?.filter(c => c.email_verification_status === 'valid')
+            .length || 0;
         const pendingCount =
-          verificationData?.filter((c) => c.email_verification_status === null).length || 0;
+          verificationData?.filter(c => c.email_verification_status === null)
+            .length || 0;
 
         return {
           totalContacts: totalContacts || 0,

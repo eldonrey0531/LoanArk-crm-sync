@@ -44,65 +44,73 @@ export default function LatestUpdated() {
 
   if (loading) {
     return (
-      <div className="container mx-auto py-6">
-        <div className="text-center">Loading recently updated contacts...</div>
+      <div className='container mx-auto py-6'>
+        <div className='text-center'>Loading recently updated contacts...</div>
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto py-6">
-      <h1 className="text-3xl font-bold mb-6">Recently Updated Contacts</h1>
+    <div className='container mx-auto py-6'>
+      <h1 className='text-3xl font-bold mb-6'>Recently Updated Contacts</h1>
 
-      <div className="grid gap-4">
+      <div className='grid gap-4'>
         {contacts.length === 0 ? (
           <Card>
-            <CardContent className="text-center py-6">
+            <CardContent className='text-center py-6'>
               No recently updated contacts
             </CardContent>
           </Card>
         ) : (
-          contacts.map((contact) => (
+          contacts.map(contact => (
             <Card key={contact.id}>
               <CardHeader>
-                <div className="flex justify-between items-start">
-                  <CardTitle className="text-lg">
+                <div className='flex justify-between items-start'>
+                  <CardTitle className='text-lg'>
                     {contact.firstname} {contact.lastname}
                   </CardTitle>
-                  <div className="flex gap-2">
+                  <div className='flex gap-2'>
                     {contact.lastmodifieddate && (
-                      <Badge variant="secondary">
-                        <Clock className="h-3 w-3 mr-1" />
+                      <Badge variant='secondary'>
+                        <Clock className='h-3 w-3 mr-1' />
                         {getTimeSinceUpdate(contact.lastmodifieddate)}
                       </Badge>
                     )}
-                    <Badge variant="outline">
+                    <Badge variant='outline'>
                       {contact.client_type_prospects || 'Contact'}
                     </Badge>
                   </div>
                 </div>
               </CardHeader>
               <CardContent>
-                <div className="space-y-2 text-sm">
-                  <div className="flex items-center gap-2">
-                    <Mail className="h-4 w-4 text-gray-400" />
+                <div className='space-y-2 text-sm'>
+                  <div className='flex items-center gap-2'>
+                    <Mail className='h-4 w-4 text-gray-400' />
                     <span>{contact.email || 'No email'}</span>
                     {contact.email_verification_status && (
-                      <Badge variant={
-                        contact.email_verification_status === 'valid' ? 'success' : 'secondary'
-                      } className="text-xs">
+                      <Badge
+                        variant={
+                          contact.email_verification_status === 'valid'
+                            ? 'success'
+                            : 'secondary'
+                        }
+                        className='text-xs'
+                      >
                         {contact.email_verification_status}
                       </Badge>
                     )}
                   </div>
-                  <div className="flex items-center gap-2">
-                    <User className="h-4 w-4 text-gray-400" />
-                    <span>{contact.phone || contact.mobilephone || 'No phone'}</span>
+                  <div className='flex items-center gap-2'>
+                    <User className='h-4 w-4 text-gray-400' />
+                    <span>
+                      {contact.phone || contact.mobilephone || 'No phone'}
+                    </span>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Calendar className="h-4 w-4 text-gray-400" />
-                    <span className="text-gray-600">
-                      Last updated: {contact.lastmodifieddate
+                  <div className='flex items-center gap-2'>
+                    <Calendar className='h-4 w-4 text-gray-400' />
+                    <span className='text-gray-600'>
+                      Last updated:{' '}
+                      {contact.lastmodifieddate
                         ? new Date(contact.lastmodifieddate).toLocaleString()
                         : 'Unknown'}
                     </span>

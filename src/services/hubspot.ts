@@ -1,4 +1,5 @@
 import StorageManager from '../utils/storage';
+import HubSpotAuthService from './hubspot-auth';
 
 interface HubSpotConnection {
   id: string;
@@ -63,10 +64,13 @@ class HubSpotService {
       console.log('🔍 Testing HubSpot connection...');
 
       // Use existing Netlify function for consistency
-      const response = await this.makeRequest('/.netlify/functions/hubspot-test', {
-        method: 'GET',
-        timeout: this.config.timeout,
-      });
+      const response = await this.makeRequest(
+        '/.netlify/functions/hubspot-test',
+        {
+          method: 'GET',
+          timeout: this.config.timeout,
+        }
+      );
 
       const data = await response.json();
       const result: ConnectionDetails = {
@@ -111,14 +115,17 @@ class HubSpotService {
     try {
       console.log('📡 Fetching HubSpot contacts...', params);
 
-      const response = await this.makeRequest('/.netlify/functions/hubspot-contacts', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(params),
-        timeout: this.config.timeout,
-      });
+      const response = await this.makeRequest(
+        '/.netlify/functions/hubspot-contacts',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(params),
+          timeout: this.config.timeout,
+        }
+      );
 
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -146,16 +153,22 @@ class HubSpotService {
    */
   async fetchAllContacts(params: any = {}): Promise<any> {
     try {
-      console.log('📡 Fetching ALL HubSpot contacts with pagination...', params);
+      console.log(
+        '📡 Fetching ALL HubSpot contacts with pagination...',
+        params
+      );
 
-      const response = await this.makeRequest('/.netlify/functions/hubspot-contacts-all', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(params),
-        timeout: this.config.timeout * 3, // Longer timeout for bulk operations
-      });
+      const response = await this.makeRequest(
+        '/.netlify/functions/hubspot-contacts-all',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(params),
+          timeout: this.config.timeout * 3, // Longer timeout for bulk operations
+        }
+      );
 
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -185,20 +198,41 @@ class HubSpotService {
   ): Promise<Response> {
     const { timeout = this.config.timeout, ...fetchOptions } = options;
 
-    // Create abort controller for timeout
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), timeout);
+    // Create abort controller for timeout (if available)
+    let controller: AbortController | null = null;
+    let timeoutId: NodeJS.Timeout | null = null;
 
     try {
-      const response = await fetch(url, {
-        ...fetchOptions,
-        signal: controller.signal,
-      });
+      // Check if AbortController is available and working
+      if (typeof AbortController !== 'undefined') {
+        controller = new AbortController();
+        timeoutId = setTimeout(() => {
+          if (controller) controller.abort();
+        }, timeout);
+      }
 
-      clearTimeout(timeoutId);
+      // Get authentication headers from OAuth service
+      const authService = HubSpotAuthService.getInstance();
+      const authHeader = await authService.getAuthHeader();
+
+      const requestOptions: RequestInit = {
+        ...fetchOptions,
+        headers: {
+          ...fetchOptions.headers,
+          ...(authHeader && authHeader),
+        }
+      };
+
+      if (controller && controller.signal) {
+        requestOptions.signal = controller.signal;
+      }
+
+      const response = await fetch(url, requestOptions);
+
+      if (timeoutId) clearTimeout(timeoutId);
       return response;
     } catch (error) {
-      clearTimeout(timeoutId);
+      if (timeoutId) clearTimeout(timeoutId);
 
       if (error.name === 'AbortError') {
         throw new Error(`Request timeout after ${timeout}ms`);
@@ -237,7 +271,9 @@ class HubSpotService {
 
     // Check if we're in a supported environment
     const isProduction = import.meta.env.PROD;
-    const isNetlify = typeof window !== 'undefined' && window.location.hostname.includes('netlify');
+    const isNetlify =
+      typeof window !== 'undefined' &&
+      window.location.hostname.includes('netlify');
     const isLovable =
       typeof window !== 'undefined' &&
       (window.location.hostname.includes('lovable') ||

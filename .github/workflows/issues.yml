@@ -1,0 +1,121 @@
+name: Issue Management
+
+on:
+  issues:
+    types: [opened, labeled, unlabeled, closed]
+  pull_request:
+    types: [opened, closed, labeled, unlabeled]
+
+jobs:
+  issue-management:
+    name: Manage Issues and PRs
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Handle new issues
+      if: github.event_name == 'issues' && github.event.action == 'opened'
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const issue = context.payload.issue;
+          const labels = issue.labels.map(label => label.name);
+
+          // Add default labels for new issues
+          if (!labels.includes('triage')) {
+            await github.rest.issues.addLabels({
+              issue_number: issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              labels: ['triage']
+            });
+          }
+
+          // Auto-assign based on issue type
+          if (issue.title.toLowerCase().includes('bug')) {
+            await github.rest.issues.addLabels({
+              issue_number: issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              labels: ['bug']
+            });
+          } else if (issue.title.toLowerCase().includes('feature')) {
+            await github.rest.issues.addLabels({
+              issue_number: issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              labels: ['enhancement']
+            });
+          }
+
+    - name: Handle PR labels
+      if: github.event_name == 'pull_request' && github.event.action == 'opened'
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const pr = context.payload.pull_request;
+
+          // Add size label based on PR changes
+          const additions = pr.additions;
+          const deletions = pr.deletions;
+          const totalChanges = additions + deletions;
+
+          let sizeLabel = 'size:small';
+          if (totalChanges > 100) sizeLabel = 'size:medium';
+          if (totalChanges > 500) sizeLabel = 'size:large';
+          if (totalChanges > 1000) sizeLabel = 'size:xlarge';
+
+          await github.rest.issues.addLabels({
+            issue_number: pr.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            labels: [sizeLabel]
+          });
+
+    - name: Update project board
+      if: github.event_name == 'issues' && github.event.action == 'labeled'
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const issue = context.payload.issue;
+          const label = context.payload.label.name;
+
+          // Move issues to appropriate columns based on labels
+          if (label === 'ready-for-review') {
+            // Logic to move to "In Review" column
+            console.log('Moving issue to In Review');
+          } else if (label === 'approved') {
+            // Logic to move to "Approved" column
+            console.log('Moving issue to Approved');
+          }
+
+  stale-management:
+    name: Stale Issue Management
+    runs-on: ubuntu-latest
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Stale issue management
+      uses: actions/stale@v9
+      with:
+        stale-issue-message: |
+          This issue has been automatically marked as stale because it has not had recent activity. It will be closed in 7 days if no further activity occurs.
+
+          If this issue is still relevant, please add a comment or update the issue.
+        stale-pr-message: |
+          This pull request has been automatically marked as stale because it has not had recent activity. It will be closed in 7 days if no further activity occurs.
+
+          If this PR is still relevant, please add a comment or update the PR.
+        close-issue-message: |
+          This issue has been automatically closed due to inactivity. If you believe this issue is still relevant, please reopen it and provide additional details.
+        close-pr-message: |
+          This pull request has been automatically closed due to inactivity. If you believe this PR is still relevant, please reopen it and provide additional details.
+        days-before-stale: 30
+        days-before-close: 7
+        exempt-issue-labels: 'pinned,security,bug'
+        exempt-pr-labels: 'pinned,security,work-in-progress'

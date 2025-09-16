@@ -47,26 +47,28 @@ export default function Contacts() {
   );
 
   return (
-    <div className="container mx-auto py-6">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold">Contacts</h1>
+    <div className='container mx-auto py-6'>
+      <div className='flex justify-between items-center mb-6'>
+        <h1 className='text-3xl font-bold'>Contacts</h1>
         <Button onClick={fetchContacts} disabled={loading}>
-          <RefreshCw className={`mr-2 h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+          <RefreshCw
+            className={`mr-2 h-4 w-4 ${loading ? 'animate-spin' : ''}`}
+          />
           Refresh
         </Button>
       </div>
 
-      <div className="flex items-center space-x-2 mb-4">
-        <Search className="h-5 w-5 text-gray-400" />
+      <div className='flex items-center space-x-2 mb-4'>
+        <Search className='h-5 w-5 text-gray-400' />
         <Input
-          placeholder="Search contacts..."
+          placeholder='Search contacts...'
           value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="max-w-sm"
+          onChange={e => setSearchTerm(e.target.value)}
+          className='max-w-sm'
         />
       </div>
 
-      <div className="rounded-md border">
+      <div className='rounded-md border'>
         <Table>
           <TableHeader>
             <TableRow>
@@ -80,25 +82,28 @@ export default function Contacts() {
           <TableBody>
             {loading ? (
               <TableRow>
-                <TableCell colSpan={5} className="text-center">
+                <TableCell colSpan={5} className='text-center'>
                   Loading...
                 </TableCell>
               </TableRow>
             ) : filteredContacts.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={5} className="text-center">
+                <TableCell colSpan={5} className='text-center'>
                   No contacts found
                 </TableCell>
               </TableRow>
             ) : (
-              filteredContacts.map((contact) => (
+              filteredContacts.map(contact => (
                 <TableRow key={contact.id}>
                   <TableCell>
                     {contact.firstname} {contact.lastname}
                   </TableCell>
                   <TableCell>{contact.email}</TableCell>
                   <TableCell>{contact.phone || contact.mobilephone}</TableCell>
-                  <TableCell>{contact.client_type_vip_status || contact.client_type_prospects}</TableCell>
+                  <TableCell>
+                    {contact.client_type_vip_status ||
+                      contact.client_type_prospects}
+                  </TableCell>
                   <TableCell>
                     {contact.lastmodifieddate
                       ? new Date(contact.lastmodifieddate).toLocaleDateString()

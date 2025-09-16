@@ -46,9 +46,11 @@ export const useClientDistribution = () => {
         }
 
         // Count different client types
-        const vipCount = data?.filter((c) => c.client_type_vip_status === 'VIP').length || 1716;
+        const vipCount =
+          data?.filter(c => c.client_type_vip_status === 'VIP').length || 1716;
         const prospectsCount =
-          data?.filter((c) => c.client_type_prospects === 'Prospects').length || 15609;
+          data?.filter(c => c.client_type_prospects === 'Prospects').length ||
+          15609;
 
         // Get total contacts for leads calculation
         const { count: totalContacts } = await supabase
@@ -58,9 +60,21 @@ export const useClientDistribution = () => {
         const leadsCount = (totalContacts || 41341) - vipCount - prospectsCount;
 
         const distribution: ClientDistribution[] = [
-          { name: 'VIP Clients', value: vipCount, color: 'hsl(var(--chart-1))' },
-          { name: 'Prospects', value: prospectsCount, color: 'hsl(var(--chart-2))' },
-          { name: 'Leads', value: Math.max(leadsCount, 24016), color: 'hsl(var(--chart-3))' },
+          {
+            name: 'VIP Clients',
+            value: vipCount,
+            color: 'hsl(var(--chart-1))',
+          },
+          {
+            name: 'Prospects',
+            value: prospectsCount,
+            color: 'hsl(var(--chart-2))',
+          },
+          {
+            name: 'Leads',
+            value: Math.max(leadsCount, 24016),
+            color: 'hsl(var(--chart-3))',
+          },
         ];
 
         return distribution;
@@ -93,7 +107,10 @@ export const useSyncComparison = () => {
           .limit(24); // Last 24 records for hourly view
 
         if (logsError) {
-          console.warn('Failed to fetch sync logs for comparison:', logsError.message);
+          console.warn(
+            'Failed to fetch sync logs for comparison:',
+            logsError.message
+          );
         }
 
         // Get current Supabase count
@@ -179,14 +196,19 @@ export const useRecentActivity = () => {
         }
 
         const activities: RecentActivity[] =
-          syncLogs?.map((log) => {
+          syncLogs?.map(log => {
             const timeAgo = Math.floor(
-              (Date.now() - new Date(log.created_at || Date.now()).getTime()) / (1000 * 60)
+              (Date.now() - new Date(log.created_at || Date.now()).getTime()) /
+                (1000 * 60)
             );
             let action = 'Contact synced';
             let contact = 'Unknown';
 
-            if (log.action === 'import' || log.action === 'sync' || log.action === 'hubspot_sync') {
+            if (
+              log.action === 'import' ||
+              log.action === 'sync' ||
+              log.action === 'hubspot_sync'
+            ) {
               action = 'HubSpot sync completed';
               contact = `Contact ID: ${log.contact_id || 'N/A'}`;
             } else if (log.action?.includes('manual')) {
@@ -204,7 +226,10 @@ export const useRecentActivity = () => {
             }
 
             return {
-              time: timeAgo < 60 ? `${timeAgo} min ago` : `${Math.floor(timeAgo / 60)}h ago`,
+              time:
+                timeAgo < 60
+                  ? `${timeAgo} min ago`
+                  : `${Math.floor(timeAgo / 60)}h ago`,
               action,
               contact,
               status,
@@ -240,11 +265,17 @@ export const useSystemHealth = () => {
         const { data: recentLogs, error: logsError } = await supabase
           .from('sync_logs')
           .select('*')
-          .gte('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString())
+          .gte(
+            'created_at',
+            new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
+          )
           .order('created_at', { ascending: false });
 
         if (logsError) {
-          console.warn('Failed to fetch sync logs for health check:', logsError.message);
+          console.warn(
+            'Failed to fetch sync logs for health check:',
+            logsError.message
+          );
         }
 
         // Get the most recent sync
@@ -254,8 +285,10 @@ export const useSystemHealth = () => {
           .order('created_at', { ascending: false })
           .limit(1);
 
-        const failedSyncs24h = recentLogs?.filter((log) => log.status === 'failed').length || 0;
-        const successfulSyncs = recentLogs?.filter((log) => log.status === 'success').length || 0;
+        const failedSyncs24h =
+          recentLogs?.filter(log => log.status === 'failed').length || 0;
+        const successfulSyncs =
+          recentLogs?.filter(log => log.status === 'success').length || 0;
 
         // Determine health status based on available data
         let hubspotApi: 'online' | 'offline' | 'warning';
@@ -265,14 +298,17 @@ export const useSystemHealth = () => {
             .from('contacts')
             .select('*', { count: 'exact', head: true });
 
-          hubspotApi = contactsCount && contactsCount > 0 ? 'warning' : 'offline';
+          hubspotApi =
+            contactsCount && contactsCount > 0 ? 'warning' : 'offline';
         } else {
           hubspotApi = successfulSyncs > 0 ? 'online' : 'warning';
         }
 
         const supabaseDb = 'connected' as const; // If we can query, it's connected
         const autoSync =
-          recentLogs && recentLogs.length > 0 ? ('enabled' as const) : ('disabled' as const);
+          recentLogs && recentLogs.length > 0
+            ? ('enabled' as const)
+            : ('disabled' as const);
 
         // Calculate data quality issues (contacts without email, failed verifications, etc.)
         const { count: contactsWithoutEmail } = await supabase
@@ -285,7 +321,8 @@ export const useSystemHealth = () => {
           .select('*', { count: 'exact', head: true })
           .eq('email_verification_status', 'invalid');
 
-        const dataQualityIssues = (contactsWithoutEmail || 0) + (invalidEmails || 0);
+        const dataQualityIssues =
+          (contactsWithoutEmail || 0) + (invalidEmails || 0);
 
         const health: SystemHealth = {
           hubspotApi,

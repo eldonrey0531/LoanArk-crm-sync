@@ -68,7 +68,7 @@ export default function ContactsViewer() {
         .insert({
           type: 'manual',
           status: 'pending',
-          metadata: { test: true, created_from: 'UI' }
+          metadata: { test: true, created_from: 'UI' },
         })
         .select()
         .single();
@@ -82,42 +82,46 @@ export default function ContactsViewer() {
   };
 
   return (
-    <div className="container mx-auto py-6 space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold">Contacts Viewer</h1>
-        <div className="flex gap-2">
+    <div className='container mx-auto py-6 space-y-6'>
+      <div className='flex justify-between items-center'>
+        <h1 className='text-3xl font-bold'>Contacts Viewer</h1>
+        <div className='flex gap-2'>
           <Button onClick={fetchSupabaseContacts} disabled={loading}>
-            <RefreshCw className={`mr-2 h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+            <RefreshCw
+              className={`mr-2 h-4 w-4 ${loading ? 'animate-spin' : ''}`}
+            />
             Refresh
           </Button>
-          <Button onClick={createTestSyncJob} variant="outline">
+          <Button onClick={createTestSyncJob} variant='outline'>
             Create Test Sync Job
           </Button>
         </div>
       </div>
 
-      <Tabs defaultValue="contacts" className="w-full">
+      <Tabs defaultValue='contacts' className='w-full'>
         <TabsList>
-          <TabsTrigger value="contacts">
-            <Database className="mr-2 h-4 w-4" />
+          <TabsTrigger value='contacts'>
+            <Database className='mr-2 h-4 w-4' />
             Supabase Contacts ({supabaseContacts.length})
           </TabsTrigger>
-          <TabsTrigger value="sync-jobs">
-            <Cloud className="mr-2 h-4 w-4" />
+          <TabsTrigger value='sync-jobs'>
+            <Cloud className='mr-2 h-4 w-4' />
             Sync Jobs ({syncJobs.length})
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="contacts">
+        <TabsContent value='contacts'>
           <Card>
             <CardHeader>
               <CardTitle>Contacts in Supabase</CardTitle>
             </CardHeader>
             <CardContent>
               {supabaseContacts.length === 0 ? (
-                <p className="text-muted-foreground">No contacts found. Run a sync to import from HubSpot.</p>
+                <p className='text-muted-foreground'>
+                  No contacts found. Run a sync to import from HubSpot.
+                </p>
               ) : (
-                <div className="overflow-x-auto">
+                <div className='overflow-x-auto'>
                   <Table>
                     <TableHeader>
                       <TableRow>
@@ -129,24 +133,32 @@ export default function ContactsViewer() {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {supabaseContacts.map((contact) => (
+                      {supabaseContacts.map(contact => (
                         <TableRow key={contact.id}>
-                          <TableCell className="font-medium">
+                          <TableCell className='font-medium'>
                             {contact.firstname} {contact.lastname}
                           </TableCell>
                           <TableCell>{contact.email || '-'}</TableCell>
-                          <TableCell>{contact.phone || contact.mobilephone || '-'}</TableCell>
+                          <TableCell>
+                            {contact.phone || contact.mobilephone || '-'}
+                          </TableCell>
                           <TableCell>
                             {contact.client_type_vip_status && (
-                              <Badge variant="secondary">{contact.client_type_vip_status}</Badge>
+                              <Badge variant='secondary'>
+                                {contact.client_type_vip_status}
+                              </Badge>
                             )}
                             {contact.client_type_prospects && (
-                              <Badge variant="outline">{contact.client_type_prospects}</Badge>
+                              <Badge variant='outline'>
+                                {contact.client_type_prospects}
+                              </Badge>
                             )}
                           </TableCell>
                           <TableCell>
                             {contact.lastmodifieddate
-                              ? new Date(contact.lastmodifieddate).toLocaleDateString()
+                              ? new Date(
+                                  contact.lastmodifieddate
+                                ).toLocaleDateString()
                               : '-'}
                           </TableCell>
                         </TableRow>
@@ -159,16 +171,18 @@ export default function ContactsViewer() {
           </Card>
         </TabsContent>
 
-        <TabsContent value="sync-jobs">
+        <TabsContent value='sync-jobs'>
           <Card>
             <CardHeader>
               <CardTitle>Sync Job History</CardTitle>
             </CardHeader>
             <CardContent>
               {syncJobs.length === 0 ? (
-                <p className="text-muted-foreground">No sync jobs yet. Create one to test!</p>
+                <p className='text-muted-foreground'>
+                  No sync jobs yet. Create one to test!
+                </p>
               ) : (
-                <div className="overflow-x-auto">
+                <div className='overflow-x-auto'>
                   <Table>
                     <TableHeader>
                       <TableRow>
@@ -180,15 +194,18 @@ export default function ContactsViewer() {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {syncJobs.map((job) => (
+                      {syncJobs.map(job => (
                         <TableRow key={job.id}>
                           <TableCell>
                             <Badge
                               variant={
-                                job.status === 'completed' ? 'success' :
-                                job.status === 'failed' ? 'destructive' :
-                                job.status === 'processing' ? 'secondary' :
-                                'outline'
+                                job.status === 'completed'
+                                  ? 'success'
+                                  : job.status === 'failed'
+                                    ? 'destructive'
+                                    : job.status === 'processing'
+                                      ? 'secondary'
+                                      : 'outline'
                               }
                             >
                               {job.status}

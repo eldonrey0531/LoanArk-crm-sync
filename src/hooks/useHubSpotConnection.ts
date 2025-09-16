@@ -30,7 +30,7 @@ export const useHubSpotConnection = (): UseHubSpotConnectionReturn => {
 
   const retry = useCallback(async () => {
     if (retryCount < maxRetries) {
-      setRetryCount((prev) => prev + 1);
+      setRetryCount(prev => prev + 1);
 
       // Exponential backoff: wait 1s, 2s, 4s
       const delay = Math.pow(2, retryCount) * 1000;

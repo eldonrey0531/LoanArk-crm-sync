@@ -12,14 +12,17 @@ app.use(express.json());
 // HubSpot proxy endpoint
 app.post('/api/hubspot/contacts/latest', async (req, res) => {
   try {
-    const response = await fetch('https://api.hubapi.com/crm/v3/objects/contacts/search', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${process.env.HUBSPOT_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(req.body),
-    });
+    const response = await fetch(
+      'https://api.hubapi.com/crm/v3/objects/contacts/search',
+      {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${process.env.HUBSPOT_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(req.body),
+      }
+    );
     const data = await response.json();
     res.json(data);
   } catch (error) {
@@ -29,11 +32,14 @@ app.post('/api/hubspot/contacts/latest', async (req, res) => {
 
 app.get('/api/hubspot/test', async (req, res) => {
   try {
-    const response = await fetch('https://api.hubapi.com/crm/v3/objects/contacts?limit=1', {
-      headers: {
-        'Authorization': `Bearer ${process.env.HUBSPOT_API_KEY}`,
-      },
-    });
+    const response = await fetch(
+      'https://api.hubapi.com/crm/v3/objects/contacts?limit=1',
+      {
+        headers: {
+          Authorization: `Bearer ${process.env.HUBSPOT_API_KEY}`,
+        },
+      }
+    );
     const data = await response.json();
     res.json({ connected: response.ok, total: data.results?.length || 0 });
   } catch (error) {

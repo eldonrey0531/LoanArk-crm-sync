@@ -17,6 +17,7 @@ import SyncMonitor from './pages/SyncMonitor';
 import Logs from './pages/Logs';
 import Settings from './pages/Settings';
 import NotFound from './pages/NotFound';
+import HubSpotCallback from './pages/HubSpotCallback';
 
 const queryClient = new QueryClient();
 
@@ -41,25 +42,29 @@ const App = () => {
             <BrowserRouter>
               <ErrorBoundary>
                 <Routes>
-                  <Route path="/" element={<AppLayout />}>
+                  <Route path='/' element={<AppLayout />}>
                     <Route index element={<Dashboard />} />
-                    <Route path="contacts" element={<Contacts />} />
-                    <Route path="contacts-viewer" element={<ContactsViewer />} />
+                    <Route path='contacts' element={<Contacts />} />
                     <Route
-                      path="latest-created"
+                      path='contacts-viewer'
+                      element={<ContactsViewer />}
+                    />
+                    <Route
+                      path='latest-created'
                       element={
                         <ErrorBoundary>
                           <LatestCreated />
                         </ErrorBoundary>
                       }
                     />
-                    <Route path="latest-updated" element={<LatestUpdated />} />
-                    <Route path="sync-monitor" element={<SyncMonitor />} />
-                    <Route path="logs" element={<Logs />} />
-                    <Route path="settings" element={<Settings />} />
+                    <Route path='latest-updated' element={<LatestUpdated />} />
+                    <Route path='sync-monitor' element={<SyncMonitor />} />
+                    <Route path='logs' element={<Logs />} />
+                    <Route path='settings' element={<Settings />} />
                     {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                   </Route>
-                  <Route path="*" element={<NotFound />} />
+                  <Route path='/auth/hubspot/callback' element={<HubSpotCallback />} />
+                  <Route path='*' element={<NotFound />} />
                 </Routes>
               </ErrorBoundary>
             </BrowserRouter>

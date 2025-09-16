@@ -37,14 +37,15 @@ export function useHubSpotSync() {
   const triggerSync = async () => {
     try {
       setIsSyncing(true);
-      toast.info('Sync functionality is temporarily disabled until database setup is complete.');
-      
+      toast.info(
+        'Sync functionality is temporarily disabled until database setup is complete.'
+      );
+
       // Simulate a quick sync for demo purposes
       setTimeout(() => {
         setIsSyncing(false);
         toast.success('Demo sync completed successfully!');
       }, 2000);
-
     } catch (error: any) {
       console.error('Sync error:', error);
       toast.error('Failed to create sync job');
@@ -58,6 +59,6 @@ export function useHubSpotSync() {
     syncStatus,
     lastSync,
     syncHistory,
-    refreshStatus: fetchSyncHistory
+    refreshStatus: fetchSyncHistory,
   };
 }

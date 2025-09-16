@@ -2,7 +2,7 @@ exports.handler = async (event, context) => {
   // Allow CORS
   const headers = {
     'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Headers': 'Content-Type',
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
     'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
   };
 
@@ -11,47 +11,65 @@ exports.handler = async (event, context) => {
     return { statusCode: 200, headers, body: '' };
   }
 
-  const HUBSPOT_API_KEY = process.env.HUBSPOT_API_KEY || process.env.VITE_HUBSPOT_API_KEY;
+  // Get OAuth token from Authorization header
+  const authHeader = event.headers.authorization || event.headers.Authorization;
+  let accessToken = null;
 
-  if (!HUBSPOT_API_KEY) {
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    accessToken = authHeader.substring(7);
+  }
+
+  // Fallback to API key for backward compatibility during transition
+  const HUBSPOT_API_KEY =
+    process.env.HUBSPOT_API_KEY || process.env.VITE_HUBSPOT_API_KEY;
+
+  if (!accessToken && !HUBSPOT_API_KEY) {
     return {
       statusCode: 200,
       headers,
       body: JSON.stringify({
         connected: false,
-        error: 'HubSpot API key not configured',
+        error: 'HubSpot authentication not configured',
         total: 0,
       }),
     };
   }
 
+  const authToken = accessToken || HUBSPOT_API_KEY;
+
   try {
     // First, get a small sample to test connectivity
-    const testResponse = await fetch('https://api.hubapi.com/crm/v3/objects/contacts/search', {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${HUBSPOT_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        limit: 1, // Minimal limit for connectivity test
-        properties: ['hs_object_id'],
-      }),
-    });
-
-    if (testResponse.ok) {
-      // If connectivity test passes, get total count
-      const countResponse = await fetch('https://api.hubapi.com/crm/v3/objects/contacts/search', {
+    const testResponse = await fetch(
+      'https://api.hubapi.com/crm/v3/objects/contacts/search',
+      {
         method: 'POST',
         headers: {
-          Authorization: `Bearer ${HUBSPOT_API_KEY}`,
+          Authorization: `Bearer ${authToken}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          limit: 1,
+          limit: 1, // Minimal limit for connectivity test
           properties: ['hs_object_id'],
         }),
-      });
+      }
+    );
+
+    if (testResponse.ok) {
+      // If connectivity test passes, get total count
+      const countResponse = await fetch(
+        'https://api.hubapi.com/crm/v3/objects/contacts/search',
+        {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${authToken}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            limit: 1,
+            properties: ['hs_object_id'],
+          }),
+        }
+      );
 
       if (countResponse.ok) {
         const countData = await countResponse.json();

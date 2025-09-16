@@ -1,15 +1,34 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  ReactNode,
+} from 'react';
+import HubSpotAuthService from '../services/hubspot-auth';
+import HubSpotService from '../services/hubspot';
 
 interface HubSpotContextType {
+  // Connection state
   hubspotConnected: boolean;
   isLoading: boolean;
   error: string | null;
   hubspotCount: number;
   connectionDetails: any;
+  lastChecked: Date | null;
+
+  // Authentication state
+  isAuthenticated: boolean;
+  authError: string | null;
+  user: any | null;
+
+  // Methods
   checkConnection: () => Promise<void>;
   refreshConnection: () => Promise<void>;
   clearError: () => void;
-  lastChecked: Date | null;
+  login: () => void;
+  logout: () => Promise<void>;
+  getAuthUrl: () => string;
 }
 
 const HubSpotContext = createContext<HubSpotContextType | undefined>(undefined);
@@ -18,13 +37,22 @@ interface HubSpotProviderProps {
   children: ReactNode;
 }
 
-export const HubSpotProvider: React.FC<HubSpotProviderProps> = ({ children }) => {
+export const HubSpotProvider: React.FC<HubSpotProviderProps> = ({
+  children,
+}) => {
   const [hubspotConnected, setHubspotConnected] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [hubspotCount, setHubspotCount] = useState<number>(0);
   const [connectionDetails, setConnectionDetails] = useState<any>(null);
   const [lastChecked, setLastChecked] = useState<Date | null>(null);
+
+  // Authentication state
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+  const [authError, setAuthError] = useState<string | null>(null);
+  const [user, setUser] = useState<any | null>(null);
+
+  const authService = HubSpotAuthService.getInstance();
 
   // Import the HubSpot test function
   const testHubSpotConnection = async () => {
@@ -35,7 +63,12 @@ export const HubSpotProvider: React.FC<HubSpotProviderProps> = ({ children }) =>
       return { ...data, isDemo: false };
     } catch (error) {
       console.error('HubSpot connection error:', error);
-      return { connected: false, total: 0, isDemo: false, error: error.message };
+      return {
+        connected: false,
+        total: 0,
+        isDemo: false,
+        error: error.message,
+      };
     }
   };
 
@@ -74,7 +107,10 @@ export const HubSpotProvider: React.FC<HubSpotProviderProps> = ({ children }) =>
           })
         );
       } catch (storageError) {
-        console.warn('Failed to save connection status to localStorage:', storageError);
+        console.warn(
+          'Failed to save connection status to localStorage:',
+          storageError
+        );
       }
     } catch (error) {
       console.error('💥 HubSpot connection error:', error);
@@ -93,6 +129,34 @@ export const HubSpotProvider: React.FC<HubSpotProviderProps> = ({ children }) =>
 
   const clearError = () => {
     setError(null);
+    setAuthError(null);
+  };
+
+  const login = () => {
+    try {
+      const authUrl = authService.generateAuthUrl();
+      window.location.href = authUrl;
+    } catch (error) {
+      setAuthError(error instanceof Error ? error.message : 'Failed to initiate login');
+    }
+  };
+
+  const logout = async () => {
+    try {
+      await authService.logout();
+      setIsAuthenticated(false);
+      setUser(null);
+      setHubspotConnected(false);
+      setHubspotCount(0);
+      setConnectionDetails(null);
+      setAuthError(null);
+    } catch (error) {
+      setAuthError(error instanceof Error ? error.message : 'Failed to logout');
+    }
+  };
+
+  const getAuthUrl = () => {
+    return authService.generateAuthUrl();
   };
 
   // Load persisted connection status on mount
@@ -116,6 +180,25 @@ export const HubSpotProvider: React.FC<HubSpotProviderProps> = ({ children }) =>
     checkConnection();
   }, []);
 
+  // Sync authentication state from auth service
+  useEffect(() => {
+    const syncAuthState = () => {
+      const authState = authService.getAuthState();
+      setIsAuthenticated(authState.isAuthenticated);
+      setUser(authState.user);
+      if (authState.error) {
+        setAuthError(authState.error);
+      }
+    };
+
+    syncAuthState();
+
+    // Check auth state periodically
+    const interval = setInterval(syncAuthState, 30000); // Check every 30 seconds
+
+    return () => clearInterval(interval);
+  }, [authService]);
+
   // Memoize context value to avoid unnecessary renders
   const contextValue = React.useMemo(
     () => ({
@@ -128,11 +211,31 @@ export const HubSpotProvider: React.FC<HubSpotProviderProps> = ({ children }) =>
       refreshConnection,
       clearError,
       lastChecked,
+      isAuthenticated,
+      authError,
+      user,
+      login,
+      logout,
+      getAuthUrl,
     }),
-    [hubspotConnected, isLoading, error, hubspotCount, connectionDetails, lastChecked]
+    [
+      hubspotConnected,
+      isLoading,
+      error,
+      hubspotCount,
+      connectionDetails,
+      lastChecked,
+      isAuthenticated,
+      authError,
+      user,
+    ]
   );
 
-  return <HubSpotContext.Provider value={contextValue}>{children}</HubSpotContext.Provider>;
+  return (
+    <HubSpotContext.Provider value={contextValue}>
+      {children}
+    </HubSpotContext.Provider>
+  );
 };
 
 export const useHubSpot = (): HubSpotContextType => {

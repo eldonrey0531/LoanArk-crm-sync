@@ -13,7 +13,8 @@ export const formatCreateDate = (dateValue: DateInput): string => {
   if (!dateValue) return 'N/A';
 
   try {
-    const date = typeof dateValue === 'string' ? new Date(dateValue) : dateValue;
+    const date =
+      typeof dateValue === 'string' ? new Date(dateValue) : dateValue;
 
     if (isNaN(date.getTime())) {
       return 'N/A';
@@ -43,7 +44,8 @@ export const formatDateForSorting = (dateValue: DateInput): string => {
   if (!dateValue) return '';
 
   try {
-    const date = typeof dateValue === 'string' ? new Date(dateValue) : dateValue;
+    const date =
+      typeof dateValue === 'string' ? new Date(dateValue) : dateValue;
     return isNaN(date.getTime()) ? '' : date.toISOString();
   } catch (error) {
     console.warn('Error formatting date for sorting:', dateValue, error);
@@ -60,7 +62,8 @@ export const isValidDate = (dateValue: DateInput): boolean => {
   if (!dateValue) return false;
 
   try {
-    const date = typeof dateValue === 'string' ? new Date(dateValue) : dateValue;
+    const date =
+      typeof dateValue === 'string' ? new Date(dateValue) : dateValue;
     return !isNaN(date.getTime());
   } catch (error) {
     console.warn('Error validating date:', dateValue, error);

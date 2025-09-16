@@ -174,7 +174,7 @@ const response = await fetch(`/.netlify/functions/hubspot-contacts-all?${params}
 
 ```tsx
 // Add to App.tsx routes:
-<Route path="hubspot-crm" element={<HubSpotCRM />} />
+<Route path='hubspot-crm' element={<HubSpotCRM />} />
 ```
 
 #### 4. **Add Navigation Link**

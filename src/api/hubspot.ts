@@ -2,7 +2,8 @@
 
 // Environment detection for seamless deployment
 const isProduction = import.meta.env.PROD;
-const isNetlify = typeof window !== 'undefined' && window.location.hostname.includes('netlify');
+const isNetlify =
+  typeof window !== 'undefined' && window.location.hostname.includes('netlify');
 const isLovable =
   typeof window !== 'undefined' &&
   (window.location.hostname.includes('lovable') ||
@@ -71,7 +72,12 @@ const mockHubSpotData = {
 };
 
 export async function testHubSpotConnection() {
-  console.log('Environment:', { isProduction, isNetlify, isLovable, useMockData });
+  console.log('Environment:', {
+    isProduction,
+    isNetlify,
+    isLovable,
+    useMockData,
+  });
   // Use mock data in Lovable
   if (useMockData) {
     console.log('🔧 Using mock HubSpot data (Lovable environment)');
@@ -106,7 +112,13 @@ export async function fetchHubSpotContacts(
   params = {
     limit: 25,
     sorts: [{ propertyName: 'createdate', direction: 'DESCENDING' }],
-    properties: ['firstname', 'lastname', 'email', 'hs_object_id', 'createdate'],
+    properties: [
+      'firstname',
+      'lastname',
+      'email',
+      'hs_object_id',
+      'createdate',
+    ],
     filterGroups: [],
   }
 ) {
@@ -154,7 +166,13 @@ export async function fetchAllHubSpotContacts(
   params = {
     pageSize: 100, // HubSpot max per page
     sorts: [{ propertyName: 'createdate', direction: 'DESCENDING' }],
-    properties: ['firstname', 'lastname', 'email', 'hs_object_id', 'createdate'],
+    properties: [
+      'firstname',
+      'lastname',
+      'email',
+      'hs_object_id',
+      'createdate',
+    ],
     filterGroups: [],
   }
 ) {

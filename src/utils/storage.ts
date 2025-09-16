@@ -17,7 +17,11 @@ class StorageManager {
   /**
    * Save HubSpot connection status to localStorage
    */
-  static saveConnectionStatus(status: boolean, count: number = 0, error?: string): void {
+  static saveConnectionStatus(
+    status: boolean,
+    count: number = 0,
+    error?: string
+  ): void {
     try {
       const connectionData: ConnectionStatus = {
         connected: status,
@@ -26,9 +30,15 @@ class StorageManager {
         error,
       };
 
-      localStorage.setItem(this.STORAGE_KEYS.HUBSPOT_CONNECTED, JSON.stringify(connectionData));
+      localStorage.setItem(
+        this.STORAGE_KEYS.HUBSPOT_CONNECTED,
+        JSON.stringify(connectionData)
+      );
 
-      console.log('📱 Saved connection status to localStorage:', connectionData);
+      console.log(
+        '📱 Saved connection status to localStorage:',
+        connectionData
+      );
     } catch (error) {
       console.error('Failed to save connection status:', error);
     }
@@ -48,7 +58,10 @@ class StorageManager {
 
       // Validate cache age
       if (this.isCacheValid(connectionData.timestamp)) {
-        console.log('📱 Retrieved valid connection status from localStorage:', connectionData);
+        console.log(
+          '📱 Retrieved valid connection status from localStorage:',
+          connectionData
+        );
         return connectionData;
       } else {
         console.log('📱 Connection status cache expired, removing...');
@@ -135,7 +148,7 @@ class StorageManager {
   static clearAllCaches(): void {
     try {
       const keys = Object.keys(localStorage);
-      keys.forEach((key) => {
+      keys.forEach(key => {
         if (key.startsWith('hubspot_')) {
           localStorage.removeItem(key);
         }
@@ -154,7 +167,7 @@ class StorageManager {
       const stats: { [key: string]: any } = {};
       const keys = Object.keys(localStorage);
 
-      keys.forEach((key) => {
+      keys.forEach(key => {
         if (key.startsWith('hubspot_')) {
           try {
             const data = JSON.parse(localStorage.getItem(key) || '{}');

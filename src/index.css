@@ -56,7 +56,7 @@ All colors MUST be HSL.
     --sidebar-bg: 210 11% 7%;
     --sidebar-text: 210 7% 97%;
     --sidebar-accent: 217 91% 60%;
-    
+
     /* Chart Colors */
     --chart-1: 217 91% 60%;
     --chart-2: 142 71% 45%;
@@ -68,7 +68,7 @@ All colors MUST be HSL.
     --status-online: 142 71% 45%;
     --status-idle: 38 92% 50%;
     --status-offline: 210 4% 47%;
-    
+
     --radius: 0.75rem;
 
     --sidebar-background: 0 0% 98%;
