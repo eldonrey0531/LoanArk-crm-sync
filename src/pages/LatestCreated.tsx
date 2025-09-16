@@ -1,46 +1,41 @@
-// @ts-nocheck
-import { useEffect } from 'react';
-import useHubSpotConnection from '../hooks/useHubSpotConnection';
+import { useEffect, useState } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Loader2, RefreshCw, CheckCircle, XCircle, Database, Cloud } from 'lucide-react';
 
+interface DataRecord {
+  hs_object_id: string;
+  name: string;
+  email: string;
+  email_verification_status: string;
+}
 
 export default function LatestCreated() {
-  const {
-    isConnected: hubspotConnected,
-    isValidating: hubspotLoading,
-    error: hubspotError,
-    retry: retryHubspot,
-    count: hubspotCount,
-    lastChecked: hubspotLastChecked,
-  } = useHubSpotConnection();
+  const [supabaseData, setSupabaseData] = useState<DataRecord[]>([]);
+  const [hubspotData, setHubspotData] = useState<DataRecord[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [supabaseConnected, setSupabaseConnected] = useState(false);
+  // hubspotConnected state removed (not used)
+  const [supabaseCount, setSupabaseCount] = useState(0);
 
   useEffect(() => {
-    // Only initialize if component is mounted and environment is ready
-    const initializeComponent = async () => {
-      try {
-        // Debug: Check if environment variables are loaded
-        console.log('Environment check:');
-        console.log('HubSpot API: Configuration check complete');
-        console.log('Supabase: Environment configured');
-
-        // Test connections first without making direct API calls
-        await testConnections();
-
-        // Only fetch data if connections are available
-        await fetchAllData();
-      } catch (error) {
-        console.error('Error initializing component:', error);
-        setLoading(false);
-      }
-    };
-
-    initializeComponent();
+    testConnections();
+    fetchAllData();
   }, []);
 
-  const testSupabaseConnection = async () => {
+  const testConnections = async () => {
+    // Test Supabase connection
     try {
-      setTestingSupabase(true);
-      // Test connection using the supabase client directly
-      // The client will handle environment variable validation
       const { count, error } = await supabase
         .from('contacts')
         .select('*', { count: 'exact', head: true });
@@ -48,59 +43,17 @@ export default function LatestCreated() {
       if (!error) {
         setSupabaseConnected(true);
         setSupabaseCount(count || 0);
-      } else {
-        console.warn('Supabase connection test failed:', error.message);
-        setSupabaseConnected(false);
       }
     } catch (error) {
       console.error('Supabase connection error:', error);
-      setSupabaseConnected(false);
-    } finally {
-      setTestingSupabase(false);
     }
-  };
 
-  const testHubspotConnection = async () => {
+    // Test HubSpot connection
     try {
-      setTestingHubspot(true);
-      console.log('🔍 Testing HubSpot connection...');
-      const result = await testHubSpotConnection();
-
-      console.log('📊 HubSpot connection result:', {
-        connected: result.connected,
-        total: result.total,
-        error: result.error,
-        isDemo: result.isDemo,
-        fullResult: result,
-      });
-
-      // No longer needed: hubspotConnected and setHubspotCount are managed by context
-
-  const testConnections = async () => {
-    await Promise.all([testSupabaseConnection(), testHubspotConnection()]);
-  };
-
-  const testNetlifyFunctions = async () => {
-    try {
-      console.log('🧪 Testing Netlify Functions directly...');
-
-      // Test if Netlify functions are accessible
-      const testResponse = await fetch('/.netlify/functions/hubspot-test');
-      const testResult = await testResponse.json();
-
-      console.log('📡 Direct Netlify Function test result:', {
-        status: testResponse.status,
-        statusText: testResponse.statusText,
-        result: testResult,
-      });
-
-      if (!testResponse.ok) {
-        console.error('❌ Netlify function failed:', testResponse.status, testResult);
-      } else {
-        console.log('✅ Netlify function accessible');
-      }
+      await fetch('/api/hubspot-test');
+      // No need to setHubspotConnected; just check connection
     } catch (error) {
-      console.error('💥 Direct Netlify function test failed:', error);
+      console.error('HubSpot connection error:', error);
     }
   };
 
@@ -117,66 +70,60 @@ export default function LatestCreated() {
   };
 
   const fetchSupabaseData = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('contacts')
-        .select('hs_object_id, firstname, lastname, email, email_verification_status, createdate')
-        .order('createdate', { ascending: false })
-        .limit(25);
+    const { data, error } = await supabase
+      .from('contacts')
+      .select('hs_object_id, firstname, lastname, email, email_verification_status')
+      .order('createdate', { ascending: false })
+      .limit(25);
 
-      if (!error && data) {
-        const formattedData = data.map((record) => ({
-          hs_object_id: record.hs_object_id || 'N/A',
-          name: `${record.firstname || ''} ${record.lastname || ''}`.trim() || 'N/A',
-          email: record.email || 'N/A',
-          email_verification_status: record.email_verification_status || 'unverified',
-          createdate: record.createdate ? new Date(record.createdate).toLocaleDateString() : 'N/A',
-        }));
-        setSupabaseData(formattedData);
-      }
-    } catch (error) {
-      console.error('Error fetching Supabase data:', error);
+    if (!error && data) {
+      const formatted = data.map((r: any) => ({
+        hs_object_id: r.hs_object_id,
+        name: `${r.firstname || ''} ${r.lastname || ''}`.trim(),
+        email: r.email || 'N/A',
+        email_verification_status: r.email_verification_status || 'unverified',
+      }));
+      setSupabaseData(formatted);
     }
   };
 
   const fetchHubspotData = async () => {
     try {
-      console.log('📡 Fetching HubSpot contacts data...');
-      const data = await fetchHubSpotContacts(25);
-
-      console.log('📥 HubSpot fetch response:', {
-        hasData: !!data,
-        hasResults: !!data?.results,
-        resultCount: data?.results?.length || 0,
-        isDemo: data?.isDemo,
-        fullResponse: data,
+      const response = await fetch('/api/hubspot-contacts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          limit: 25,
+          sorts: [
+            {
+              propertyName: 'createdate',
+              direction: 'DESCENDING',
+            },
+          ],
+          properties: [
+            'hs_object_id',
+            'firstname',
+            'lastname',
+            'email',
+            'email_verification_status',
+          ],
+        }),
       });
 
-      if (data?.results) {
-        const formattedData = data.results.map((record: any) => ({
-          hs_object_id: record.id || record.properties?.hs_object_id || 'N/A',
-          name:
-            `${record.properties?.firstname || ''} ${record.properties?.lastname || ''}`.trim() ||
-            'N/A',
-          email: record.properties?.email || 'N/A',
-          email_verification_status: record.properties?.email ? 'verified' : 'unverified',
-          createdate: record.properties?.createdate
-            ? new Date(record.properties.createdate).toLocaleDateString()
-            : 'N/A',
-        }));
+      if (response.ok) {
+        const data = await response.json();
+        const formattedData =
+          data.results?.map((record: any) => ({
+            hs_object_id: record.id,
+            name: `${record.properties.firstname || ''} ${record.properties.lastname || ''}`.trim(),
+            email: record.properties.email || 'N/A',
+            email_verification_status: record.properties.email_verification_status || 'unverified',
+          })) || [];
+
         setHubspotData(formattedData);
-        // Update connection status based on successful data fetch
-  // No longer needed: hubspotConnected is managed by context
-        console.log(`✅ Successfully formatted ${formattedData.length} HubSpot contacts`);
-      } else {
-        console.warn('⚠️ No HubSpot results found in response');
-        setHubspotData([]);
-        // Don't mark as disconnected if we got a response but no results
       }
     } catch (error) {
-      console.error('💥 Error fetching HubSpot data:', error);
-      console.error('Stack trace:', error instanceof Error ? error.stack : 'No stack trace');
-      setHubspotData([]);
+      console.error('Error fetching HubSpot data:', error);
     }
   };
 
@@ -194,200 +141,133 @@ export default function LatestCreated() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Minimal padding for maximum content width */}
+      {/* Full width container with minimal padding */}
       <div className="px-4 py-6">
         {/* Header Section */}
         <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
             Latest Created Records - Dual View
           </h1>
-          <p className="text-gray-600 mb-2">
+          <p className="text-gray-600 mb-4">
             Top 25 most recently created contacts from both Supabase and HubSpot
           </p>
-          {/* HubSpot status, count, pagination info, and action buttons go here */}
-          <div className="space-y-3">
-            <div className="flex items-center gap-2 pl-7">
-              {hubspotConnected ? (
-                <CheckCircle className="h-4 w-4 text-green-500" />
-              ) : (
-                <XCircle className="h-4 w-4 text-red-500" />
-              )}
-              <span className="text-sm">{hubspotConnected ? 'Connected' : 'Disconnected'}</span>
-              {hubspotLoading && <span className="ml-2 text-xs text-blue-500">Checking...</span>}
-              {hubspotError && (
-                <span className="ml-2 text-xs text-red-500">{hubspotError.message || hubspotError.toString()}</span>
-              )}
-            </div>
-            <div className="pl-7 text-sm text-gray-600">
-              Total Contacts: {hubspotCount?.toLocaleString?.() ?? 0}
-              {paginationInfo && (
-                <div className="text-xs text-blue-600 mt-1">
-                  {paginationInfo.hasMore && !paginationInfo.maxContactsReached
-                    ? `Fetched ${paginationInfo.total} in ${paginationInfo.requestCount} requests - more available`
-                    : `Complete: ${paginationInfo.total} contacts in ${paginationInfo.requestCount} requests`}
-                  {paginationInfo.maxContactsReached && (
-                    <span className="text-orange-600"> (safety limit reached)</span>
-                  )}
-                </div>
-              )}
-              {!paginationInfo && hubspotData.length >= 25 && (
-                <span className="text-blue-600">
-                  {' '}
-                  (showing first 25 - click "Fetch All Contacts" for complete list)
-                </span>
-              )}
-            </div>
-            {hubspotCount > 0 && hubspotCount !== hubspotData.length && (
-              <div className="pl-7 text-xs text-blue-600">
-                Connection Test Count: {hubspotCount.toLocaleString()}
-              </div>
-            )}
-            <div className="pl-7 mt-2 flex flex-wrap gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={testHubspotConnection}
-                disabled={testingHubspot}
-              >
-                {testingHubspot && <Loader2 className="h-3 w-3 mr-1 animate-spin" />}
-                Test Connection
-              </Button>
-              <Button variant="ghost" size="sm" onClick={testNetlifyFunctions} className="ml-2">
-                Debug Functions
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={fetchAllHubspotContacts}
-                disabled={fetchingAllContacts}
-                className="ml-2 text-green-600 border-green-300 hover:bg-green-50"
-              >
-                {fetchingAllContacts && <Loader2 className="h-3 w-3 mr-1 animate-spin" />}
-                Fetch All Contacts
-              </Button>
-            </div>
-          </div>
-          {/* Main Content Section */}
-          <div>
-            {loading ? (
-              <div className="flex justify-center items-center h-64">
-                <Loader2 className="h-8 w-8 animate-spin text-gray-500" />
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-                {/* Supabase Table */}
-                <Card className="shadow-sm border-0">
-                  <CardHeader className="bg-green-500 text-white px-6 py-4">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <Cloud className="h-5 w-5" />
-                        <h2 className="text-lg font-semibold">Supabase CRM</h2>
-                      </div>
-                      <Badge variant="secondary" className="bg-white/20 text-white">
-                        {supabaseData.length} Records
-                      </Badge>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="p-0">
-                    <div className="overflow-x-auto">
-                      <Table>
-                        <TableHeader>
-                          <TableRow className="bg-gray-50">
-                            <TableHead className="font-semibold">HS Object ID</TableHead>
-                            <TableHead className="font-semibold">Name</TableHead>
-                            <TableHead className="font-semibold">Email</TableHead>
-                            <TableHead className="font-semibold">Email Status</TableHead>
-                            <TableHead className="font-semibold">Created Date</TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {supabaseData.length > 0 ? (
-                            supabaseData.map((record) => (
-                              <TableRow key={`supabase-${record.hs_object_id}`}>
-                                <TableCell className="font-mono text-sm">
-                                  {record.hs_object_id}
-                                </TableCell>
-                                <TableCell className="font-medium">{record.name}</TableCell>
-                                <TableCell className="text-gray-600">{record.email}</TableCell>
-                                <TableCell>
-                                  {getStatusBadge(record.email_verification_status)}
-                                </TableCell>
-                                <TableCell className="text-gray-600 text-sm">
-                                  {record.createdate}
-                                </TableCell>
-                              </TableRow>
-                            ))
-                          ) : (
-                            <TableRow>
-                              <TableCell colSpan={5} className="text-center text-gray-500 py-8">
-                                No data available
-                              </TableCell>
-                            </TableRow>
-                          )}
-                        </TableBody>
-                      </Table>
-                    </div>
-                  </CardContent>
-                </Card>
 
-                {/* HubSpot Table */}
-                <Card className="shadow-sm border-0">
-                  <CardHeader className="bg-orange-500 text-white px-6 py-4">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <Cloud className="h-5 w-5" />
-                        <h2 className="text-lg font-semibold">HubSpot CRM</h2>
-                      </div>
-                      <Badge variant="secondary" className="bg-white/20 text-white">
-                        {hubspotData.length} Records
-                      </Badge>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="p-0">
-                    <div className="overflow-x-auto">
-                      <Table>
-                        <TableHeader>
-                          <TableRow className="bg-gray-50">
-                            <TableHead className="font-semibold">HS Object ID</TableHead>
-                            <TableHead className="font-semibold">Name</TableHead>
-                            <TableHead className="font-semibold">Email</TableHead>
-                            <TableHead className="font-semibold">Email Status</TableHead>
-                            <TableHead className="font-semibold">Created Date</TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {hubspotData.length > 0 ? (
-                            hubspotData.map((record) => (
-                              <TableRow key={`hubspot-${record.hs_object_id}`}>
-                                <TableCell className="font-mono text-sm">
-                                  {record.hs_object_id}
-                                </TableCell>
-                                <TableCell className="font-medium">{record.name}</TableCell>
-                                <TableCell className="text-gray-600">{record.email}</TableCell>
-                                <TableCell>
-                                  {getStatusBadge(record.email_verification_status)}
-                                </TableCell>
-                                <TableCell className="text-gray-600 text-sm">
-                                  {record.createdate}
-                                </TableCell>
-                              </TableRow>
-                            ))
-                          ) : (
-                            <TableRow>
-                              <TableCell colSpan={5} className="text-center text-gray-500 py-8">
-                                No data available
-                              </TableCell>
-                            </TableRow>
-                          )}
-                        </TableBody>
-                      </Table>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-            )}
+          {/* Connection Status */}
+          <div className="flex flex-wrap gap-4 items-center">
+            <div className="flex items-center gap-2">
+              {supabaseConnected ? (
+                <CheckCircle className="h-5 w-5 text-green-500" />
+              ) : (
+                <XCircle className="h-5 w-5 text-red-500" />
+              )}
+              <span className="font-medium">Connected</span>
+            </div>
+
+            <div className="flex items-center gap-2 text-gray-600">
+              <Database className="h-5 w-5" />
+              <span>Supabase: {supabaseCount.toLocaleString()}</span>
+            </div>
+
+            <Button variant="outline" size="sm" onClick={testConnections}>
+              Test Connection
+            </Button>
+
+            <Button onClick={fetchAllData} size="sm" className="ml-auto">
+              <RefreshCw className="h-4 w-4 mr-2" />
+              Refresh All Data
+            </Button>
           </div>
         </div>
+
+        {loading ? (
+          <div className="flex justify-center items-center h-64">
+            <Loader2 className="h-8 w-8 animate-spin text-gray-500" />
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+            {/* Supabase Table */}
+            <Card className="shadow-sm border-0">
+              <CardHeader className="bg-blue-600 text-white px-6 py-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Database className="h-5 w-5" />
+                    <h2 className="text-lg font-semibold">Supabase Database</h2>
+                  </div>
+                  <Badge variant="secondary" className="bg-white/20 text-white">
+                    {supabaseData.length} Records
+                  </Badge>
+                </div>
+              </CardHeader>
+              <CardContent className="p-0">
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="bg-gray-50">
+                        <TableHead className="font-semibold">HS Object ID</TableHead>
+                        <TableHead className="font-semibold">Name</TableHead>
+                        <TableHead className="font-semibold">Email</TableHead>
+                        <TableHead className="font-semibold">Email Status</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {supabaseData.map((record, index) => (
+                        <TableRow key={record.hs_object_id || index}>
+                          <TableCell className="font-mono text-sm">
+                            {record.hs_object_id || 'N/A'}
+                          </TableCell>
+                          <TableCell className="font-medium">{record.name || 'N/A'}</TableCell>
+                          <TableCell className="text-gray-600">{record.email || 'N/A'}</TableCell>
+                          <TableCell>{getStatusBadge(record.email_verification_status)}</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* HubSpot Table */}
+            <Card className="shadow-sm border-0">
+              <CardHeader className="bg-orange-500 text-white px-6 py-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Cloud className="h-5 w-5" />
+                    <h2 className="text-lg font-semibold">HubSpot CRM</h2>
+                  </div>
+                  <Badge variant="secondary" className="bg-white/20 text-white">
+                    {hubspotData.length} Records
+                  </Badge>
+                </div>
+              </CardHeader>
+              <CardContent className="p-0">
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="bg-gray-50">
+                        <TableHead className="font-semibold">HS Object ID</TableHead>
+                        <TableHead className="font-semibold">Name</TableHead>
+                        <TableHead className="font-semibold">Email</TableHead>
+                        <TableHead className="font-semibold">Email Status</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {hubspotData.map((record, index) => (
+                        <TableRow key={record.hs_object_id || index}>
+                          <TableCell className="font-mono text-sm">
+                            {record.hs_object_id || 'N/A'}
+                          </TableCell>
+                          <TableCell className="font-medium">{record.name || 'N/A'}</TableCell>
+                          <TableCell className="text-gray-600">{record.email || 'N/A'}</TableCell>
+                          <TableCell>{getStatusBadge(record.email_verification_status)}</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
       </div>
     </div>
   );
