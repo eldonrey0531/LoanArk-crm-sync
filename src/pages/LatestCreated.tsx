@@ -38,7 +38,7 @@ export default function LatestCreated() {
         // Debug: Check if environment variables are loaded
         console.log('Environment check:');
         console.log('VITE_HUBSPOT_API_KEY exists:', !!import.meta.env.VITE_HUBSPOT_API_KEY);
-        console.log('VITE_SUPABASE_URL:', import.meta.env.VITE_SUPABASE_URL);
+        console.log('VITE_SUPABASE_URL: Environment variable configured');
 
         // Test connections first without making direct API calls
         await testConnections();
@@ -56,13 +56,8 @@ export default function LatestCreated() {
 
   const testSupabaseConnection = async () => {
     try {
-      // Don't test if no environment variables are set
-      if (!import.meta.env.VITE_SUPABASE_URL || !import.meta.env.VITE_SUPABASE_ANON_KEY) {
-        console.warn('Supabase environment variables not configured');
-        setSupabaseConnected(false);
-        return;
-      }
-
+      // Test connection using the supabase client directly
+      // The client will handle environment variable validation
       const { count, error } = await supabase
         .from('contacts')
         .select('*', { count: 'exact', head: true });

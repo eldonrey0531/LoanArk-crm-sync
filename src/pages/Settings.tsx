@@ -186,11 +186,7 @@ export default function Settings() {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <Label className="text-sm font-medium">Project URL</Label>
-                    <div className="text-sm text-muted-foreground">
-                      {import.meta.env.VITE_SUPABASE_URL
-                        ? new URL(import.meta.env.VITE_SUPABASE_URL).hostname
-                        : 'Not configured'}
-                    </div>
+                    <div className="text-sm text-muted-foreground">Supabase Database</div>
                   </div>
                   <div>
                     <Label className="text-sm font-medium">Database Status</Label>
