@@ -44,6 +44,7 @@ exports.handler = async (event, context) => {
       },
       body: JSON.stringify({
         limit: requestBody.limit || 25,
+        after: requestBody.after || undefined, // For pagination
         sorts: requestBody.sorts || [{ propertyName: 'createdate', direction: 'DESCENDING' }],
         properties: requestBody.properties || [
           'hs_object_id',

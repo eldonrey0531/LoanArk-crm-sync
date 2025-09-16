@@ -149,3 +149,74 @@ export async function fetchHubSpotContacts(
     results: mockHubSpotData.results.slice(0, params.limit || 25),
   });
 }
+
+export async function fetchAllHubSpotContacts(
+  params = {
+    maxContacts: 100,
+    pageSize: 25,
+    sorts: [{ propertyName: 'createdate', direction: 'DESCENDING' }],
+    properties: ['firstname', 'lastname', 'email', 'hs_object_id', 'createdate'],
+    filterGroups: [],
+  }
+) {
+  // Use mock data in Lovable - simulate pagination
+  if (useMockData) {
+    console.log('🔧 Using mock HubSpot contacts with pagination simulation (Lovable environment)');
+    const totalAvailable = mockHubSpotData.results.length;
+    const maxToReturn = Math.min(params.maxContacts || 100, totalAvailable);
+
+    return Promise.resolve({
+      ...mockHubSpotData,
+      results: mockHubSpotData.results.slice(0, maxToReturn),
+      total: maxToReturn,
+      hasMore: maxToReturn < totalAvailable,
+      requestCount: Math.ceil(maxToReturn / (params.pageSize || 25)),
+      maxContactsReached: maxToReturn >= (params.maxContacts || 100),
+    });
+  }
+
+  // Use Netlify Functions in production
+  if (useNetlifyFunctions) {
+    try {
+      const response = await fetch('/.netlify/functions/hubspot-contacts-all', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(params),
+      });
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      return await response.json();
+    } catch (error) {
+      console.error('Error fetching all HubSpot contacts:', error);
+      // Fallback to mock data on error
+      const totalAvailable = mockHubSpotData.results.length;
+      const maxToReturn = Math.min(params.maxContacts || 100, totalAvailable);
+
+      return {
+        ...mockHubSpotData,
+        results: mockHubSpotData.results.slice(0, maxToReturn),
+        total: maxToReturn,
+        hasMore: false,
+        requestCount: 1,
+        maxContactsReached: false,
+        error: `Failed to fetch from API: ${error.message}`,
+      };
+    }
+  }
+
+  // Fallback to mock data
+  const totalAvailable = mockHubSpotData.results.length;
+  const maxToReturn = Math.min(params.maxContacts || 100, totalAvailable);
+
+  return Promise.resolve({
+    ...mockHubSpotData,
+    results: mockHubSpotData.results.slice(0, maxToReturn),
+    total: maxToReturn,
+    hasMore: false,
+    requestCount: 1,
+    maxContactsReached: false,
+  });
+}

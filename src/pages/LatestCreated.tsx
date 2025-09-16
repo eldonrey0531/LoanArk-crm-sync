@@ -1,6 +1,10 @@
 // @ts-nocheck
 import { useEffect, useState } from 'react';
-import { testHubSpotConnection, fetchHubSpotContacts } from '@/api/hubspot';
+import {
+  testHubSpotConnection,
+  fetchHubSpotContacts,
+  fetchAllHubSpotContacts,
+} from '@/api/hubspot';
 import { supabase } from '@/integrations/supabase/client';
 import {
   Table,
@@ -34,6 +38,13 @@ export default function LatestCreated() {
   const [environmentInfo, setEnvironmentInfo] = useState<string>('');
   const [testingSupabase, setTestingSupabase] = useState(false);
   const [testingHubspot, setTestingHubspot] = useState(false);
+  const [fetchingAllContacts, setFetchingAllContacts] = useState(false);
+  const [paginationInfo, setPaginationInfo] = useState<{
+    total: number;
+    hasMore: boolean;
+    requestCount: number;
+    maxContactsReached: boolean;
+  } | null>(null);
 
   // Environment detection
   useEffect(() => {
@@ -179,6 +190,70 @@ export default function LatestCreated() {
     }
   };
 
+  const fetchAllHubspotContacts = async () => {
+    try {
+      setFetchingAllContacts(true);
+      console.log('📡 Fetching ALL HubSpot contacts with pagination...');
+
+      const data = await fetchAllHubSpotContacts({
+        maxContacts: 500, // Reasonable limit for UI performance
+        pageSize: 50, // Larger pages for efficiency
+        properties: ['firstname', 'lastname', 'email', 'hs_object_id', 'createdate'],
+        sorts: [{ propertyName: 'createdate', direction: 'DESCENDING' }],
+      });
+
+      console.log('📥 All HubSpot contacts response:', {
+        hasData: !!data,
+        hasResults: !!data?.results,
+        resultCount: data?.results?.length || 0,
+        total: data?.total,
+        hasMore: data?.hasMore,
+        requestCount: data?.requestCount,
+        maxContactsReached: data?.maxContactsReached,
+        isDemo: data?.isDemo,
+      });
+
+      if (data?.results) {
+        const formattedData = data.results.map((record: any) => ({
+          hs_object_id: record.id || record.properties?.hs_object_id || 'N/A',
+          name:
+            `${record.properties?.firstname || ''} ${record.properties?.lastname || ''}`.trim() ||
+            'N/A',
+          email: record.properties?.email || 'N/A',
+          email_verification_status: record.properties?.email ? 'verified' : 'unverified',
+          createdate: record.properties?.createdate
+            ? new Date(record.properties.createdate).toLocaleDateString()
+            : 'N/A',
+        }));
+
+        setHubspotData(formattedData);
+        setHubspotConnected(true);
+
+        // Store pagination information
+        setPaginationInfo({
+          total: data.total || formattedData.length,
+          hasMore: data.hasMore || false,
+          requestCount: data.requestCount || 1,
+          maxContactsReached: data.maxContactsReached || false,
+        });
+
+        console.log(
+          `✅ Successfully fetched and formatted ${formattedData.length} HubSpot contacts using ${data.requestCount} API requests`
+        );
+      } else {
+        console.warn('⚠️ No HubSpot results found in paginated response');
+        setHubspotData([]);
+        setPaginationInfo(null);
+      }
+    } catch (error) {
+      console.error('💥 Error fetching all HubSpot contacts:', error);
+      setHubspotData([]);
+      setPaginationInfo(null);
+    } finally {
+      setFetchingAllContacts(false);
+    }
+  };
+
   const fetchSupabaseData = async () => {
     try {
       const { data, error } = await supabase
@@ -230,10 +305,13 @@ export default function LatestCreated() {
             : 'N/A',
         }));
         setHubspotData(formattedData);
+        // Update connection status based on successful data fetch
+        setHubspotConnected(true);
         console.log(`✅ Successfully formatted ${formattedData.length} HubSpot contacts`);
       } else {
         console.warn('⚠️ No HubSpot results found in response');
         setHubspotData([]);
+        // Don't mark as disconnected if we got a response but no results
       }
     } catch (error) {
       console.error('💥 Error fetching HubSpot data:', error);
@@ -324,8 +402,24 @@ export default function LatestCreated() {
               </div>
 
               <div className="pl-7 text-sm text-gray-600">
-                Total Contacts: {hubspotCount.toLocaleString()}
+                Total Contacts: {hubspotData.length.toLocaleString()}{' '}
+                {hubspotData.length >= 25 && !paginationInfo ? '(showing first 25)' : ''}
+                {paginationInfo && (
+                  <div className="text-xs text-blue-600 mt-1">
+                    {paginationInfo.hasMore && !paginationInfo.maxContactsReached
+                      ? `Fetched ${paginationInfo.total} in ${paginationInfo.requestCount} requests - more available`
+                      : `Complete: ${paginationInfo.total} contacts in ${paginationInfo.requestCount} requests`}
+                    {paginationInfo.maxContactsReached && (
+                      <span className="text-orange-600"> (limit reached)</span>
+                    )}
+                  </div>
+                )}
               </div>
+              {hubspotCount > 0 && hubspotCount !== hubspotData.length && (
+                <div className="pl-7 text-xs text-blue-600">
+                  Connection Test Count: {hubspotCount.toLocaleString()}
+                </div>
+              )}
 
               <div className="pl-7">
                 <Button
@@ -339,6 +433,16 @@ export default function LatestCreated() {
                 </Button>
                 <Button variant="ghost" size="sm" onClick={testNetlifyFunctions} className="ml-2">
                   Debug Functions
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={fetchAllHubspotContacts}
+                  disabled={fetchingAllContacts}
+                  className="ml-2 text-green-600 border-green-300 hover:bg-green-50"
+                >
+                  {fetchingAllContacts && <Loader2 className="h-3 w-3 mr-1 animate-spin" />}
+                  Fetch All Contacts
                 </Button>
               </div>
             </div>
@@ -386,8 +490,8 @@ export default function LatestCreated() {
                     </TableHeader>
                     <TableBody>
                       {supabaseData.length > 0 ? (
-                        supabaseData.map((record, index) => (
-                          <TableRow key={`supabase-${index}`}>
+                        supabaseData.map((record) => (
+                          <TableRow key={`supabase-${record.hs_object_id}`}>
                             <TableCell className="font-mono text-sm">
                               {record.hs_object_id}
                             </TableCell>
@@ -441,8 +545,8 @@ export default function LatestCreated() {
                     </TableHeader>
                     <TableBody>
                       {hubspotData.length > 0 ? (
-                        hubspotData.map((record, index) => (
-                          <TableRow key={`hubspot-${index}`}>
+                        hubspotData.map((record) => (
+                          <TableRow key={`hubspot-${record.hs_object_id}`}>
                             <TableCell className="font-mono text-sm">
                               {record.hs_object_id}
                             </TableCell>
