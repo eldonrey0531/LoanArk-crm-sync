@@ -1,52 +1,56 @@
-import { useState } from "react";
-import { 
-  Settings as SettingsIcon, 
-  Key, 
-  Clock, 
-  Bell, 
+import { useState } from 'react';
+import {
+  Key,
+  Clock,
   Shield,
   Database,
   Webhook,
   Mail,
-  Slack,
+  MessageSquare,
   TestTube,
   Save,
   CheckCircle,
   XCircle,
-  AlertTriangle
-} from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Switch } from "@/components/ui/switch";
-import { Textarea } from "@/components/ui/textarea";
-import { Separator } from "@/components/ui/separator";
+  AlertTriangle,
+} from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
+import { Textarea } from '@/components/ui/textarea';
+import { Separator } from '@/components/ui/separator';
 
 export default function Settings() {
-  const [hubspotApiKey, setHubspotApiKey] = useState("");
-  const [syncFrequency, setSyncFrequency] = useState("12h");
+  const [hubspotApiKey, setHubspotApiKey] = useState('');
+  const [syncFrequency, setSyncFrequency] = useState('12h');
   const [autoSync, setAutoSync] = useState(true);
   const [emailAlerts, setEmailAlerts] = useState(true);
-  const [slackWebhook, setSlackWebhook] = useState("");
-  const [notificationEmail, setNotificationEmail] = useState("admin@loanark.com");
+  const [slackWebhook, setSlackWebhook] = useState('');
+  const [notificationEmail, setNotificationEmail] = useState('admin@loanark.com');
 
   const [connectionStatus, setConnectionStatus] = useState({
-    hubspot: "connected",
-    supabase: "connected",
-    slack: "disconnected"
+    hubspot: 'connected',
+    supabase: 'connected',
+    slack: 'disconnected',
   });
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case "connected":
+      case 'connected':
         return <CheckCircle className="w-4 h-4 text-success" />;
-      case "disconnected":
+      case 'disconnected':
         return <XCircle className="w-4 h-4 text-destructive" />;
-      case "testing":
+      case 'testing':
         return <Clock className="w-4 h-4 text-warning animate-spin" />;
       default:
         return <AlertTriangle className="w-4 h-4 text-warning" />;
@@ -55,11 +59,11 @@ export default function Settings() {
 
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case "connected":
+      case 'connected':
         return <Badge className="bg-success text-success-foreground">Connected</Badge>;
-      case "disconnected":
+      case 'disconnected':
         return <Badge variant="destructive">Disconnected</Badge>;
-      case "testing":
+      case 'testing':
         return <Badge variant="secondary">Testing...</Badge>;
       default:
         return <Badge variant="outline">Unknown</Badge>;
@@ -67,10 +71,10 @@ export default function Settings() {
   };
 
   const testConnection = async (service: string) => {
-    setConnectionStatus(prev => ({ ...prev, [service]: "testing" }));
+    setConnectionStatus((prev) => ({ ...prev, [service]: 'testing' }));
     // Simulate API test
     setTimeout(() => {
-      setConnectionStatus(prev => ({ ...prev, [service]: "connected" }));
+      setConnectionStatus((prev) => ({ ...prev, [service]: 'connected' }));
     }, 2000);
   };
 
@@ -128,21 +132,19 @@ export default function Settings() {
                   </p>
                 </div>
                 <div className="flex space-x-2">
-                  <Button 
+                  <Button
                     variant="outline"
-                    onClick={() => testConnection("hubspot")}
-                    disabled={connectionStatus.hubspot === "testing"}
+                    onClick={() => testConnection('hubspot')}
+                    disabled={connectionStatus.hubspot === 'testing'}
                   >
                     <TestTube className="w-4 h-4 mr-2" />
                     Test Connection
                   </Button>
-                  <Button variant="outline">
-                    View Rate Limits
-                  </Button>
+                  <Button variant="outline">View Rate Limits</Button>
                 </div>
-                
+
                 <Separator />
-                
+
                 <div>
                   <Label className="text-sm font-medium">Field Mapping Configuration</Label>
                   <div className="mt-2 space-y-2">
@@ -185,7 +187,8 @@ export default function Settings() {
                   <div>
                     <Label className="text-sm font-medium">Project URL</Label>
                     <div className="text-sm text-muted-foreground">
-                      https://opwagkvnbgxjkcvauyfq.supabase.co
+                      {import.meta.env.VITE_SUPABASE_URL ||
+                        'https://opwagkvnbgxjkcvauyfq.supabase.co'}
                     </div>
                   </div>
                   <div>
@@ -250,7 +253,9 @@ export default function Settings() {
                   <div className="flex items-center justify-between p-3 border border-border rounded-lg">
                     <div>
                       <div className="font-medium text-sm">Data Conflicts</div>
-                      <div className="text-sm text-muted-foreground">When same contact exists in both systems</div>
+                      <div className="text-sm text-muted-foreground">
+                        When same contact exists in both systems
+                      </div>
                     </div>
                     <Select defaultValue="hubspot-wins">
                       <SelectTrigger className="w-[140px]">
@@ -270,12 +275,14 @@ export default function Settings() {
               <div>
                 <Label className="text-base font-medium">Fields to Sync</Label>
                 <div className="mt-2 grid grid-cols-2 gap-2">
-                  {["Email", "First Name", "Last Name", "Phone", "Company", "VIP Status"].map((field) => (
-                    <div key={field} className="flex items-center space-x-2">
-                      <Switch defaultChecked />
-                      <Label className="text-sm">{field}</Label>
-                    </div>
-                  ))}
+                  {['Email', 'First Name', 'Last Name', 'Phone', 'Company', 'VIP Status'].map(
+                    (field) => (
+                      <div key={field} className="flex items-center space-x-2">
+                        <Switch defaultChecked />
+                        <Label className="text-sm">{field}</Label>
+                      </div>
+                    )
+                  )}
                 </div>
               </div>
             </CardContent>
@@ -296,7 +303,9 @@ export default function Settings() {
                 <div className="flex items-center justify-between">
                   <div>
                     <Label className="text-base font-medium">Enable Email Alerts</Label>
-                    <p className="text-sm text-muted-foreground">Get notified about sync failures and errors</p>
+                    <p className="text-sm text-muted-foreground">
+                      Get notified about sync failures and errors
+                    </p>
                   </div>
                   <Switch checked={emailAlerts} onCheckedChange={setEmailAlerts} />
                 </div>
@@ -315,10 +324,10 @@ export default function Settings() {
                   <Label className="text-base font-medium">Alert Types</Label>
                   <div className="mt-2 space-y-2">
                     {[
-                      { name: "Sync Failures", enabled: true },
-                      { name: "Rate Limit Exceeded", enabled: true },
-                      { name: "Data Conflicts", enabled: false },
-                      { name: "Daily Sync Summary", enabled: true }
+                      { name: 'Sync Failures', enabled: true },
+                      { name: 'Rate Limit Exceeded', enabled: true },
+                      { name: 'Data Conflicts', enabled: false },
+                      { name: 'Daily Sync Summary', enabled: true },
                     ].map((alert) => (
                       <div key={alert.name} className="flex items-center justify-between">
                         <Label className="text-sm">{alert.name}</Label>
@@ -334,7 +343,7 @@ export default function Settings() {
               <CardHeader>
                 <CardTitle className="flex items-center justify-between">
                   <div className="flex items-center">
-                    <Slack className="w-5 h-5 mr-2" />
+                    <MessageSquare className="w-5 h-5 mr-2" />
                     Slack Integration
                   </div>
                   <div className="flex items-center space-x-2">
@@ -354,10 +363,10 @@ export default function Settings() {
                     onChange={(e) => setSlackWebhook(e.target.value)}
                   />
                 </div>
-                <Button 
+                <Button
                   variant="outline"
-                  onClick={() => testConnection("slack")}
-                  disabled={connectionStatus.slack === "testing"}
+                  onClick={() => testConnection('slack')}
+                  disabled={connectionStatus.slack === 'testing'}
                 >
                   <TestTube className="w-4 h-4 mr-2" />
                   Test Slack Connection
@@ -387,7 +396,13 @@ export default function Settings() {
                 <div>
                   <Label className="text-base font-medium">Events to Send</Label>
                   <div className="mt-2 space-y-2">
-                    {["Sync Started", "Sync Completed", "Sync Failed", "Contact Created", "Contact Updated"].map((event) => (
+                    {[
+                      'Sync Started',
+                      'Sync Completed',
+                      'Sync Failed',
+                      'Contact Created',
+                      'Contact Updated',
+                    ].map((event) => (
                       <div key={event} className="flex items-center justify-between">
                         <Label className="text-sm">{event}</Label>
                         <Switch defaultChecked />
@@ -419,7 +434,9 @@ export default function Settings() {
                         <div className="font-medium text-sm">HubSpot API Key</div>
                         <div className="text-sm text-muted-foreground">Last rotated: Never</div>
                       </div>
-                      <Button variant="outline" size="sm">Rotate Key</Button>
+                      <Button variant="outline" size="sm">
+                        Rotate Key
+                      </Button>
                     </div>
                   </div>
                 </div>

@@ -2,8 +2,22 @@
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from './types';
 
-const SUPABASE_URL = "https://opwagkvnbgxjkcvauyfq.supabase.co";
-const SUPABASE_PUBLISHABLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9wd2Fna3ZuYmd4amtjdmF1eWZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTU4NjUzMzUsImV4cCI6MjA3MTQ0MTMzNX0.3rCM3q2hPWW1LrO7iU7-86kjutq4CiwaYJgetKfgBNc";
+// Use environment variables for secure configuration
+const SUPABASE_URL =
+  import.meta.env.VITE_SUPABASE_URL || 'https://opwagkvnbgxjkcvauyfq.supabase.co';
+const SUPABASE_PUBLISHABLE_KEY =
+  import.meta.env.VITE_SUPABASE_ANON_KEY ||
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9wd2Fna3ZuYmd4amtjdmF1eWZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTU4NjUzMzUsImV4cCI6MjA3MTQ0MTMzNX0.3rCM3q2hPWW1LrO7iU7-86kjutq4CiwaYJgetKfgBNc';
+
+// Validate environment variables in production
+if (
+  import.meta.env.PROD &&
+  (!import.meta.env.VITE_SUPABASE_URL || !import.meta.env.VITE_SUPABASE_ANON_KEY)
+) {
+  throw new Error(
+    'Missing required Supabase environment variables. Please check your deployment configuration.'
+  );
+}
 
 // Import the supabase client like this:
 // import { supabase } from "@/integrations/supabase/client";
@@ -13,5 +27,5 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
     storage: localStorage,
     persistSession: true,
     autoRefreshToken: true,
-  }
+  },
 });
