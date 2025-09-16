@@ -11,13 +11,17 @@ import {
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Loader2, RefreshCw, CheckCircle, XCircle, Database, Cloud } from 'lucide-react';
+import { Loader2, RefreshCw, CheckCircle, XCircle, Database, Cloud, TestTube } from 'lucide-react';
+import { format } from 'date-fns';
+import { useHubSpot } from '@/contexts/HubSpotContext';
+import { toast } from 'sonner';
 
 interface DataRecord {
   hs_object_id: string;
   name: string;
   email: string;
   email_verification_status: string;
+  createdate: string | null;
 }
 
 export default function LatestCreated() {
@@ -25,12 +29,20 @@ export default function LatestCreated() {
   const [hubspotData, setHubspotData] = useState<DataRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [supabaseConnected, setSupabaseConnected] = useState(false);
-  // hubspotConnected state removed (not used)
   const [supabaseCount, setSupabaseCount] = useState(0);
+
+  // Use HubSpot context for connection status and actions
+  const {
+    hubspotConnected,
+    hubspotCount,
+    checkConnection: testHubSpotConnection,
+    isLoading: hubspotLoading,
+  } = useHubSpot();
 
   useEffect(() => {
     testConnections();
     fetchAllData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const testConnections = async () => {
@@ -44,16 +56,17 @@ export default function LatestCreated() {
         setSupabaseConnected(true);
         setSupabaseCount(count || 0);
       }
-    } catch (error) {
-      console.error('Supabase connection error:', error);
+    } catch (err) {
+      console.error('Supabase connection error:', err);
+      toast.error('Supabase connection failed');
     }
 
-    // Test HubSpot connection
+    // Test HubSpot connection via context
     try {
-      await fetch('/api/hubspot-test');
-      // No need to setHubspotConnected; just check connection
-    } catch (error) {
-      console.error('HubSpot connection error:', error);
+      await testHubSpotConnection();
+    } catch (err) {
+      console.error('HubSpot connection error:', err);
+      toast.error('HubSpot connection test failed');
     }
   };
 
@@ -64,6 +77,7 @@ export default function LatestCreated() {
       await Promise.all([fetchSupabaseData(), fetchHubspotData()]);
     } catch (err) {
       console.error('Error fetching data:', err);
+      toast.error('Failed to fetch data');
     } finally {
       setLoading(false);
     }
@@ -72,24 +86,22 @@ export default function LatestCreated() {
   const fetchSupabaseData = async () => {
     const { data, error } = await supabase
       .from('contacts')
-      .select('hs_object_id, firstname, lastname, email, email_verification_status')
+      .select('hs_object_id, firstname, lastname, email, email_verification_status, createdate')
       .order('createdate', { ascending: false })
       .limit(25);
 
     if (!error && data) {
-      const formatted = data.map((r: any) => ({
-        hs_object_id: r.hs_object_id,
-        name: `${r.firstname || ''} ${r.lastname || ''}`.trim(),
-        email: r.email || 'N/A',
-        email_verification_status: r.email_verification_status || 'unverified',
-      }));
+      const formatted = data.map(mapSupabaseRecordToDataRecord);
       setSupabaseData(formatted);
+    } else if (error) {
+      console.error('Supabase fetch error:', error);
+      toast.error('Failed to load Supabase data');
     }
   };
 
   const fetchHubspotData = async () => {
     try {
-      const response = await fetch('/api/hubspot-contacts', {
+      const response = await fetch('/.netlify/functions/hubspot-contacts', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -106,26 +118,43 @@ export default function LatestCreated() {
             'lastname',
             'email',
             'email_verification_status',
+            'createdate',
           ],
         }),
       });
 
       if (response.ok) {
         const data = await response.json();
-        const formattedData =
-          data.results?.map((record: any) => ({
-            hs_object_id: record.id,
-            name: `${record.properties.firstname || ''} ${record.properties.lastname || ''}`.trim(),
-            email: record.properties.email || 'N/A',
-            email_verification_status: record.properties.email_verification_status || 'unverified',
-          })) || [];
+        const formattedData = data.results?.map(mapHubspotRecordToDataRecord) || [];
 
         setHubspotData(formattedData);
+      } else {
+        const text = await response.text();
+        console.error('HubSpot API error:', text);
+        toast.error('Failed to load HubSpot data');
       }
-    } catch (error) {
-      console.error('Error fetching HubSpot data:', error);
+    } catch (err) {
+      console.error('Error fetching HubSpot data:', err);
+      toast.error('Failed to fetch HubSpot data');
     }
   };
+
+  // Helpers to normalize records from Supabase and HubSpot into DataRecord
+  const mapSupabaseRecordToDataRecord = (r: any): DataRecord => ({
+    hs_object_id: r.hs_object_id,
+    name: `${r.firstname || ''} ${r.lastname || ''}`.trim(),
+    email: r.email || 'N/A',
+    email_verification_status: r.email_verification_status || 'unverified',
+    createdate: r.createdate || null,
+  });
+
+  const mapHubspotRecordToDataRecord = (record: any): DataRecord => ({
+    hs_object_id: record.id,
+    name: `${record.properties?.firstname || ''} ${record.properties?.lastname || ''}`.trim(),
+    email: record.properties?.email || 'N/A',
+    email_verification_status: record.properties?.email_verification_status || 'unverified',
+    createdate: record.properties?.createdate || null,
+  });
 
   const getStatusBadge = (status: string) => {
     const statusLower = status?.toLowerCase() || 'unverified';
@@ -136,6 +165,16 @@ export default function LatestCreated() {
       return <Badge className="bg-yellow-100 text-yellow-800">Pending</Badge>;
     } else {
       return <Badge className="bg-gray-100 text-gray-800">Unverified</Badge>;
+    }
+  };
+
+  const formatDate = (dateString: string | null) => {
+    if (!dateString) return 'N/A';
+    try {
+      // Use a friendlier, 12-hour format with AM/PM
+      return format(new Date(dateString), 'MMM d, yyyy h:mm a');
+    } catch {
+      return 'Invalid Date';
     }
   };
 
@@ -160,7 +199,20 @@ export default function LatestCreated() {
               ) : (
                 <XCircle className="h-5 w-5 text-red-500" />
               )}
-              <span className="font-medium">Connected</span>
+              <span className="font-medium">
+                Supabase: {supabaseConnected ? 'Connected' : 'Disconnected'}
+              </span>
+            </div>
+
+            <div className="flex items-center gap-2">
+              {hubspotConnected ? (
+                <CheckCircle className="h-5 w-5 text-green-500" />
+              ) : (
+                <XCircle className="h-5 w-5 text-red-500" />
+              )}
+              <span className="font-medium">
+                HubSpot: {hubspotConnected ? 'Connected' : 'Disconnected'}
+              </span>
             </div>
 
             <div className="flex items-center gap-2 text-gray-600">
@@ -168,7 +220,13 @@ export default function LatestCreated() {
               <span>Supabase: {supabaseCount.toLocaleString()}</span>
             </div>
 
-            <Button variant="outline" size="sm" onClick={testConnections}>
+            <div className="flex items-center gap-2 text-gray-600">
+              <Cloud className="h-5 w-5" />
+              <span>HubSpot: {hubspotCount?.toLocaleString?.() ?? '0'}</span>
+            </div>
+
+            <Button variant="outline" size="sm" onClick={testConnections} disabled={hubspotLoading}>
+              <TestTube className="w-4 h-4 mr-2" />
               Test Connection
             </Button>
 
@@ -203,21 +261,36 @@ export default function LatestCreated() {
                   <Table>
                     <TableHeader>
                       <TableRow className="bg-gray-50">
-                        <TableHead className="font-semibold">HS Object ID</TableHead>
-                        <TableHead className="font-semibold">Name</TableHead>
-                        <TableHead className="font-semibold">Email</TableHead>
-                        <TableHead className="font-semibold">Email Status</TableHead>
+                        <TableHead className="font-semibold w-40">HS Object ID</TableHead>
+                        <TableHead className="font-semibold w-48">Name</TableHead>
+                        <TableHead className="font-semibold w-56">Email</TableHead>
+                        <TableHead className="font-semibold hidden sm:table-cell w-36">
+                          Email Status
+                        </TableHead>
+                        <TableHead className="font-semibold w-44">Created Date</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {supabaseData.map((record, index) => (
                         <TableRow key={record.hs_object_id || index}>
-                          <TableCell className="font-mono text-sm">
+                          <TableCell
+                            className="font-mono text-sm truncate"
+                            title={record.hs_object_id}
+                          >
                             {record.hs_object_id || 'N/A'}
                           </TableCell>
-                          <TableCell className="font-medium">{record.name || 'N/A'}</TableCell>
-                          <TableCell className="text-gray-600">{record.email || 'N/A'}</TableCell>
-                          <TableCell>{getStatusBadge(record.email_verification_status)}</TableCell>
+                          <TableCell className="font-medium truncate" title={record.name}>
+                            {record.name || 'N/A'}
+                          </TableCell>
+                          <TableCell className="text-gray-600 truncate" title={record.email}>
+                            {record.email || 'N/A'}
+                          </TableCell>
+                          <TableCell className="hidden sm:table-cell">
+                            {getStatusBadge(record.email_verification_status)}
+                          </TableCell>
+                          <TableCell className="text-sm text-gray-600">
+                            {formatDate(record.createdate)}
+                          </TableCell>
                         </TableRow>
                       ))}
                     </TableBody>
@@ -244,21 +317,36 @@ export default function LatestCreated() {
                   <Table>
                     <TableHeader>
                       <TableRow className="bg-gray-50">
-                        <TableHead className="font-semibold">HS Object ID</TableHead>
-                        <TableHead className="font-semibold">Name</TableHead>
-                        <TableHead className="font-semibold">Email</TableHead>
-                        <TableHead className="font-semibold">Email Status</TableHead>
+                        <TableHead className="font-semibold w-40">HS Object ID</TableHead>
+                        <TableHead className="font-semibold w-48">Name</TableHead>
+                        <TableHead className="font-semibold w-56">Email</TableHead>
+                        <TableHead className="font-semibold hidden sm:table-cell w-36">
+                          Email Status
+                        </TableHead>
+                        <TableHead className="font-semibold w-44">Created Date</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {hubspotData.map((record, index) => (
                         <TableRow key={record.hs_object_id || index}>
-                          <TableCell className="font-mono text-sm">
+                          <TableCell
+                            className="font-mono text-sm truncate"
+                            title={record.hs_object_id}
+                          >
                             {record.hs_object_id || 'N/A'}
                           </TableCell>
-                          <TableCell className="font-medium">{record.name || 'N/A'}</TableCell>
-                          <TableCell className="text-gray-600">{record.email || 'N/A'}</TableCell>
-                          <TableCell>{getStatusBadge(record.email_verification_status)}</TableCell>
+                          <TableCell className="font-medium truncate" title={record.name}>
+                            {record.name || 'N/A'}
+                          </TableCell>
+                          <TableCell className="text-gray-600 truncate" title={record.email}>
+                            {record.email || 'N/A'}
+                          </TableCell>
+                          <TableCell className="hidden sm:table-cell">
+                            {getStatusBadge(record.email_verification_status)}
+                          </TableCell>
+                          <TableCell className="text-sm text-gray-600">
+                            {formatDate(record.createdate)}
+                          </TableCell>
                         </TableRow>
                       ))}
                     </TableBody>
