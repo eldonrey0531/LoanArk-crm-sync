@@ -52,7 +52,7 @@ const App = () => {
                     }
                   />
                   <Route path="latest-updated" element={<LatestUpdated />} />
-                  <Route path="sync" element={<SyncMonitor />} />
+                  <Route path="sync-monitor" element={<SyncMonitor />} />
                   <Route path="logs" element={<Logs />} />
                   <Route path="settings" element={<Settings />} />
                   {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
