@@ -5,7 +5,7 @@ interface HubSpotContextType {
   isLoading: boolean;
   error: string | null;
   hubspotCount: number;
-  connectionDetails: any | null;
+  connectionDetails: any;
   checkConnection: () => Promise<void>;
   refreshConnection: () => Promise<void>;
   clearError: () => void;
@@ -23,7 +23,7 @@ export const HubSpotProvider: React.FC<HubSpotProviderProps> = ({ children }) =>
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [hubspotCount, setHubspotCount] = useState<number>(0);
-  const [connectionDetails, setConnectionDetails] = useState<any | null>(null);
+  const [connectionDetails, setConnectionDetails] = useState<any>(null);
   const [lastChecked, setLastChecked] = useState<Date | null>(null);
 
   // Import the HubSpot test function
@@ -97,49 +97,42 @@ export const HubSpotProvider: React.FC<HubSpotProviderProps> = ({ children }) =>
 
   // Load persisted connection status on mount
   useEffect(() => {
-    const loadPersistedStatus = () => {
-      try {
-        const stored = localStorage.getItem('hubspot_connection_status');
-        if (stored) {
-          const { connected, timestamp, count } = JSON.parse(stored);
-          const fiveMinutesAgo = Date.now() - 5 * 60 * 1000;
-
-          if (timestamp > fiveMinutesAgo) {
-            // Use cached status if less than 5 minutes old
-            setHubspotConnected(connected);
-            setHubspotCount(count || 0);
-            setLastChecked(new Date(timestamp));
-            setIsLoading(false);
-            return true;
-          }
+    try {
+      const stored = localStorage.getItem('hubspot_connection_status');
+      if (stored) {
+        const { connected, timestamp, count } = JSON.parse(stored);
+        const fiveMinutesAgo = Date.now() - 5 * 60 * 1000;
+        if (timestamp > fiveMinutesAgo) {
+          setHubspotConnected(connected);
+          setHubspotCount(count || 0);
+          setLastChecked(new Date(timestamp));
+          setIsLoading(false);
+          return;
         }
-      } catch (error) {
-        console.warn('Failed to load persisted connection status:', error);
       }
-      return false;
-    };
-
-    const hasValidCache = loadPersistedStatus();
-
-    // If no valid cache, check connection
-    if (!hasValidCache) {
-      checkConnection();
+    } catch (error) {
+      console.warn('Failed to load persisted connection status:', error);
     }
+    checkConnection();
   }, []);
 
-  const value: HubSpotContextType = {
-    hubspotConnected,
-    isLoading,
-    error,
-    hubspotCount,
-    connectionDetails,
-    checkConnection,
-    refreshConnection,
-    clearError,
-    lastChecked,
-  };
+  // Memoize context value to avoid unnecessary renders
+  const contextValue = React.useMemo(
+    () => ({
+      hubspotConnected,
+      isLoading,
+      error,
+      hubspotCount,
+      connectionDetails,
+      checkConnection,
+      refreshConnection,
+      clearError,
+      lastChecked,
+    }),
+    [hubspotConnected, isLoading, error, hubspotCount, connectionDetails, lastChecked]
+  );
 
-  return <HubSpotContext.Provider value={value}>{children}</HubSpotContext.Provider>;
+  return <HubSpotContext.Provider value={contextValue}>{children}</HubSpotContext.Provider>;
 };
 
 export const useHubSpot = (): HubSpotContextType => {

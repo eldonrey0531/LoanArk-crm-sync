@@ -26,51 +26,64 @@ exports.handler = async (event, context) => {
   }
 
   try {
-    // Use the same search endpoint as the contacts function for consistency
-    const response = await fetch('https://api.hubapi.com/crm/v3/objects/contacts/search', {
+    // First, get a small sample to test connectivity
+    const testResponse = await fetch('https://api.hubapi.com/crm/v3/objects/contacts/search', {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${HUBSPOT_API_KEY}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        limit: 10, // Small limit just for testing
+        limit: 1, // Minimal limit for connectivity test
         properties: ['hs_object_id'],
       }),
     });
 
-    if (response.ok) {
-      const data = await response.json();
-
-      // Calculate total from actual results, not data.total (which may not exist)
-      const actualTotal = data.results ? data.results.length : 0;
-
-      return {
-        statusCode: 200,
-        headers,
+    if (testResponse.ok) {
+      // If connectivity test passes, get total count
+      const countResponse = await fetch('https://api.hubapi.com/crm/v3/objects/contacts/search', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${HUBSPOT_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
         body: JSON.stringify({
-          connected: true,
-          total: actualTotal,
-          debug: {
-            hasResults: !!data.results,
-            resultCount: actualTotal,
-            hasTotal: 'total' in data,
-            dataTotal: data.total,
-          },
+          limit: 1,
+          properties: ['hs_object_id'],
         }),
-      };
-    } else {
-      const errorText = await response.text();
-      return {
-        statusCode: 200,
-        headers,
-        body: JSON.stringify({
-          connected: false,
-          error: errorText,
-          total: 0,
-        }),
-      };
+      });
+
+      if (countResponse.ok) {
+        const countData = await countResponse.json();
+        const actualTotal = countData.total || 0;
+
+        return {
+          statusCode: 200,
+          headers,
+          body: JSON.stringify({
+            connected: true,
+            total: actualTotal,
+            debug: {
+              hasResults: !!countData.results,
+              resultCount: countData.results?.length || 0,
+              hasTotal: 'total' in countData,
+              dataTotal: countData.total,
+            },
+          }),
+        };
+      }
     }
+
+    const errorText = await testResponse.text();
+    return {
+      statusCode: 200,
+      headers,
+      body: JSON.stringify({
+        connected: false,
+        error: errorText,
+        total: 0,
+      }),
+    };
   } catch (error) {
     return {
       statusCode: 200,
