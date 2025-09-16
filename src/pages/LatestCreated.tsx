@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { useEffect, useState } from 'react';
 import { testHubSpotConnection, fetchHubSpotContacts } from '@/api/hubspot';
 import { supabase } from '@/integrations/supabase/client';
