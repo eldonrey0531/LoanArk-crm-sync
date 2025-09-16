@@ -80,6 +80,24 @@ export type Database = {
         }
         Relationships: []
       }
+      hubspot_cache: {
+        Row: {
+          contact_data: Json
+          id: string
+          last_fetched: string | null
+        }
+        Insert: {
+          contact_data: Json
+          id: string
+          last_fetched?: string | null
+        }
+        Update: {
+          contact_data?: Json
+          id?: string
+          last_fetched?: string | null
+        }
+        Relationships: []
+      }
       hubspot_contacts: {
         Row: {
           company: string | null
@@ -197,89 +215,94 @@ export type Database = {
         }
         Relationships: []
       }
-      sync_logs: {
+      sync_jobs: {
         Row: {
+          completed_at: string | null
           created_at: string | null
           error_message: string | null
-          failed_records: number | null
-          id: number
-          last_sync_time: string
-          new_records: number | null
-          processed_contact_ids: string[] | null
+          id: string
+          metadata: Json | null
+          records_created: number | null
+          records_failed: number | null
           records_processed: number | null
+          records_updated: number | null
+          started_at: string | null
           status: string | null
-          sync_type: string
-          updated_records: number | null
+          type: string
         }
         Insert: {
+          completed_at?: string | null
           created_at?: string | null
           error_message?: string | null
-          failed_records?: number | null
-          id?: number
-          last_sync_time: string
-          new_records?: number | null
-          processed_contact_ids?: string[] | null
+          id?: string
+          metadata?: Json | null
+          records_created?: number | null
+          records_failed?: number | null
           records_processed?: number | null
+          records_updated?: number | null
+          started_at?: string | null
           status?: string | null
-          sync_type: string
-          updated_records?: number | null
+          type?: string
         }
         Update: {
+          completed_at?: string | null
           created_at?: string | null
           error_message?: string | null
-          failed_records?: number | null
-          id?: number
-          last_sync_time?: string
-          new_records?: number | null
-          processed_contact_ids?: string[] | null
+          id?: string
+          metadata?: Json | null
+          records_created?: number | null
+          records_failed?: number | null
           records_processed?: number | null
+          records_updated?: number | null
+          started_at?: string | null
           status?: string | null
-          sync_type?: string
-          updated_records?: number | null
+          type?: string
         }
         Relationships: []
       }
-      webhook_logs: {
+      sync_logs: {
         Row: {
-          created: number | null
+          action: string
+          contact_id: string | null
           created_at: string | null
-          deleted: number | null
-          errors: Json | null
-          event_type: string | null
-          events_count: number | null
-          id: number
-          processed: number | null
-          raw_payload: Json | null
-          source: string
-          updated: number | null
+          error_message: string | null
+          id: string
+          new_values: Json | null
+          old_values: Json | null
+          status: string | null
+          sync_job_id: string | null
         }
         Insert: {
-          created?: number | null
+          action: string
+          contact_id?: string | null
           created_at?: string | null
-          deleted?: number | null
-          errors?: Json | null
-          event_type?: string | null
-          events_count?: number | null
-          id?: number
-          processed?: number | null
-          raw_payload?: Json | null
-          source: string
-          updated?: number | null
+          error_message?: string | null
+          id?: string
+          new_values?: Json | null
+          old_values?: Json | null
+          status?: string | null
+          sync_job_id?: string | null
         }
         Update: {
-          created?: number | null
+          action?: string
+          contact_id?: string | null
           created_at?: string | null
-          deleted?: number | null
-          errors?: Json | null
-          event_type?: string | null
-          events_count?: number | null
-          id?: number
-          processed?: number | null
-          raw_payload?: Json | null
-          source?: string
-          updated?: number | null
+          error_message?: string | null
+          id?: string
+          new_values?: Json | null
+          old_values?: Json | null
+          status?: string | null
+          sync_job_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "sync_logs_sync_job_id_fkey"
+            columns: ["sync_job_id"]
+            isOneToOne: false
+            referencedRelation: "sync_jobs"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       wrappers_fdw_stats: {
         Row: {
@@ -448,6 +471,21 @@ export type Database = {
       firebase_fdw_validator: {
         Args: { catalog: unknown; options: string[] }
         Returns: undefined
+      }
+      get_latest_sync_status: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          completed_at: string
+          created_at: string
+          id: string
+          records_created: number
+          records_failed: number
+          records_processed: number
+          records_updated: number
+          started_at: string
+          status: string
+          type: string
+        }[]
       }
       get_sync_logs_columns: {
         Args: Record<PropertyKey, never>
