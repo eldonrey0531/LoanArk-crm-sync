@@ -183,7 +183,9 @@ export default function LatestCreated() {
     try {
       const { data, error } = await supabase
         .from('contacts')
-        .select('hs_object_id, firstname, lastname, email, email_verification_status, created_at, createdate')
+        .select(
+          'hs_object_id, firstname, lastname, email, email_verification_status, created_at, createdate'
+        )
         .order('created_at', { ascending: false })
         .limit(25);
 
@@ -223,8 +225,9 @@ export default function LatestCreated() {
             'N/A',
           email: record.properties?.email || 'N/A',
           email_verification_status: record.properties?.email ? 'verified' : 'unverified',
-          createdate: record.properties?.createdate ? 
-            new Date(record.properties.createdate).toLocaleDateString() : 'N/A',
+          createdate: record.properties?.createdate
+            ? new Date(record.properties.createdate).toLocaleDateString()
+            : 'N/A',
         }));
         setHubspotData(formattedData);
         console.log(`✅ Successfully formatted ${formattedData.length} HubSpot contacts`);

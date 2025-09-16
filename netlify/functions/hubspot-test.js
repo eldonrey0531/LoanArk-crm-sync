@@ -41,10 +41,10 @@ exports.handler = async (event, context) => {
 
     if (response.ok) {
       const data = await response.json();
-      
+
       // Calculate total from actual results, not data.total (which may not exist)
       const actualTotal = data.results ? data.results.length : 0;
-      
+
       return {
         statusCode: 200,
         headers,
