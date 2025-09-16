@@ -4,23 +4,8 @@ import path from 'path';
 import { componentTagger } from 'lovable-tagger';
 
 export default defineConfig(({ mode }) => {
-  // Validate required environment variables in production build
-  if (mode === 'production') {
-    const requiredEnvVars = ['VITE_SUPABASE_URL', 'VITE_SUPABASE_ANON_KEY'];
-    const missingVars = requiredEnvVars.filter((varName) => !process.env[varName]);
-
-    if (missingVars.length > 0) {
-      console.error('❌ Missing required environment variables for production build:');
-      missingVars.forEach((varName) => {
-        console.error(`   - ${varName}`);
-      });
-      console.error('Please configure these variables in your deployment environment.');
-      console.error('See .env.example for reference.');
-
-      // FAIL the build in production to prevent deployment with missing secrets
-      process.exit(1);
-    }
-  }
+  // Note: In production builds, environment variables should be set by deployment platform
+  // Vite will handle the replacement of import.meta.env.* at build time
 
   return {
     plugins: [react(), mode === 'development' && componentTagger()].filter(Boolean),

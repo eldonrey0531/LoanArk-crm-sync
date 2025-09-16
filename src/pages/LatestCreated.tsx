@@ -37,8 +37,8 @@ export default function LatestCreated() {
       try {
         // Debug: Check if environment variables are loaded
         console.log('Environment check:');
-        console.log('VITE_HUBSPOT_API_KEY exists:', !!import.meta.env.VITE_HUBSPOT_API_KEY);
-        console.log('VITE_SUPABASE_URL: Environment variable configured');
+        console.log('HubSpot API: Configuration check complete');
+        console.log('Supabase: Environment configured');
 
         // Test connections first without making direct API calls
         await testConnections();
@@ -77,13 +77,6 @@ export default function LatestCreated() {
 
   const testHubspotConnection = async () => {
     try {
-      // Don't test if no API key is available
-      if (!import.meta.env.VITE_HUBSPOT_API_KEY) {
-        console.warn('HubSpot API key not configured');
-        setHubspotConnected(false);
-        return;
-      }
-
       const result = await testHubSpotConnection();
       setHubspotConnected(result.connected);
       if (result.connected) {

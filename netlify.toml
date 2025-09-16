@@ -5,6 +5,8 @@
 
 [build.environment]
   NODE_VERSION = "18"
+  # Note: Environment variables for the app should be set in Netlify dashboard
+  # VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY are required for production
 
 [[headers]]
   for = "/*"

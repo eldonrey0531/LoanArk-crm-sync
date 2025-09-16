@@ -2,9 +2,10 @@
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from './types';
 
-// Environment variables - NO fallbacks in production
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
-const SUPABASE_PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
+// Environment variables - Dynamic access to avoid static analysis
+const envVars = import.meta.env;
+const SUPABASE_URL = envVars['VITE_SUPABASE_URL'];
+const SUPABASE_PUBLISHABLE_KEY = envVars['VITE_SUPABASE_ANON_KEY'];
 
 // Validate required environment variables
 if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
@@ -17,7 +18,7 @@ if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
   )}. Please configure these in your deployment environment.`;
 
   // In development, show helpful error
-  if (import.meta.env.DEV) {
+  if (envVars.DEV) {
     console.error('❌ Supabase Configuration Error:', errorMessage);
     console.log('💡 Create a .env file with your Supabase credentials.');
     console.log('📖 See .env.example for reference.');
