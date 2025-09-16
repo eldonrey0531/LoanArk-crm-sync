@@ -1,76 +1,72 @@
 // @ts-nocheck
 import { useEffect, useState } from 'react';
-import {
-  testHubSpotConnection,
-  fetchHubSpotContacts,
-  fetchAllHubSpotContacts,
-} from '@/api/hubspot';
-import { supabase } from '@/integrations/supabase/client';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
-import { Card, CardContent, CardHeader } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Loader2, RefreshCw, CheckCircle, XCircle, Database, Cloud } from 'lucide-react';
-
-interface DataRecord {
-  hs_object_id: string;
-  name: string;
-  email: string;
-  email_verification_status: string;
-  createdate?: string;
-}
 
 export default function LatestCreated() {
-  const [supabaseData, setSupabaseData] = useState<DataRecord[]>([]);
-  const [hubspotData, setHubspotData] = useState<DataRecord[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [supabaseConnected, setSupabaseConnected] = useState(false);
-  const [hubspotConnected, setHubspotConnected] = useState(false);
-  const [supabaseCount, setSupabaseCount] = useState(0);
-  const [hubspotCount, setHubspotCount] = useState(0);
-  const [environmentInfo, setEnvironmentInfo] = useState<string>('');
-  const [testingSupabase, setTestingSupabase] = useState(false);
-  const [testingHubspot, setTestingHubspot] = useState(false);
-  const [fetchingAllContacts, setFetchingAllContacts] = useState(false);
-  const [paginationInfo, setPaginationInfo] = useState<{
-    total: number;
-    hasMore: boolean;
-    requestCount: number;
-    maxContactsReached: boolean;
-  } | null>(null);
+  // ...existing code...
 
-  // Environment detection
-  useEffect(() => {
-    const detectEnvironment = () => {
-      const isProduction =
-        typeof window !== 'undefined' && window.location.hostname !== 'localhost';
-      const isNetlify =
-        typeof window !== 'undefined' && window.location.hostname.includes('netlify');
-      const isLovable =
-        typeof window !== 'undefined' &&
-        (window.location.hostname.includes('lovable') ||
-          window.location.hostname.includes('webcontainer') ||
-          window.location.hostname.includes('local-credentialless'));
+  const fetchAllHubspotContacts = async () => {
+    try {
+      setFetchingAllContacts(true);
+      console.log('📡 Fetching ALL HubSpot contacts with pagination...');
 
-      let env = 'Unknown';
-      if (isLovable) env = 'Lovable (Mock Data)';
-      else if (isNetlify) env = 'Netlify (Production)';
-      else if (isProduction) env = 'Production';
-      else env = 'Local Development';
+      // Remove maxContacts to fetch all available contacts
+      const data = await fetchAllHubSpotContacts({
+        pageSize: 100, // HubSpot max per page
+        properties: ['firstname', 'lastname', 'email', 'hs_object_id', 'createdate'],
+        sorts: [{ propertyName: 'createdate', direction: 'DESCENDING' }],
+      });
 
-      setEnvironmentInfo(env);
-      console.log('🌍 Environment detected:', env);
-    };
+      console.log('📥 All HubSpot contacts response:', {
+        hasData: !!data,
+        hasResults: !!data?.results,
+        resultCount: data?.results?.length || 0,
+        total: data?.total,
+        hasMore: data?.hasMore,
+        requestCount: data?.requestCount,
+        maxContactsReached: data?.maxContactsReached,
+        isDemo: data?.isDemo,
+      });
 
-    detectEnvironment();
-  }, []);
+      if (data?.results) {
+        const formattedData = data.results.map((record: any) => ({
+          hs_object_id: record.id || record.properties?.hs_object_id || 'N/A',
+          name:
+            `${record.properties?.firstname || ''} ${record.properties?.lastname || ''}`.trim() ||
+            'N/A',
+          email: record.properties?.email || 'N/A',
+          email_verification_status: record.properties?.email ? 'verified' : 'unverified',
+          createdate: record.properties?.createdate
+            ? new Date(record.properties.createdate).toLocaleDateString()
+            : 'N/A',
+        }));
+
+        setHubspotData(formattedData);
+        setHubspotConnected(true);
+
+        // Store pagination information
+        setPaginationInfo({
+          total: data.total || formattedData.length,
+          hasMore: data.hasMore || false,
+          requestCount: data.requestCount || 1,
+          maxContactsReached: data.maxContactsReached || false,
+        });
+
+        console.log(
+          `✅ Successfully fetched and formatted ${formattedData.length} HubSpot contacts using ${data.requestCount} API requests`
+        );
+      } else {
+        console.warn('⚠️ No HubSpot results found in paginated response');
+        setHubspotData([]);
+        setPaginationInfo(null);
+      }
+    } catch (error) {
+      console.error('💥 Error fetching all HubSpot contacts:', error);
+      setHubspotData([]);
+      setPaginationInfo(null);
+    } finally {
+      setFetchingAllContacts(false);
+    }
+  };
 
   useEffect(() => {
     // Only initialize if component is mounted and environment is ready
@@ -258,10 +254,8 @@ export default function LatestCreated() {
     try {
       const { data, error } = await supabase
         .from('contacts')
-        .select(
-          'hs_object_id, firstname, lastname, email, email_verification_status, created_at, createdate'
-        )
-        .order('created_at', { ascending: false })
+        .select('hs_object_id, firstname, lastname, email, email_verification_status, createdate')
+        .order('createdate', { ascending: false })
         .limit(25);
 
       if (!error && data) {
@@ -344,236 +338,186 @@ export default function LatestCreated() {
           <p className="text-gray-600 mb-2">
             Top 25 most recently created contacts from both Supabase and HubSpot
           </p>
-          <div className="mb-6">
-            <Badge variant="outline" className="text-xs">
-              Environment: {environmentInfo}
-            </Badge>
-          </div>
-
-          {/* Connection Status - Separated for each system */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-4 bg-gray-50 rounded-lg">
-            {/* Supabase Status */}
-            <div className="space-y-3">
-              <div className="flex items-center gap-2">
-                <Database className="h-5 w-5 text-blue-600" />
-                <span className="font-semibold text-gray-700">Supabase Database</span>
-              </div>
-
-              <div className="flex items-center gap-2 pl-7">
-                {supabaseConnected ? (
-                  <CheckCircle className="h-4 w-4 text-green-500" />
-                ) : (
-                  <XCircle className="h-4 w-4 text-red-500" />
-                )}
-                <span className="text-sm">{supabaseConnected ? 'Connected' : 'Disconnected'}</span>
-              </div>
-
-              <div className="pl-7 text-sm text-gray-600">
-                Total Records: {supabaseCount.toLocaleString()}
-              </div>
-
-              <div className="pl-7">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={testSupabaseConnection}
-                  disabled={testingSupabase}
-                >
-                  {testingSupabase && <Loader2 className="h-3 w-3 mr-1 animate-spin" />}
-                  Test Connection
-                </Button>
-              </div>
+          {/* HubSpot status, count, pagination info, and action buttons go here */}
+          <div className="space-y-3">
+            <div className="flex items-center gap-2 pl-7">
+              {hubspotConnected ? (
+                <CheckCircle className="h-4 w-4 text-green-500" />
+              ) : (
+                <XCircle className="h-4 w-4 text-red-500" />
+              )}
+              <span className="text-sm">{hubspotConnected ? 'Connected' : 'Disconnected'}</span>
             </div>
-
-            {/* HubSpot Status */}
-            <div className="space-y-3">
-              <div className="flex items-center gap-2">
-                <Cloud className="h-5 w-5 text-orange-500" />
-                <span className="font-semibold text-gray-700">HubSpot CRM</span>
-              </div>
-
-              <div className="flex items-center gap-2 pl-7">
-                {hubspotConnected ? (
-                  <CheckCircle className="h-4 w-4 text-green-500" />
-                ) : (
-                  <XCircle className="h-4 w-4 text-red-500" />
-                )}
-                <span className="text-sm">{hubspotConnected ? 'Connected' : 'Disconnected'}</span>
-              </div>
-
-              <div className="pl-7 text-sm text-gray-600">
-                Total Contacts: {hubspotData.length.toLocaleString()}{' '}
-                {hubspotData.length >= 25 && !paginationInfo ? '(showing first 25)' : ''}
-                {paginationInfo && (
-                  <div className="text-xs text-blue-600 mt-1">
-                    {paginationInfo.hasMore && !paginationInfo.maxContactsReached
-                      ? `Fetched ${paginationInfo.total} in ${paginationInfo.requestCount} requests - more available`
-                      : `Complete: ${paginationInfo.total} contacts in ${paginationInfo.requestCount} requests`}
-                    {paginationInfo.maxContactsReached && (
-                      <span className="text-orange-600"> (limit reached)</span>
-                    )}
-                  </div>
-                )}
-              </div>
-              {hubspotCount > 0 && hubspotCount !== hubspotData.length && (
-                <div className="pl-7 text-xs text-blue-600">
-                  Connection Test Count: {hubspotCount.toLocaleString()}
+            <div className="pl-7 text-sm text-gray-600">
+              Total Contacts: {hubspotData.length.toLocaleString()}
+              {paginationInfo && (
+                <div className="text-xs text-blue-600 mt-1">
+                  {paginationInfo.hasMore && !paginationInfo.maxContactsReached
+                    ? `Fetched ${paginationInfo.total} in ${paginationInfo.requestCount} requests - more available`
+                    : `Complete: ${paginationInfo.total} contacts in ${paginationInfo.requestCount} requests`}
+                  {paginationInfo.maxContactsReached && (
+                    <span className="text-orange-600"> (safety limit reached)</span>
+                  )}
                 </div>
               )}
-
-              <div className="pl-7">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={testHubspotConnection}
-                  disabled={testingHubspot}
-                >
-                  {testingHubspot && <Loader2 className="h-3 w-3 mr-1 animate-spin" />}
-                  Test Connection
-                </Button>
-                <Button variant="ghost" size="sm" onClick={testNetlifyFunctions} className="ml-2">
-                  Debug Functions
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={fetchAllHubspotContacts}
-                  disabled={fetchingAllContacts}
-                  className="ml-2 text-green-600 border-green-300 hover:bg-green-50"
-                >
-                  {fetchingAllContacts && <Loader2 className="h-3 w-3 mr-1 animate-spin" />}
-                  Fetch All Contacts
-                </Button>
+              {!paginationInfo && hubspotData.length >= 25 && (
+                <span className="text-blue-600">
+                  {' '}
+                  (showing first 25 - click "Fetch All Contacts" for complete list)
+                </span>
+              )}
+            </div>
+            {hubspotCount > 0 && hubspotCount !== hubspotData.length && (
+              <div className="pl-7 text-xs text-blue-600">
+                Connection Test Count: {hubspotCount.toLocaleString()}
               </div>
+            )}
+            <div className="pl-7 mt-2 flex flex-wrap gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={testHubspotConnection}
+                disabled={testingHubspot}
+              >
+                {testingHubspot && <Loader2 className="h-3 w-3 mr-1 animate-spin" />}
+                Test Connection
+              </Button>
+              <Button variant="ghost" size="sm" onClick={testNetlifyFunctions} className="ml-2">
+                Debug Functions
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={fetchAllHubspotContacts}
+                disabled={fetchingAllContacts}
+                className="ml-2 text-green-600 border-green-300 hover:bg-green-50"
+              >
+                {fetchingAllContacts && <Loader2 className="h-3 w-3 mr-1 animate-spin" />}
+                Fetch All Contacts
+              </Button>
             </div>
           </div>
+          {/* Main Content Section */}
+          <div>
+            {loading ? (
+              <div className="flex justify-center items-center h-64">
+                <Loader2 className="h-8 w-8 animate-spin text-gray-500" />
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+                {/* Supabase Table */}
+                <Card className="shadow-sm border-0">
+                  <CardHeader className="bg-green-500 text-white px-6 py-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Cloud className="h-5 w-5" />
+                        <h2 className="text-lg font-semibold">Supabase CRM</h2>
+                      </div>
+                      <Badge variant="secondary" className="bg-white/20 text-white">
+                        {supabaseData.length} Records
+                      </Badge>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="p-0">
+                    <div className="overflow-x-auto">
+                      <Table>
+                        <TableHeader>
+                          <TableRow className="bg-gray-50">
+                            <TableHead className="font-semibold">HS Object ID</TableHead>
+                            <TableHead className="font-semibold">Name</TableHead>
+                            <TableHead className="font-semibold">Email</TableHead>
+                            <TableHead className="font-semibold">Email Status</TableHead>
+                            <TableHead className="font-semibold">Created Date</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {supabaseData.length > 0 ? (
+                            supabaseData.map((record) => (
+                              <TableRow key={`supabase-${record.hs_object_id}`}>
+                                <TableCell className="font-mono text-sm">
+                                  {record.hs_object_id}
+                                </TableCell>
+                                <TableCell className="font-medium">{record.name}</TableCell>
+                                <TableCell className="text-gray-600">{record.email}</TableCell>
+                                <TableCell>
+                                  {getStatusBadge(record.email_verification_status)}
+                                </TableCell>
+                                <TableCell className="text-gray-600 text-sm">
+                                  {record.createdate}
+                                </TableCell>
+                              </TableRow>
+                            ))
+                          ) : (
+                            <TableRow>
+                              <TableCell colSpan={5} className="text-center text-gray-500 py-8">
+                                No data available
+                              </TableCell>
+                            </TableRow>
+                          )}
+                        </TableBody>
+                      </Table>
+                    </div>
+                  </CardContent>
+                </Card>
 
-          {/* Refresh All Button */}
-          <div className="mt-4 flex justify-end">
-            <Button onClick={fetchAllData} size="sm">
-              <RefreshCw className="h-4 w-4 mr-2" />
-              Refresh All Data
-            </Button>
+                {/* HubSpot Table */}
+                <Card className="shadow-sm border-0">
+                  <CardHeader className="bg-orange-500 text-white px-6 py-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Cloud className="h-5 w-5" />
+                        <h2 className="text-lg font-semibold">HubSpot CRM</h2>
+                      </div>
+                      <Badge variant="secondary" className="bg-white/20 text-white">
+                        {hubspotData.length} Records
+                      </Badge>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="p-0">
+                    <div className="overflow-x-auto">
+                      <Table>
+                        <TableHeader>
+                          <TableRow className="bg-gray-50">
+                            <TableHead className="font-semibold">HS Object ID</TableHead>
+                            <TableHead className="font-semibold">Name</TableHead>
+                            <TableHead className="font-semibold">Email</TableHead>
+                            <TableHead className="font-semibold">Email Status</TableHead>
+                            <TableHead className="font-semibold">Created Date</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {hubspotData.length > 0 ? (
+                            hubspotData.map((record) => (
+                              <TableRow key={`hubspot-${record.hs_object_id}`}>
+                                <TableCell className="font-mono text-sm">
+                                  {record.hs_object_id}
+                                </TableCell>
+                                <TableCell className="font-medium">{record.name}</TableCell>
+                                <TableCell className="text-gray-600">{record.email}</TableCell>
+                                <TableCell>
+                                  {getStatusBadge(record.email_verification_status)}
+                                </TableCell>
+                                <TableCell className="text-gray-600 text-sm">
+                                  {record.createdate}
+                                </TableCell>
+                              </TableRow>
+                            ))
+                          ) : (
+                            <TableRow>
+                              <TableCell colSpan={5} className="text-center text-gray-500 py-8">
+                                No data available
+                              </TableCell>
+                            </TableRow>
+                          )}
+                        </TableBody>
+                      </Table>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            )}
           </div>
         </div>
-
-        {loading ? (
-          <div className="flex justify-center items-center h-64">
-            <Loader2 className="h-8 w-8 animate-spin text-gray-500" />
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-            {/* Supabase Table */}
-            <Card className="shadow-sm border-0">
-              <CardHeader className="bg-blue-600 text-white px-6 py-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Database className="h-5 w-5" />
-                    <h2 className="text-lg font-semibold">Supabase Database</h2>
-                  </div>
-                  <Badge variant="secondary" className="bg-white/20 text-white">
-                    {supabaseData.length} Records
-                  </Badge>
-                </div>
-              </CardHeader>
-              <CardContent className="p-0">
-                <div className="overflow-x-auto">
-                  <Table>
-                    <TableHeader>
-                      <TableRow className="bg-gray-50">
-                        <TableHead className="font-semibold">HS Object ID</TableHead>
-                        <TableHead className="font-semibold">Name</TableHead>
-                        <TableHead className="font-semibold">Email</TableHead>
-                        <TableHead className="font-semibold">Email Status</TableHead>
-                        <TableHead className="font-semibold">Created Date</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {supabaseData.length > 0 ? (
-                        supabaseData.map((record) => (
-                          <TableRow key={`supabase-${record.hs_object_id}`}>
-                            <TableCell className="font-mono text-sm">
-                              {record.hs_object_id}
-                            </TableCell>
-                            <TableCell className="font-medium">{record.name}</TableCell>
-                            <TableCell className="text-gray-600">{record.email}</TableCell>
-                            <TableCell>
-                              {getStatusBadge(record.email_verification_status)}
-                            </TableCell>
-                            <TableCell className="text-gray-600 text-sm">
-                              {record.createdate}
-                            </TableCell>
-                          </TableRow>
-                        ))
-                      ) : (
-                        <TableRow>
-                          <TableCell colSpan={5} className="text-center text-gray-500 py-8">
-                            No data available
-                          </TableCell>
-                        </TableRow>
-                      )}
-                    </TableBody>
-                  </Table>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* HubSpot Table */}
-            <Card className="shadow-sm border-0">
-              <CardHeader className="bg-orange-500 text-white px-6 py-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Cloud className="h-5 w-5" />
-                    <h2 className="text-lg font-semibold">HubSpot CRM</h2>
-                  </div>
-                  <Badge variant="secondary" className="bg-white/20 text-white">
-                    {hubspotData.length} Records
-                  </Badge>
-                </div>
-              </CardHeader>
-              <CardContent className="p-0">
-                <div className="overflow-x-auto">
-                  <Table>
-                    <TableHeader>
-                      <TableRow className="bg-gray-50">
-                        <TableHead className="font-semibold">HS Object ID</TableHead>
-                        <TableHead className="font-semibold">Name</TableHead>
-                        <TableHead className="font-semibold">Email</TableHead>
-                        <TableHead className="font-semibold">Email Status</TableHead>
-                        <TableHead className="font-semibold">Created Date</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {hubspotData.length > 0 ? (
-                        hubspotData.map((record) => (
-                          <TableRow key={`hubspot-${record.hs_object_id}`}>
-                            <TableCell className="font-mono text-sm">
-                              {record.hs_object_id}
-                            </TableCell>
-                            <TableCell className="font-medium">{record.name}</TableCell>
-                            <TableCell className="text-gray-600">{record.email}</TableCell>
-                            <TableCell>
-                              {getStatusBadge(record.email_verification_status)}
-                            </TableCell>
-                            <TableCell className="text-gray-600 text-sm">
-                              {record.createdate}
-                            </TableCell>
-                          </TableRow>
-                        ))
-                      ) : (
-                        <TableRow>
-                          <TableCell colSpan={5} className="text-center text-gray-500 py-8">
-                            No data available
-                          </TableCell>
-                        </TableRow>
-                      )}
-                    </TableBody>
-                  </Table>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        )}
       </div>
     </div>
   );

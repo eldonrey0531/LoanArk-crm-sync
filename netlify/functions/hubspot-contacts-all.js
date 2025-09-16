@@ -36,16 +36,16 @@ exports.handler = async (event, context) => {
 
   try {
     const requestBody = JSON.parse(event.body);
-    const maxContacts = requestBody.maxContacts || 100; // Default limit for safety
-    const pageSize = Math.min(requestBody.pageSize || 25, 100); // HubSpot max is 100 per request
+    // Remove maxContacts default limit - fetch all available
+    const pageSize = Math.min(requestBody.pageSize || 100, 100); // HubSpot max is 100 per request
 
     let allContacts = [];
     let after = requestBody.after || undefined;
     let hasMore = true;
     let requestCount = 0;
-    const maxRequests = Math.ceil(maxContacts / pageSize);
+    const maxRequests = 1000; // Safety limit to prevent infinite loops
 
-    while (hasMore && allContacts.length < maxContacts && requestCount < maxRequests) {
+    while (hasMore && requestCount < maxRequests) {
       console.log(`📄 Fetching page ${requestCount + 1}, after: ${after}`);
 
       const response = await fetch('https://api.hubapi.com/crm/v3/objects/contacts/search', {
@@ -103,29 +103,27 @@ exports.handler = async (event, context) => {
       }
 
       const data = await response.json();
-
-      if (data.results && data.results.length > 0) {
-        allContacts = allContacts.concat(data.results);
-        console.log(`✅ Added ${data.results.length} contacts, total: ${allContacts.length}`);
-      }
-
-      // Check if there are more pages
-      hasMore = data.paging && data.paging.next && data.paging.next.after;
-      if (hasMore) {
-        after = data.paging.next.after;
-      }
-
+      allContacts.push(...(data.results || []));
       requestCount++;
 
-      // Safety check to avoid infinite loops
-      if (requestCount >= 50) {
-        console.warn('⚠️ Reached maximum request limit (50), stopping pagination');
-        hasMore = false;
+      // Check if there are more pages
+      hasMore = !!(data.paging && data.paging.next && data.paging.next.after);
+      after = hasMore ? data.paging.next.after : undefined;
+
+      console.log(
+        `📥 Page ${requestCount}: ${data.results?.length || 0} contacts, total so far: ${
+          allContacts.length
+        }`
+      );
+
+      // Add small delay to respect rate limits
+      if (hasMore) {
+        await new Promise((resolve) => setTimeout(resolve, 100));
       }
     }
 
     console.log(
-      `🎉 Pagination complete: ${allContacts.length} total contacts in ${requestCount} requests`
+      `✅ Completed fetching all contacts: ${allContacts.length} total in ${requestCount} requests`
     );
 
     return {
@@ -134,9 +132,9 @@ exports.handler = async (event, context) => {
       body: JSON.stringify({
         results: allContacts,
         total: allContacts.length,
-        hasMore: hasMore && allContacts.length >= maxContacts,
+        hasMore: requestCount >= maxRequests, // Indicate if we hit the safety limit
         requestCount,
-        maxContactsReached: allContacts.length >= maxContacts,
+        maxContactsReached: requestCount >= maxRequests,
       }),
     };
   } catch (error) {

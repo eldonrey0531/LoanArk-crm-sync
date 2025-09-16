@@ -152,26 +152,27 @@ export async function fetchHubSpotContacts(
 
 export async function fetchAllHubSpotContacts(
   params = {
-    maxContacts: 100,
-    pageSize: 25,
+    pageSize: 100, // HubSpot max per page
     sorts: [{ propertyName: 'createdate', direction: 'DESCENDING' }],
     properties: ['firstname', 'lastname', 'email', 'hs_object_id', 'createdate'],
     filterGroups: [],
   }
 ) {
-  // Use mock data in Lovable - simulate pagination
+  // Use mock data in Lovable
   if (useMockData) {
-    console.log('🔧 Using mock HubSpot contacts with pagination simulation (Lovable environment)');
+    console.log('🔧 Using mock HubSpot contacts (Lovable environment)');
     const totalAvailable = mockHubSpotData.results.length;
-    const maxToReturn = Math.min(params.maxContacts || 100, totalAvailable);
+    // Remove maxContacts limit for mock data too
+    const maxToReturn = totalAvailable;
 
     return Promise.resolve({
       ...mockHubSpotData,
       results: mockHubSpotData.results.slice(0, maxToReturn),
       total: maxToReturn,
-      hasMore: maxToReturn < totalAvailable,
-      requestCount: Math.ceil(maxToReturn / (params.pageSize || 25)),
-      maxContactsReached: maxToReturn >= (params.maxContacts || 100),
+      hasMore: false,
+      requestCount: 1,
+      maxContactsReached: false,
+      isDemo: true,
     });
   }
 
@@ -193,7 +194,7 @@ export async function fetchAllHubSpotContacts(
       console.error('Error fetching all HubSpot contacts:', error);
       // Fallback to mock data on error
       const totalAvailable = mockHubSpotData.results.length;
-      const maxToReturn = Math.min(params.maxContacts || 100, totalAvailable);
+      const maxToReturn = totalAvailable;
 
       return {
         ...mockHubSpotData,
@@ -209,7 +210,7 @@ export async function fetchAllHubSpotContacts(
 
   // Fallback to mock data
   const totalAvailable = mockHubSpotData.results.length;
-  const maxToReturn = Math.min(params.maxContacts || 100, totalAvailable);
+  const maxToReturn = totalAvailable;
 
   return Promise.resolve({
     ...mockHubSpotData,
