@@ -30,6 +30,35 @@ export default function LatestCreated() {
   const [hubspotConnected, setHubspotConnected] = useState(false);
   const [supabaseCount, setSupabaseCount] = useState(0);
   const [hubspotCount, setHubspotCount] = useState(0);
+  const [environmentInfo, setEnvironmentInfo] = useState<string>('');
+  const [testingSupabase, setTestingSupabase] = useState(false);
+  const [testingHubspot, setTestingHubspot] = useState(false);
+
+  // Environment detection
+  useEffect(() => {
+    const detectEnvironment = () => {
+      const isProduction =
+        typeof window !== 'undefined' && window.location.hostname !== 'localhost';
+      const isNetlify =
+        typeof window !== 'undefined' && window.location.hostname.includes('netlify');
+      const isLovable =
+        typeof window !== 'undefined' &&
+        (window.location.hostname.includes('lovable') ||
+          window.location.hostname.includes('webcontainer') ||
+          window.location.hostname.includes('local-credentialless'));
+
+      let env = 'Unknown';
+      if (isLovable) env = 'Lovable (Mock Data)';
+      else if (isNetlify) env = 'Netlify (Production)';
+      else if (isProduction) env = 'Production';
+      else env = 'Local Development';
+
+      setEnvironmentInfo(env);
+      console.log('🌍 Environment detected:', env);
+    };
+
+    detectEnvironment();
+  }, []);
 
   useEffect(() => {
     // Only initialize if component is mounted and environment is ready
@@ -56,6 +85,7 @@ export default function LatestCreated() {
 
   const testSupabaseConnection = async () => {
     try {
+      setTestingSupabase(true);
       // Test connection using the supabase client directly
       // The client will handle environment variable validation
       const { count, error } = await supabase
@@ -72,26 +102,68 @@ export default function LatestCreated() {
     } catch (error) {
       console.error('Supabase connection error:', error);
       setSupabaseConnected(false);
+    } finally {
+      setTestingSupabase(false);
     }
   };
 
   const testHubspotConnection = async () => {
     try {
+      setTestingHubspot(true);
+      console.log('🔍 Testing HubSpot connection...');
       const result = await testHubSpotConnection();
+
+      console.log('📊 HubSpot connection result:', {
+        connected: result.connected,
+        total: result.total,
+        error: result.error,
+        isDemo: result.isDemo,
+        fullResult: result,
+      });
+
       setHubspotConnected(result.connected);
       if (result.connected) {
         setHubspotCount(result.total);
+        console.log(`✅ HubSpot connected with ${result.total} contacts`);
       } else {
-        console.warn('HubSpot connection failed:', result.error);
+        console.warn('❌ HubSpot connection failed:', result.error);
+        setHubspotCount(0);
       }
     } catch (error) {
-      console.error('HubSpot connection error:', error);
+      console.error('💥 HubSpot connection error:', error);
       setHubspotConnected(false);
+      setHubspotCount(0);
+    } finally {
+      setTestingHubspot(false);
     }
   };
 
   const testConnections = async () => {
     await Promise.all([testSupabaseConnection(), testHubspotConnection()]);
+  };
+
+  const testNetlifyFunctions = async () => {
+    try {
+      console.log('🧪 Testing Netlify Functions directly...');
+
+      // Test if Netlify functions are accessible
+      const testResponse = await fetch('/.netlify/functions/hubspot-test');
+      const testResult = await testResponse.json();
+
+      console.log('📡 Direct Netlify Function test result:', {
+        status: testResponse.status,
+        statusText: testResponse.statusText,
+        result: testResult,
+      });
+
+      if (!testResponse.ok) {
+        console.error('❌ Netlify function failed:', testResponse.status, testResult);
+      } else {
+        console.log('✅ Netlify function accessible');
+      }
+    } catch (error) {
+      console.error('💥 Direct Netlify function test failed:', error);
+    }
   };
 
   const fetchAllData = async () => {
@@ -130,8 +202,18 @@ export default function LatestCreated() {
 
   const fetchHubspotData = async () => {
     try {
+      console.log('📡 Fetching HubSpot contacts data...');
       const data = await fetchHubSpotContacts(25);
-      if (data && data.results) {
+
+      console.log('📥 HubSpot fetch response:', {
+        hasData: !!data,
+        hasResults: !!data?.results,
+        resultCount: data?.results?.length || 0,
+        isDemo: data?.isDemo,
+        fullResponse: data,
+      });
+
+      if (data?.results) {
         const formattedData = data.results.map((record: any) => ({
           hs_object_id: record.id || record.properties?.hs_object_id || 'N/A',
           name:
@@ -141,9 +223,14 @@ export default function LatestCreated() {
           email_verification_status: record.properties?.email ? 'verified' : 'unverified',
         }));
         setHubspotData(formattedData);
+        console.log(`✅ Successfully formatted ${formattedData.length} HubSpot contacts`);
+      } else {
+        console.warn('⚠️ No HubSpot results found in response');
+        setHubspotData([]);
       }
     } catch (error) {
-      console.error('Error fetching HubSpot data:', error);
+      console.error('💥 Error fetching HubSpot data:', error);
+      console.error('Stack trace:', error instanceof Error ? error.stack : 'No stack trace');
       setHubspotData([]);
     }
   };
@@ -169,9 +256,14 @@ export default function LatestCreated() {
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
             Latest Created Records - Dual View
           </h1>
-          <p className="text-gray-600 mb-6">
+          <p className="text-gray-600 mb-2">
             Top 25 most recently created contacts from both Supabase and HubSpot
           </p>
+          <div className="mb-6">
+            <Badge variant="outline" className="text-xs">
+              Environment: {environmentInfo}
+            </Badge>
+          </div>
 
           {/* Connection Status - Separated for each system */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-4 bg-gray-50 rounded-lg">
@@ -196,7 +288,13 @@ export default function LatestCreated() {
               </div>
 
               <div className="pl-7">
-                <Button variant="outline" size="sm" onClick={testSupabaseConnection}>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={testSupabaseConnection}
+                  disabled={testingSupabase}
+                >
+                  {testingSupabase && <Loader2 className="h-3 w-3 mr-1 animate-spin" />}
                   Test Connection
                 </Button>
               </div>
@@ -223,8 +321,17 @@ export default function LatestCreated() {
               </div>
 
               <div className="pl-7">
-                <Button variant="outline" size="sm" onClick={testHubspotConnection}>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={testHubspotConnection}
+                  disabled={testingHubspot}
+                >
+                  {testingHubspot && <Loader2 className="h-3 w-3 mr-1 animate-spin" />}
                   Test Connection
+                </Button>
+                <Button variant="ghost" size="sm" onClick={testNetlifyFunctions} className="ml-2">
+                  Debug Functions
                 </Button>
               </div>
             </div>
