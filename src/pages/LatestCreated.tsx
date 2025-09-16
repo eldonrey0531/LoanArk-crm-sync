@@ -20,6 +20,7 @@ interface DataRecord {
   name: string;
   email: string;
   email_verification_status: string;
+  createdate?: string;
 }
 
 export default function LatestCreated() {
@@ -182,7 +183,7 @@ export default function LatestCreated() {
     try {
       const { data, error } = await supabase
         .from('contacts')
-        .select('hs_object_id, firstname, lastname, email, email_verification_status, created_at')
+        .select('hs_object_id, firstname, lastname, email, email_verification_status, created_at, createdate')
         .order('created_at', { ascending: false })
         .limit(25);
 
@@ -192,6 +193,7 @@ export default function LatestCreated() {
           name: `${record.firstname || ''} ${record.lastname || ''}`.trim() || 'N/A',
           email: record.email || 'N/A',
           email_verification_status: record.email_verification_status || 'unverified',
+          createdate: record.createdate ? new Date(record.createdate).toLocaleDateString() : 'N/A',
         }));
         setSupabaseData(formattedData);
       }
@@ -221,6 +223,8 @@ export default function LatestCreated() {
             'N/A',
           email: record.properties?.email || 'N/A',
           email_verification_status: record.properties?.email ? 'verified' : 'unverified',
+          createdate: record.properties?.createdate ? 
+            new Date(record.properties.createdate).toLocaleDateString() : 'N/A',
         }));
         setHubspotData(formattedData);
         console.log(`✅ Successfully formatted ${formattedData.length} HubSpot contacts`);
@@ -374,6 +378,7 @@ export default function LatestCreated() {
                         <TableHead className="font-semibold">Name</TableHead>
                         <TableHead className="font-semibold">Email</TableHead>
                         <TableHead className="font-semibold">Email Status</TableHead>
+                        <TableHead className="font-semibold">Created Date</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -388,11 +393,14 @@ export default function LatestCreated() {
                             <TableCell>
                               {getStatusBadge(record.email_verification_status)}
                             </TableCell>
+                            <TableCell className="text-gray-600 text-sm">
+                              {record.createdate}
+                            </TableCell>
                           </TableRow>
                         ))
                       ) : (
                         <TableRow>
-                          <TableCell colSpan={4} className="text-center text-gray-500 py-8">
+                          <TableCell colSpan={5} className="text-center text-gray-500 py-8">
                             No data available
                           </TableCell>
                         </TableRow>
@@ -425,6 +433,7 @@ export default function LatestCreated() {
                         <TableHead className="font-semibold">Name</TableHead>
                         <TableHead className="font-semibold">Email</TableHead>
                         <TableHead className="font-semibold">Email Status</TableHead>
+                        <TableHead className="font-semibold">Created Date</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -439,11 +448,14 @@ export default function LatestCreated() {
                             <TableCell>
                               {getStatusBadge(record.email_verification_status)}
                             </TableCell>
+                            <TableCell className="text-gray-600 text-sm">
+                              {record.createdate}
+                            </TableCell>
                           </TableRow>
                         ))
                       ) : (
                         <TableRow>
-                          <TableCell colSpan={4} className="text-center text-gray-500 py-8">
+                          <TableCell colSpan={5} className="text-center text-gray-500 py-8">
                             No data available
                           </TableCell>
                         </TableRow>

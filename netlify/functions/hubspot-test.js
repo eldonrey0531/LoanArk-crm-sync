@@ -26,20 +26,37 @@ exports.handler = async (event, context) => {
   }
 
   try {
-    const response = await fetch('https://api.hubapi.com/crm/v3/objects/contacts?limit=1', {
+    // Use the same search endpoint as the contacts function for consistency
+    const response = await fetch('https://api.hubapi.com/crm/v3/objects/contacts/search', {
+      method: 'POST',
       headers: {
         Authorization: `Bearer ${HUBSPOT_API_KEY}`,
+        'Content-Type': 'application/json',
       },
+      body: JSON.stringify({
+        limit: 10, // Small limit just for testing
+        properties: ['hs_object_id'],
+      }),
     });
 
     if (response.ok) {
       const data = await response.json();
+      
+      // Calculate total from actual results, not data.total (which may not exist)
+      const actualTotal = data.results ? data.results.length : 0;
+      
       return {
         statusCode: 200,
         headers,
         body: JSON.stringify({
           connected: true,
-          total: data.total || 0,
+          total: actualTotal,
+          debug: {
+            hasResults: !!data.results,
+            resultCount: actualTotal,
+            hasTotal: 'total' in data,
+            dataTotal: data.total,
+          },
         }),
       };
     } else {

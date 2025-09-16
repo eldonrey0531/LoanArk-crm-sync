@@ -51,6 +51,7 @@ exports.handler = async (event, context) => {
           'lastname',
           'email',
           'hs_email_domain',
+          'createdate',
         ],
         filterGroups: requestBody.filterGroups || [],
       }),
