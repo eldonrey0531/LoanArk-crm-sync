@@ -2,23 +2,32 @@
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from './types';
 
-
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
+// Handle missing environment variables gracefully for development
 if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error(
-    'Missing Supabase environment variables. Please check your .env.local file.'
+  console.warn(
+    'Supabase environment variables not configured. Using placeholder values for development.'
+  );
+  console.warn(
+    'Please set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in your .env.local file for full functionality.'
   );
 }
+
+// Use fallback values to prevent app crash
+const finalSupabaseUrl = supabaseUrl || 'https://placeholder.supabase.co';
+const finalSupabaseAnonKey =
+  supabaseAnonKey ||
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBsYWNlaG9sZGVyIiwicm9sZSI6ImFub24iLCJpYXQiOjE2NDk3NzEyMDAiLCJleHAiOjE5NjUzNDcyMDB9.placeholder';
 
 // Import the supabase client like this:
 // import { supabase } from "@/integrations/supabase/client";
 
-export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
+export const supabase = createClient<Database>(finalSupabaseUrl, finalSupabaseAnonKey, {
   auth: {
-    storage: localStorage,
+    storage: typeof window !== 'undefined' ? localStorage : undefined,
     persistSession: true,
     autoRefreshToken: true,
-  }
+  },
 });

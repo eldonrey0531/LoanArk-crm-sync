@@ -1,26 +1,18 @@
-
 import { useEffect, useState } from 'react';
 import { testHubSpotConnection, fetchHubSpotContacts } from '@/api/hubspot';
 import { supabase } from '@/integrations/supabase/client';
-import { 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableHead, 
-  TableHeader, 
-  TableRow 
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
 } from '@/components/ui/table';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { 
-  Loader2, 
-  RefreshCw, 
-  CheckCircle, 
-  XCircle,
-  Database,
-  Cloud
-} from 'lucide-react';
+import { Loader2, RefreshCw, CheckCircle, XCircle, Database, Cloud } from 'lucide-react';
 
 interface DataRecord {
   hs_object_id: string;
@@ -39,51 +31,47 @@ export default function LatestCreated() {
   const [hubspotCount, setHubspotCount] = useState(0);
 
   useEffect(() => {
-    // Debug: Check if environment variables are loaded
-    console.log('Environment check:');
-    console.log('VITE_HUBSPOT_API_KEY exists:', !!import.meta.env.VITE_HUBSPOT_API_KEY);
-    console.log('VITE_SUPABASE_URL:', import.meta.env.VITE_SUPABASE_URL);
-
-    // Debug: Test direct API call
-    const testDirectAPI = async () => {
-      const apiKey = import.meta.env.VITE_HUBSPOT_API_KEY;
-      if (!apiKey) {
-        console.error('No HubSpot API key found in environment variables');
-        return;
-      }
+    // Only initialize if component is mounted and environment is ready
+    const initializeComponent = async () => {
       try {
-        const response = await fetch('https://api.hubapi.com/crm/v3/objects/contacts?limit=1', {
-          headers: {
-            'Authorization': `Bearer ${apiKey}`,
-          }
-        });
-        console.log('Direct API test response:', response.status, response.statusText);
-        if (response.ok) {
-          const data = await response.json();
-          console.log('HubSpot API working! Total contacts:', data.total);
-        } else {
-          const error = await response.text();
-          console.error('HubSpot API error:', error);
-        }
+        // Debug: Check if environment variables are loaded
+        console.log('Environment check:');
+        console.log('VITE_HUBSPOT_API_KEY exists:', !!import.meta.env.VITE_HUBSPOT_API_KEY);
+        console.log('VITE_SUPABASE_URL:', import.meta.env.VITE_SUPABASE_URL);
+
+        // Test connections first without making direct API calls
+        await testConnections();
+
+        // Only fetch data if connections are available
+        await fetchAllData();
       } catch (error) {
-        console.error('Network error:', error);
+        console.error('Error initializing component:', error);
+        setLoading(false);
       }
     };
-    testDirectAPI();
 
-    testConnections();
-    fetchAllData();
+    initializeComponent();
   }, []);
 
   const testSupabaseConnection = async () => {
     try {
+      // Don't test if no environment variables are set
+      if (!import.meta.env.VITE_SUPABASE_URL || !import.meta.env.VITE_SUPABASE_ANON_KEY) {
+        console.warn('Supabase environment variables not configured');
+        setSupabaseConnected(false);
+        return;
+      }
+
       const { count, error } = await supabase
         .from('contacts')
         .select('*', { count: 'exact', head: true });
-      
+
       if (!error) {
         setSupabaseConnected(true);
         setSupabaseCount(count || 0);
+      } else {
+        console.warn('Supabase connection test failed:', error.message);
+        setSupabaseConnected(false);
       }
     } catch (error) {
       console.error('Supabase connection error:', error);
@@ -93,12 +81,19 @@ export default function LatestCreated() {
 
   const testHubspotConnection = async () => {
     try {
+      // Don't test if no API key is available
+      if (!import.meta.env.VITE_HUBSPOT_API_KEY) {
+        console.warn('HubSpot API key not configured');
+        setHubspotConnected(false);
+        return;
+      }
+
       const result = await testHubSpotConnection();
       setHubspotConnected(result.connected);
       if (result.connected) {
         setHubspotCount(result.total);
       } else {
-        console.error('HubSpot connection failed:', result.error);
+        console.warn('HubSpot connection failed:', result.error);
       }
     } catch (error) {
       console.error('HubSpot connection error:', error);
@@ -107,20 +102,14 @@ export default function LatestCreated() {
   };
 
   const testConnections = async () => {
-    await Promise.all([
-      testSupabaseConnection(),
-      testHubspotConnection()
-    ]);
+    await Promise.all([testSupabaseConnection(), testHubspotConnection()]);
   };
 
   const fetchAllData = async () => {
     setLoading(true);
-    
+
     try {
-      await Promise.all([
-        fetchSupabaseData(),
-        fetchHubspotData()
-      ]);
+      await Promise.all([fetchSupabaseData(), fetchHubspotData()]);
     } catch (err) {
       console.error('Error fetching data:', err);
     } finally {
@@ -135,13 +124,13 @@ export default function LatestCreated() {
         .select('hs_object_id, firstname, lastname, email, email_verification_status, created_at')
         .order('created_at', { ascending: false })
         .limit(25);
-      
+
       if (!error && data) {
-        const formattedData = data.map(record => ({
+        const formattedData = data.map((record) => ({
           hs_object_id: record.hs_object_id || 'N/A',
           name: `${record.firstname || ''} ${record.lastname || ''}`.trim() || 'N/A',
           email: record.email || 'N/A',
-          email_verification_status: record.email_verification_status || 'unverified'
+          email_verification_status: record.email_verification_status || 'unverified',
         }));
         setSupabaseData(formattedData);
       }
@@ -156,9 +145,11 @@ export default function LatestCreated() {
       if (data && data.results) {
         const formattedData = data.results.map((record: any) => ({
           hs_object_id: record.id || record.properties?.hs_object_id || 'N/A',
-          name: `${record.properties?.firstname || ''} ${record.properties?.lastname || ''}`.trim() || 'N/A',
+          name:
+            `${record.properties?.firstname || ''} ${record.properties?.lastname || ''}`.trim() ||
+            'N/A',
           email: record.properties?.email || 'N/A',
-          email_verification_status: record.properties?.email ? 'verified' : 'unverified'
+          email_verification_status: record.properties?.email ? 'verified' : 'unverified',
         }));
         setHubspotData(formattedData);
       }
@@ -170,7 +161,7 @@ export default function LatestCreated() {
 
   const getStatusBadge = (status: string) => {
     const statusLower = status?.toLowerCase() || 'unverified';
-    
+
     if (statusLower === 'verified') {
       return <Badge className="bg-green-100 text-green-800">Verified</Badge>;
     } else if (statusLower === 'pending') {
@@ -192,7 +183,7 @@ export default function LatestCreated() {
           <p className="text-gray-600 mb-6">
             Top 25 most recently created contacts from both Supabase and HubSpot
           </p>
-          
+
           {/* Connection Status - Separated for each system */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-4 bg-gray-50 rounded-lg">
             {/* Supabase Status */}
@@ -201,28 +192,22 @@ export default function LatestCreated() {
                 <Database className="h-5 w-5 text-blue-600" />
                 <span className="font-semibold text-gray-700">Supabase Database</span>
               </div>
-              
+
               <div className="flex items-center gap-2 pl-7">
                 {supabaseConnected ? (
                   <CheckCircle className="h-4 w-4 text-green-500" />
                 ) : (
                   <XCircle className="h-4 w-4 text-red-500" />
                 )}
-                <span className="text-sm">
-                  {supabaseConnected ? 'Connected' : 'Disconnected'}
-                </span>
+                <span className="text-sm">{supabaseConnected ? 'Connected' : 'Disconnected'}</span>
               </div>
-              
+
               <div className="pl-7 text-sm text-gray-600">
                 Total Records: {supabaseCount.toLocaleString()}
               </div>
-              
+
               <div className="pl-7">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={testSupabaseConnection}
-                >
+                <Button variant="outline" size="sm" onClick={testSupabaseConnection}>
                   Test Connection
                 </Button>
               </div>
@@ -234,28 +219,22 @@ export default function LatestCreated() {
                 <Cloud className="h-5 w-5 text-orange-500" />
                 <span className="font-semibold text-gray-700">HubSpot CRM</span>
               </div>
-              
+
               <div className="flex items-center gap-2 pl-7">
                 {hubspotConnected ? (
                   <CheckCircle className="h-4 w-4 text-green-500" />
                 ) : (
                   <XCircle className="h-4 w-4 text-red-500" />
                 )}
-                <span className="text-sm">
-                  {hubspotConnected ? 'Connected' : 'Disconnected'}
-                </span>
+                <span className="text-sm">{hubspotConnected ? 'Connected' : 'Disconnected'}</span>
               </div>
-              
+
               <div className="pl-7 text-sm text-gray-600">
                 Total Contacts: {hubspotCount.toLocaleString()}
               </div>
-              
+
               <div className="pl-7">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={testHubspotConnection}
-                >
+                <Button variant="outline" size="sm" onClick={testHubspotConnection}>
                   Test Connection
                 </Button>
               </div>
@@ -264,10 +243,7 @@ export default function LatestCreated() {
 
           {/* Refresh All Button */}
           <div className="mt-4 flex justify-end">
-            <Button
-              onClick={fetchAllData}
-              size="sm"
-            >
+            <Button onClick={fetchAllData} size="sm">
               <RefreshCw className="h-4 w-4 mr-2" />
               Refresh All Data
             </Button>
@@ -311,12 +287,8 @@ export default function LatestCreated() {
                             <TableCell className="font-mono text-sm">
                               {record.hs_object_id}
                             </TableCell>
-                            <TableCell className="font-medium">
-                              {record.name}
-                            </TableCell>
-                            <TableCell className="text-gray-600">
-                              {record.email}
-                            </TableCell>
+                            <TableCell className="font-medium">{record.name}</TableCell>
+                            <TableCell className="text-gray-600">{record.email}</TableCell>
                             <TableCell>
                               {getStatusBadge(record.email_verification_status)}
                             </TableCell>
@@ -366,12 +338,8 @@ export default function LatestCreated() {
                             <TableCell className="font-mono text-sm">
                               {record.hs_object_id}
                             </TableCell>
-                            <TableCell className="font-medium">
-                              {record.name}
-                            </TableCell>
-                            <TableCell className="text-gray-600">
-                              {record.email}
-                            </TableCell>
+                            <TableCell className="font-medium">{record.name}</TableCell>
+                            <TableCell className="text-gray-600">{record.email}</TableCell>
                             <TableCell>
                               {getStatusBadge(record.email_verification_status)}
                             </TableCell>

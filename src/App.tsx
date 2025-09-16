@@ -1,54 +1,69 @@
-import { useEffect } from "react";
-import { debugEnvironment } from "@/utils/debug";
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { AppLayout } from "./components/layout/AppLayout";
-import Dashboard from "./pages/Dashboard";
-import Contacts from "./pages/Contacts";
-import ContactsViewer from "./pages/ContactsViewer";
-import LatestCreated from "./pages/LatestCreated";
-import LatestUpdated from "./pages/LatestUpdated";
-import SyncMonitor from "./pages/SyncMonitor";
-import Logs from "./pages/Logs";
-import Settings from "./pages/Settings";
-import NotFound from "./pages/NotFound";
+import { useEffect } from 'react';
+import { debugEnvironment } from '@/utils/debug';
+import { Toaster } from '@/components/ui/toaster';
+import { Toaster as Sonner } from '@/components/ui/sonner';
+import { TooltipProvider } from '@/components/ui/tooltip';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import ErrorBoundary from '@/components/ErrorBoundary';
+import { AppLayout } from './components/layout/AppLayout';
+import Dashboard from './pages/Dashboard';
+import Contacts from './pages/Contacts';
+import ContactsViewer from './pages/ContactsViewer';
+import LatestCreated from './pages/LatestCreated';
+import LatestUpdated from './pages/LatestUpdated';
+import SyncMonitor from './pages/SyncMonitor';
+import Logs from './pages/Logs';
+import Settings from './pages/Settings';
+import NotFound from './pages/NotFound';
 
 const queryClient = new QueryClient();
 
-
 const App = () => {
   useEffect(() => {
-    if (import.meta.env.DEV) {
-      debugEnvironment();
+    try {
+      if (import.meta.env.DEV) {
+        debugEnvironment();
+      }
+    } catch (error) {
+      console.warn('Debug environment check failed:', error);
     }
   }, []);
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<AppLayout />}>
-              <Route index element={<Dashboard />} />
-              <Route path="contacts" element={<Contacts />} />
-              <Route path="contacts-viewer" element={<ContactsViewer />} />
-              <Route path="latest-created" element={<LatestCreated />} />
-              <Route path="latest-updated" element={<LatestUpdated />} />
-              <Route path="sync" element={<SyncMonitor />} />
-              <Route path="logs" element={<Logs />} />
-              <Route path="settings" element={<Settings />} />
-              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-            </Route>
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
-      </TooltipProvider>
-    </QueryClientProvider>
+    <ErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <ErrorBoundary>
+              <Routes>
+                <Route path="/" element={<AppLayout />}>
+                  <Route index element={<Dashboard />} />
+                  <Route path="contacts" element={<Contacts />} />
+                  <Route path="contacts-viewer" element={<ContactsViewer />} />
+                  <Route
+                    path="latest-created"
+                    element={
+                      <ErrorBoundary>
+                        <LatestCreated />
+                      </ErrorBoundary>
+                    }
+                  />
+                  <Route path="latest-updated" element={<LatestUpdated />} />
+                  <Route path="sync" element={<SyncMonitor />} />
+                  <Route path="logs" element={<Logs />} />
+                  <Route path="settings" element={<Settings />} />
+                  {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                </Route>
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </ErrorBoundary>
+          </BrowserRouter>
+        </TooltipProvider>
+      </QueryClientProvider>
+    </ErrorBoundary>
   );
 };
 

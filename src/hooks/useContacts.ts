@@ -1,5 +1,5 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 
 export interface Contact {
   id: number;
@@ -17,59 +17,92 @@ export interface Contact {
 
 export const useContacts = () => {
   return useQuery({
-    queryKey: ["contacts"],
+    queryKey: ['contacts'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("contacts")
-        .select("*")
-        .order("updated_at", { ascending: false });
+      try {
+        const { data, error } = await supabase
+          .from('contacts')
+          .select('*')
+          .order('updated_at', { ascending: false });
 
-      if (error) throw error;
-      return data as Contact[];
+        if (error) {
+          console.warn('Failed to fetch contacts:', error.message);
+          throw error;
+        }
+        return data as Contact[];
+      } catch (error) {
+        console.error('Error in useContacts:', error);
+        throw error;
+      }
     },
+    retry: 1,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    refetchOnWindowFocus: false,
   });
 };
 
 export const useContactStats = () => {
   return useQuery({
-    queryKey: ["contact-stats"],
+    queryKey: ['contact-stats'],
     queryFn: async () => {
-      // Get total contacts
-      const { count: totalContacts, error: totalError } = await supabase
-        .from("contacts")
-        .select("*", { count: "exact", head: true });
+      try {
+        // Get total contacts
+        const { count: totalContacts, error: totalError } = await supabase
+          .from('contacts')
+          .select('*', { count: 'exact', head: true });
 
-      if (totalError) throw totalError;
+        if (totalError) {
+          console.warn('Failed to get total contacts:', totalError.message);
+          throw totalError;
+        }
 
-      // Get contacts with email verification status
-      const { data: verificationData, error: verificationError } = await supabase
-        .from("contacts")
-        .select("email_verification_status")
-        .not("email", "is", null);
+        // Get contacts with email verification status
+        const { data: verificationData, error: verificationError } = await supabase
+          .from('contacts')
+          .select('email_verification_status')
+          .not('email', 'is', null);
 
-      if (verificationError) throw verificationError;
+        if (verificationError) {
+          console.warn('Failed to get verification data:', verificationError.message);
+          // Don't throw here, return partial data
+        }
 
-      const verifiedCount = verificationData?.filter(c => c.email_verification_status === 'valid').length || 0;
-      const pendingCount = verificationData?.filter(c => c.email_verification_status === null).length || 0;
+        const verifiedCount =
+          verificationData?.filter((c) => c.email_verification_status === 'valid').length || 0;
+        const pendingCount =
+          verificationData?.filter((c) => c.email_verification_status === null).length || 0;
 
-      return {
-        totalContacts: totalContacts || 0,
-        verifiedCount,
-        pendingCount,
-        withEmail: verificationData?.length || 0,
-      };
+        return {
+          totalContacts: totalContacts || 0,
+          verifiedCount,
+          pendingCount,
+          withEmail: verificationData?.length || 0,
+        };
+      } catch (error) {
+        console.error('Error in useContactStats:', error);
+        // Return default values instead of throwing
+        return {
+          totalContacts: 0,
+          verifiedCount: 0,
+          pendingCount: 0,
+          withEmail: 0,
+        };
+      }
     },
+    retry: 1,
+    staleTime: 5 * 60 * 1000,
+    refetchOnWindowFocus: false,
   });
 };
 
 export const useSyncLogs = () => {
   return useQuery({
-    queryKey: ["sync-logs"],
+    queryKey: ['sync-logs'],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("sync_logs")
-        .select("*")
-        .order("created_at", { ascending: false })
+        .from('sync_logs')
+        .select('*')
+        .order('created_at', { ascending: false })
         .limit(10);
 
       if (error) throw error;
@@ -80,12 +113,12 @@ export const useSyncLogs = () => {
 
 export const useTop100ByCreated = () => {
   return useQuery({
-    queryKey: ["contacts-top-100-created"],
+    queryKey: ['contacts-top-100-created'],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("contacts")
-        .select("*")
-        .order("created_at", { ascending: false })
+        .from('contacts')
+        .select('*')
+        .order('created_at', { ascending: false })
         .limit(100);
 
       if (error) throw error;
@@ -96,12 +129,12 @@ export const useTop100ByCreated = () => {
 
 export const useTop100ByUpdated = () => {
   return useQuery({
-    queryKey: ["contacts-top-100-updated"],
+    queryKey: ['contacts-top-100-updated'],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("contacts")
-        .select("*")
-        .order("updated_at", { ascending: false })
+        .from('contacts')
+        .select('*')
+        .order('updated_at', { ascending: false })
         .limit(100);
 
       if (error) throw error;
@@ -121,22 +154,22 @@ export const useHubSpotSync = () => {
           'Content-Type': 'application/json',
         },
       });
-      
+
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.error || 'Sync failed');
       }
-      
+
       const data = await response.json();
       return data;
     },
     onSuccess: () => {
       // Invalidate and refetch contacts and logs
-      queryClient.invalidateQueries({ queryKey: ["contacts"] });
-      queryClient.invalidateQueries({ queryKey: ["contact-stats"] });
-      queryClient.invalidateQueries({ queryKey: ["sync-logs"] });
-      queryClient.invalidateQueries({ queryKey: ["contacts-top-100-created"] });
-      queryClient.invalidateQueries({ queryKey: ["contacts-top-100-updated"] });
+      queryClient.invalidateQueries({ queryKey: ['contacts'] });
+      queryClient.invalidateQueries({ queryKey: ['contact-stats'] });
+      queryClient.invalidateQueries({ queryKey: ['sync-logs'] });
+      queryClient.invalidateQueries({ queryKey: ['contacts-top-100-created'] });
+      queryClient.invalidateQueries({ queryKey: ['contacts-top-100-updated'] });
     },
   });
 };
