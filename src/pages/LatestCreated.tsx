@@ -1,72 +1,8 @@
 // @ts-nocheck
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 
 export default function LatestCreated() {
   // ...existing code...
-
-  const fetchAllHubspotContacts = async () => {
-    try {
-      setFetchingAllContacts(true);
-      console.log('📡 Fetching ALL HubSpot contacts with pagination...');
-
-      // Remove maxContacts to fetch all available contacts
-      const data = await fetchAllHubSpotContacts({
-        pageSize: 100, // HubSpot max per page
-        properties: ['firstname', 'lastname', 'email', 'hs_object_id', 'createdate'],
-        sorts: [{ propertyName: 'createdate', direction: 'DESCENDING' }],
-      });
-
-      console.log('📥 All HubSpot contacts response:', {
-        hasData: !!data,
-        hasResults: !!data?.results,
-        resultCount: data?.results?.length || 0,
-        total: data?.total,
-        hasMore: data?.hasMore,
-        requestCount: data?.requestCount,
-        maxContactsReached: data?.maxContactsReached,
-        isDemo: data?.isDemo,
-      });
-
-      if (data?.results) {
-        const formattedData = data.results.map((record: any) => ({
-          hs_object_id: record.id || record.properties?.hs_object_id || 'N/A',
-          name:
-            `${record.properties?.firstname || ''} ${record.properties?.lastname || ''}`.trim() ||
-            'N/A',
-          email: record.properties?.email || 'N/A',
-          email_verification_status: record.properties?.email ? 'verified' : 'unverified',
-          createdate: record.properties?.createdate
-            ? new Date(record.properties.createdate).toLocaleDateString()
-            : 'N/A',
-        }));
-
-        setHubspotData(formattedData);
-        setHubspotConnected(true);
-
-        // Store pagination information
-        setPaginationInfo({
-          total: data.total || formattedData.length,
-          hasMore: data.hasMore || false,
-          requestCount: data.requestCount || 1,
-          maxContactsReached: data.maxContactsReached || false,
-        });
-
-        console.log(
-          `✅ Successfully fetched and formatted ${formattedData.length} HubSpot contacts using ${data.requestCount} API requests`
-        );
-      } else {
-        console.warn('⚠️ No HubSpot results found in paginated response');
-        setHubspotData([]);
-        setPaginationInfo(null);
-      }
-    } catch (error) {
-      console.error('💥 Error fetching all HubSpot contacts:', error);
-      setHubspotData([]);
-      setPaginationInfo(null);
-    } finally {
-      setFetchingAllContacts(false);
-    }
-  };
 
   useEffect(() => {
     // Only initialize if component is mounted and environment is ready
@@ -183,70 +119,6 @@ export default function LatestCreated() {
       console.error('Error fetching data:', err);
     } finally {
       setLoading(false);
-    }
-  };
-
-  const fetchAllHubspotContacts = async () => {
-    try {
-      setFetchingAllContacts(true);
-      console.log('📡 Fetching ALL HubSpot contacts with pagination...');
-
-      const data = await fetchAllHubSpotContacts({
-        maxContacts: 500, // Reasonable limit for UI performance
-        pageSize: 50, // Larger pages for efficiency
-        properties: ['firstname', 'lastname', 'email', 'hs_object_id', 'createdate'],
-        sorts: [{ propertyName: 'createdate', direction: 'DESCENDING' }],
-      });
-
-      console.log('📥 All HubSpot contacts response:', {
-        hasData: !!data,
-        hasResults: !!data?.results,
-        resultCount: data?.results?.length || 0,
-        total: data?.total,
-        hasMore: data?.hasMore,
-        requestCount: data?.requestCount,
-        maxContactsReached: data?.maxContactsReached,
-        isDemo: data?.isDemo,
-      });
-
-      if (data?.results) {
-        const formattedData = data.results.map((record: any) => ({
-          hs_object_id: record.id || record.properties?.hs_object_id || 'N/A',
-          name:
-            `${record.properties?.firstname || ''} ${record.properties?.lastname || ''}`.trim() ||
-            'N/A',
-          email: record.properties?.email || 'N/A',
-          email_verification_status: record.properties?.email ? 'verified' : 'unverified',
-          createdate: record.properties?.createdate
-            ? new Date(record.properties.createdate).toLocaleDateString()
-            : 'N/A',
-        }));
-
-        setHubspotData(formattedData);
-        setHubspotConnected(true);
-
-        // Store pagination information
-        setPaginationInfo({
-          total: data.total || formattedData.length,
-          hasMore: data.hasMore || false,
-          requestCount: data.requestCount || 1,
-          maxContactsReached: data.maxContactsReached || false,
-        });
-
-        console.log(
-          `✅ Successfully fetched and formatted ${formattedData.length} HubSpot contacts using ${data.requestCount} API requests`
-        );
-      } else {
-        console.warn('⚠️ No HubSpot results found in paginated response');
-        setHubspotData([]);
-        setPaginationInfo(null);
-      }
-    } catch (error) {
-      console.error('💥 Error fetching all HubSpot contacts:', error);
-      setHubspotData([]);
-      setPaginationInfo(null);
-    } finally {
-      setFetchingAllContacts(false);
     }
   };
 
