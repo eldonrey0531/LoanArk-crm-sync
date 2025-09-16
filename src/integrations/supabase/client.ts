@@ -2,21 +2,28 @@
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from './types';
 
-// Use environment variables for secure configuration
-const SUPABASE_URL =
-  import.meta.env.VITE_SUPABASE_URL || 'https://opwagkvnbgxjkcvauyfq.supabase.co';
-const SUPABASE_PUBLISHABLE_KEY =
-  import.meta.env.VITE_SUPABASE_ANON_KEY ||
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9wd2Fna3ZuYmd4amtjdmF1eWZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTU4NjUzMzUsImV4cCI6MjA3MTQ0MTMzNX0.3rCM3q2hPWW1LrO7iU7-86kjutq4CiwaYJgetKfgBNc';
+// Environment variables - NO fallbacks in production
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+const SUPABASE_PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
-// Validate environment variables in production
-if (
-  import.meta.env.PROD &&
-  (!import.meta.env.VITE_SUPABASE_URL || !import.meta.env.VITE_SUPABASE_ANON_KEY)
-) {
-  throw new Error(
-    'Missing required Supabase environment variables. Please check your deployment configuration.'
-  );
+// Validate required environment variables
+if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
+  const missingVars = [];
+  if (!SUPABASE_URL) missingVars.push('VITE_SUPABASE_URL');
+  if (!SUPABASE_PUBLISHABLE_KEY) missingVars.push('VITE_SUPABASE_ANON_KEY');
+
+  const errorMessage = `Missing required environment variables: ${missingVars.join(
+    ', '
+  )}. Please configure these in your deployment environment.`;
+
+  // In development, show helpful error
+  if (import.meta.env.DEV) {
+    console.error('❌ Supabase Configuration Error:', errorMessage);
+    console.log('💡 Create a .env file with your Supabase credentials.');
+    console.log('📖 See .env.example for reference.');
+  }
+
+  throw new Error(errorMessage);
 }
 
 // Import the supabase client like this:
@@ -24,7 +31,7 @@ if (
 
 export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
   auth: {
-    storage: localStorage,
+    storage: typeof window !== 'undefined' ? localStorage : undefined,
     persistSession: true,
     autoRefreshToken: true,
   },

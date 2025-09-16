@@ -187,8 +187,9 @@ export default function Settings() {
                   <div>
                     <Label className="text-sm font-medium">Project URL</Label>
                     <div className="text-sm text-muted-foreground">
-                      {import.meta.env.VITE_SUPABASE_URL ||
-                        'https://opwagkvnbgxjkcvauyfq.supabase.co'}
+                      {import.meta.env.VITE_SUPABASE_URL
+                        ? new URL(import.meta.env.VITE_SUPABASE_URL).hostname
+                        : 'Not configured'}
                     </div>
                   </div>
                   <div>

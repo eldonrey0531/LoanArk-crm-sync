@@ -16,8 +16,9 @@ export default defineConfig(({ mode }) => {
       });
       console.error('Please configure these variables in your deployment environment.');
       console.error('See .env.example for reference.');
-      // Don't fail the build, just warn - let deployment platform handle it
-      console.warn('⚠️  Build continuing with fallback values...');
+
+      // FAIL the build in production to prevent deployment with missing secrets
+      process.exit(1);
     }
   }
 
