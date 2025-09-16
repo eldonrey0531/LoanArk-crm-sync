@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import useHubSpotConnection from '../hooks/useHubSpotConnection';
 import { supabase } from '@/integrations/supabase/client';
 import { 
   Table, 
@@ -32,7 +33,14 @@ export default function LatestCreatedPage() {
   const [hubspotData, setHubspotData] = useState<DataRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [supabaseConnected, setSupabaseConnected] = useState(false);
-  const [hubspotConnected, setHubspotConnected] = useState(false);
+  const {
+    isConnected: hubspotConnected,
+    isValidating: hubspotLoading,
+    error: hubspotError,
+    retry: retryHubspot,
+    count: hubspotCount,
+    lastChecked: hubspotLastChecked,
+  } = useHubSpotConnection();
   const [supabaseCount, setSupabaseCount] = useState(0);
 
   useEffect(() => {
@@ -55,15 +63,7 @@ export default function LatestCreatedPage() {
       console.error('Supabase connection error:', error);
     }
 
-    // Test HubSpot connection
-    try {
-      const response = await fetch('/api/hubspot-test');
-      if (response.ok) {
-        setHubspotConnected(true);
-      }
-    } catch (error) {
-      console.error('HubSpot connection error:', error);
-    }
+    // Test HubSpot connection is now handled by context
   };
 
   const fetchAllData = async () => {
@@ -163,20 +163,33 @@ export default function LatestCreatedPage() {
           
           {/* Connection Status */}
           <div className="flex flex-wrap gap-4 items-center">
+            {/* Supabase Status */}
             <div className="flex items-center gap-2">
               {supabaseConnected ? (
                 <CheckCircle className="h-5 w-5 text-green-500" />
               ) : (
                 <XCircle className="h-5 w-5 text-red-500" />
               )}
-              <span className="font-medium">Connected</span>
+              <span className="font-medium">Supabase Connected</span>
             </div>
-            
             <div className="flex items-center gap-2 text-gray-600">
               <Database className="h-5 w-5" />
               <span>Supabase: {supabaseCount.toLocaleString()}</span>
             </div>
-
+            {/* HubSpot Status */}
+            <div className="flex items-center gap-2">
+              {hubspotConnected ? (
+                <CheckCircle className="h-5 w-5 text-orange-500" />
+              ) : (
+                <XCircle className="h-5 w-5 text-red-500" />
+              )}
+              <span className="font-medium">HubSpot {hubspotConnected ? 'Connected' : 'Disconnected'}</span>
+              {hubspotLoading && <span className="ml-2 text-xs text-blue-500">Checking...</span>}
+              {hubspotError && (
+                <span className="ml-2 text-xs text-red-500">{hubspotError.message || hubspotError.toString()}</span>
+              )}
+              <span className="ml-2 text-xs text-gray-600">Contacts: {hubspotCount?.toLocaleString?.() ?? 0}</span>
+            </div>
             <Button
               variant="outline"
               size="sm"
@@ -184,7 +197,6 @@ export default function LatestCreatedPage() {
             >
               Test Connection
             </Button>
-
             <Button
               onClick={fetchAllData}
               size="sm"

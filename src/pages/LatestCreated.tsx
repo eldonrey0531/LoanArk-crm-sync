@@ -1,8 +1,17 @@
 // @ts-nocheck
 import { useEffect } from 'react';
+import useHubSpotConnection from '../hooks/useHubSpotConnection';
+
 
 export default function LatestCreated() {
-  // ...existing code...
+  const {
+    isConnected: hubspotConnected,
+    isValidating: hubspotLoading,
+    error: hubspotError,
+    retry: retryHubspot,
+    count: hubspotCount,
+    lastChecked: hubspotLastChecked,
+  } = useHubSpotConnection();
 
   useEffect(() => {
     // Only initialize if component is mounted and environment is ready
@@ -65,22 +74,7 @@ export default function LatestCreated() {
         fullResult: result,
       });
 
-      setHubspotConnected(result.connected);
-      if (result.connected) {
-        setHubspotCount(result.total);
-        console.log(`✅ HubSpot connected with ${result.total} contacts`);
-      } else {
-        console.warn('❌ HubSpot connection failed:', result.error);
-        setHubspotCount(0);
-      }
-    } catch (error) {
-      console.error('💥 HubSpot connection error:', error);
-      setHubspotConnected(false);
-      setHubspotCount(0);
-    } finally {
-      setTestingHubspot(false);
-    }
-  };
+      // No longer needed: hubspotConnected and setHubspotCount are managed by context
 
   const testConnections = async () => {
     await Promise.all([testSupabaseConnection(), testHubspotConnection()]);
@@ -172,7 +166,7 @@ export default function LatestCreated() {
         }));
         setHubspotData(formattedData);
         // Update connection status based on successful data fetch
-        setHubspotConnected(true);
+  // No longer needed: hubspotConnected is managed by context
         console.log(`✅ Successfully formatted ${formattedData.length} HubSpot contacts`);
       } else {
         console.warn('⚠️ No HubSpot results found in response');
@@ -219,9 +213,13 @@ export default function LatestCreated() {
                 <XCircle className="h-4 w-4 text-red-500" />
               )}
               <span className="text-sm">{hubspotConnected ? 'Connected' : 'Disconnected'}</span>
+              {hubspotLoading && <span className="ml-2 text-xs text-blue-500">Checking...</span>}
+              {hubspotError && (
+                <span className="ml-2 text-xs text-red-500">{hubspotError.message || hubspotError.toString()}</span>
+              )}
             </div>
             <div className="pl-7 text-sm text-gray-600">
-              Total Contacts: {hubspotData.length.toLocaleString()}
+              Total Contacts: {hubspotCount?.toLocaleString?.() ?? 0}
               {paginationInfo && (
                 <div className="text-xs text-blue-600 mt-1">
                   {paginationInfo.hasMore && !paginationInfo.maxContactsReached
