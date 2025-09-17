@@ -12,16 +12,16 @@ class SupabaseEmailVerificationService {
     try {
       let query = this.supabaseClient
         .from('contacts')
-        .select('*')
+        .select('*', { count: 'exact' })
         .not('email_verification_status', 'is', null)
         .not('hs_object_id', 'is', null);
 
       // Apply sorting
-      if (params.sortBy && params.sortOrder) {
-        query = query.order(params.sortBy, { ascending: params.sortOrder === 'asc' });
-      } else {
-        query = query.order('created_at', { ascending: false });
-      }
+      const sortBy = params.sortBy || 'updated_at';
+      const sortOrder = params.sortOrder || 'desc';
+      const ascending = sortOrder === 'asc';
+
+      query = query.order(sortBy, { ascending });
 
       // Apply pagination
       const page = params.page || 1;
@@ -63,6 +63,7 @@ exports.handler = async (event, context) => {
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Headers': 'Content-Type, Authorization',
     'Access-Control-Allow-Methods': 'GET, OPTIONS',
+    'Content-Type': 'application/json',
   };
 
   // Handle preflight
@@ -70,16 +71,32 @@ exports.handler = async (event, context) => {
     return { statusCode: 200, headers, body: '' };
   }
 
-  if (event.httpMethod !== 'GET') {
+  // Check authorization
+  const authHeader = event.headers.authorization || event.headers.Authorization;
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
     return {
-      statusCode: 200,
+      statusCode: 401,
       headers,
       body: JSON.stringify({
         success: false,
-        error: {
-          code: 'METHOD_NOT_ALLOWED',
-          message: 'Method Not Allowed. Use GET.',
-        },
+        error: 'Unauthorized',
+        data: null,
+        metadata: {
+          requestId: `req_${Date.now()}`,
+          timestamp: new Date().toISOString(),
+          duration: 0
+        }
+      }),
+    };
+  }
+
+  if (event.httpMethod !== 'GET') {
+    return {
+      statusCode: 405,
+      headers,
+      body: JSON.stringify({
+        success: false,
+        error: 'Method not allowed',
         data: null,
         metadata: {
           requestId: `req_${Date.now()}`,
@@ -96,52 +113,17 @@ exports.handler = async (event, context) => {
     const supabaseKey = process.env.SUPABASE_ANON_KEY;
 
     if (!supabaseUrl || !supabaseKey) {
-      // Return mock data for development
-      const mockData = {
-        records: [
-          {
-            id: 1,
-            hs_object_id: 'contact_123',
-            email_verification_status: 'verified',
-            firstname: 'John',
-            lastname: 'Doe',
-            email: 'john.doe@example.com',
-            created_at: '2024-01-15T10:30:00Z',
-            updated_at: '2024-01-20T14:45:00Z'
-          },
-          {
-            id: 2,
-            hs_object_id: 'contact_124',
-            email_verification_status: 'unverified',
-            firstname: 'Jane',
-            lastname: 'Smith',
-            email: 'jane.smith@example.com',
-            created_at: '2024-01-16T09:15:00Z',
-            updated_at: '2024-01-19T16:20:00Z'
-          }
-        ],
-        pagination: {
-          page: params.page,
-          limit: params.limit,
-          totalRecords: 2,
-          totalPages: 1,
-          hasNext: false,
-          hasPrev: false
-        }
-      };
-
-      const duration = Date.now() - startTime;
       return {
-        statusCode: 200,
+        statusCode: 500,
         headers,
         body: JSON.stringify({
-          success: true,
-          data: mockData,
-          error: null,
+          success: false,
+          error: 'Database configuration missing',
+          data: null,
           metadata: {
             requestId: `req_${Date.now()}`,
             timestamp: new Date().toISOString(),
-            duration: duration
+            duration: 0
           }
         }),
       };
@@ -157,7 +139,7 @@ exports.handler = async (event, context) => {
 
     const params = {
       page: queryParams.page ? parseInt(queryParams.page) : 1,
-      limit: queryParams.limit ? Math.min(parseInt(queryParams.limit), 100) : 25,
+      limit: queryParams.limit ? Math.min(parseInt(queryParams.limit), 100) : 50,
       sortBy: queryParams.sortBy || 'updated_at',
       sortOrder: queryParams.sortOrder || 'desc'
     };
@@ -165,14 +147,11 @@ exports.handler = async (event, context) => {
     // Validate parameters
     if (params.page < 1) {
       return {
-        statusCode: 200,
+        statusCode: 400,
         headers,
         body: JSON.stringify({
           success: false,
-          error: {
-            code: 'VALIDATION_ERROR',
-            message: 'Page must be greater than 0',
-          },
+          error: 'Page must be greater than 0',
           data: null,
           metadata: {
             requestId: `req_${Date.now()}`,
@@ -185,14 +164,11 @@ exports.handler = async (event, context) => {
 
     if (params.limit < 1 || params.limit > 100) {
       return {
-        statusCode: 200,
+        statusCode: 400,
         headers,
         body: JSON.stringify({
           success: false,
-          error: {
-            code: 'VALIDATION_ERROR',
-            message: 'Limit must be between 1 and 100',
-          },
+          error: 'Limit must be between 1 and 100',
           data: null,
           metadata: {
             requestId: `req_${Date.now()}`,
@@ -229,14 +205,11 @@ exports.handler = async (event, context) => {
     console.error('Error in email-verification-records function:', error);
 
     return {
-      statusCode: 200,
+      statusCode: 500,
       headers,
       body: JSON.stringify({
         success: false,
-        error: {
-          code: 'INTERNAL_ERROR',
-          message: error.message || 'Internal server error',
-        },
+        error: error.message || 'Internal server error',
         data: null,
         metadata: {
           requestId: `req_${Date.now()}`,

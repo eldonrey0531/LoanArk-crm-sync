@@ -35,12 +35,30 @@ class EmailVerificationSyncService {
   }
 
   async syncToHubSpot(supabaseContactId, hubspotContactId, status) {
+    const operationId = `sync_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const startedAt = new Date();
+
     try {
       // Validate contact exists in Supabase
       const contact = await this.supabaseService.getContactById(supabaseContactId);
 
       if (!contact) {
-        throw new Error('Contact not found in Supabase');
+        return {
+          id: operationId,
+          status: 'failed',
+          supabaseContactId,
+          hubspotContactId,
+          startedAt,
+          completedAt: new Date(),
+          sourceValue: null,
+          targetValue: status,
+          result: 'Contact not found in Supabase',
+          error: {
+            code: 'CONTACT_NOT_FOUND',
+            message: 'Contact not found in Supabase',
+            canRetry: false
+          }
+        };
       }
 
       // Mock HubSpot update - in production, this would call HubSpot API
@@ -50,19 +68,34 @@ class EmailVerificationSyncService {
       await new Promise(resolve => setTimeout(resolve, 500));
 
       return {
-        success: true,
-        data: {
-          supabaseContactId,
-          hubspotContactId,
-          status,
-          syncedAt: new Date().toISOString()
-        }
+        id: operationId,
+        status: 'completed',
+        supabaseContactId,
+        hubspotContactId,
+        startedAt,
+        completedAt: new Date(),
+        sourceValue: contact.email_verification_status,
+        targetValue: status,
+        result: 'Email verification status synced successfully',
+        error: null
       };
     } catch (error) {
       console.error('Sync failed:', error);
       return {
-        success: false,
-        error: error.message
+        id: operationId,
+        status: 'failed',
+        supabaseContactId,
+        hubspotContactId,
+        startedAt,
+        completedAt: new Date(),
+        sourceValue: null,
+        targetValue: status,
+        result: 'Sync operation failed',
+        error: {
+          code: 'SYNC_ERROR',
+          message: error.message,
+          canRetry: true
+        }
       };
     }
   }
@@ -74,6 +107,7 @@ exports.handler = async (event, context) => {
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Headers': 'Content-Type, Authorization',
     'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    'Content-Type': 'application/json',
   };
 
   // Handle preflight
@@ -81,16 +115,32 @@ exports.handler = async (event, context) => {
     return { statusCode: 200, headers, body: '' };
   }
 
-  if (event.httpMethod !== 'POST') {
+  // Check authorization
+  const authHeader = event.headers.authorization || event.headers.Authorization;
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
     return {
-      statusCode: 200,
+      statusCode: 401,
       headers,
       body: JSON.stringify({
         success: false,
-        error: {
-          code: 'METHOD_NOT_ALLOWED',
-          message: 'Method Not Allowed. Use POST.',
-        },
+        error: 'Unauthorized',
+        data: null,
+        metadata: {
+          requestId: `req_${Date.now()}`,
+          timestamp: new Date().toISOString(),
+          duration: 0
+        }
+      }),
+    };
+  }
+
+  if (event.httpMethod !== 'POST') {
+    return {
+      statusCode: 405,
+      headers,
+      body: JSON.stringify({
+        success: false,
+        error: 'Method not allowed',
         data: null,
         metadata: {
           requestId: `req_${Date.now()}`,
@@ -108,7 +158,7 @@ exports.handler = async (event, context) => {
       requestBody = JSON.parse(event.body);
     } catch (parseError) {
       return {
-        statusCode: 200,
+        statusCode: 400,
         headers,
         body: JSON.stringify({
           success: false,
@@ -131,7 +181,7 @@ exports.handler = async (event, context) => {
 
     if (!supabaseContactId || !hubspotContactId || !emailVerificationStatus) {
       return {
-        statusCode: 200,
+        statusCode: 400,
         headers,
         body: JSON.stringify({
           success: false,
@@ -152,7 +202,7 @@ exports.handler = async (event, context) => {
     // Validate contact IDs are numbers/strings
     if (typeof supabaseContactId !== 'number' || typeof hubspotContactId !== 'string') {
       return {
-        statusCode: 200,
+        statusCode: 400,
         headers,
         body: JSON.stringify({
           success: false,
@@ -174,7 +224,7 @@ exports.handler = async (event, context) => {
     const validStatuses = ['verified', 'unverified', 'pending', 'bounced', 'complained'];
     if (!validStatuses.includes(emailVerificationStatus)) {
       return {
-        statusCode: 200,
+        statusCode: 400,
         headers,
         body: JSON.stringify({
           success: false,
@@ -200,7 +250,7 @@ exports.handler = async (event, context) => {
 
     if (!supabaseUrl || !supabaseKey) {
       return {
-        statusCode: 200,
+        statusCode: 500,
         headers,
         body: JSON.stringify({
           success: false,
@@ -233,6 +283,49 @@ exports.handler = async (event, context) => {
 
     const duration = Date.now() - startTime;
 
+    // Handle contact not found
+    if (syncResult.error && syncResult.error.code === 'CONTACT_NOT_FOUND') {
+      return {
+        statusCode: 404,
+        headers,
+        body: JSON.stringify({
+          success: false,
+          error: {
+            code: 'CONTACT_NOT_FOUND',
+            message: 'Contact not found in Supabase',
+          },
+          data: null,
+          metadata: {
+            requestId: `req_${Date.now()}`,
+            timestamp: new Date().toISOString(),
+            duration: duration
+          }
+        }),
+      };
+    }
+
+    // Handle sync failure
+    if (syncResult.status === 'failed') {
+      return {
+        statusCode: 500,
+        headers,
+        body: JSON.stringify({
+          success: false,
+          error: {
+            code: 'SYNC_FAILED',
+            message: syncResult.result,
+          },
+          data: null,
+          metadata: {
+            requestId: `req_${Date.now()}`,
+            timestamp: new Date().toISOString(),
+            duration: duration
+          }
+        }),
+      };
+    }
+
+    // Return success response
     return {
       statusCode: 200,
       headers,
@@ -267,7 +360,7 @@ exports.handler = async (event, context) => {
     console.error('Error in sync-email-verification function:', error);
 
     return {
-      statusCode: 200,
+      statusCode: 500,
       headers,
       body: JSON.stringify({
         success: false,

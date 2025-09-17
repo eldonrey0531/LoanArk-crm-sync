@@ -62,11 +62,16 @@ npm run dev:full
 
 This project is built with:
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+- **Frontend**: React 18 + TypeScript + Vite
+- **Backend**: Netlify Functions + Express server (development)
+- **Database**: Supabase (PostgreSQL)
+- **External API**: HubSpot CRM API v3+
+- **UI Framework**: Radix UI + Tailwind CSS
+- **State Management**: React Query + Context API
+- **Testing**: Vitest + React Testing Library + Playwright + MSW
+- **Build Tools**: Vite + SWC + TypeScript
+- **Code Quality**: ESLint + Prettier + Husky + lint-staged
+- **Deployment**: Netlify (frontend) + Netlify Functions (backend)
 
 ## CI/CD Pipeline
 

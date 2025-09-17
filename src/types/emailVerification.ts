@@ -438,6 +438,7 @@ export interface UseEmailVerificationSyncReturn {
   error: string | null;
   pagination: PaginationInfo;
   syncStatuses: Record<number, SyncStatus>;
+  syncErrors: Record<number, string>;
   loadRecords: (params?: GetEmailVerificationRecordsParams) => Promise<void>;
   syncRecord: (record: SupabaseContact) => Promise<void>;
   retrySync: (recordId: number) => Promise<void>;

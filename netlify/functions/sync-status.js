@@ -64,6 +64,7 @@ exports.handler = async (event, context) => {
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Headers': 'Content-Type, Authorization',
     'Access-Control-Allow-Methods': 'GET, OPTIONS',
+    'Content-Type': 'application/json',
   };
 
   // Handle preflight
@@ -71,16 +72,32 @@ exports.handler = async (event, context) => {
     return { statusCode: 200, headers, body: '' };
   }
 
-  if (event.httpMethod !== 'GET') {
+  // Check authorization
+  const authHeader = event.headers.authorization || event.headers.Authorization;
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
     return {
-      statusCode: 200,
+      statusCode: 401,
       headers,
       body: JSON.stringify({
         success: false,
-        error: {
-          code: 'METHOD_NOT_ALLOWED',
-          message: 'Method Not Allowed. Use GET.',
-        },
+        error: 'Unauthorized',
+        data: null,
+        metadata: {
+          requestId: `req_${Date.now()}`,
+          timestamp: new Date().toISOString(),
+          duration: 0
+        }
+      }),
+    };
+  }
+
+  if (event.httpMethod !== 'GET') {
+    return {
+      statusCode: 405,
+      headers,
+      body: JSON.stringify({
+        success: false,
+        error: 'Method not allowed',
         data: null,
         metadata: {
           requestId: `req_${Date.now()}`,
@@ -93,7 +110,7 @@ exports.handler = async (event, context) => {
 
   try {
     // Extract operationId from path
-    const pathParts = event.path.split('/');
+    const pathParts = event.path ? event.path.split('/') : [];
     const operationId = pathParts[pathParts.length - 1];
 
     const startTime = Date.now();
@@ -118,28 +135,28 @@ exports.handler = async (event, context) => {
       };
     } else {
       // Return specific operation
-      const operation = await syncService.getSyncOperationById(operationId);
-      result = { operation };
-    }
-
-    if (!operation) {
-      return {
-        statusCode: 200,
-        headers,
-        body: JSON.stringify({
-          success: false,
-          error: {
-            code: 'NOT_FOUND',
-            message: `Operation with ID ${operationId} not found`,
-          },
-          data: null,
-          metadata: {
-            requestId: `req_${Date.now()}`,
-            timestamp: new Date().toISOString(),
-            duration: 0
-          }
-        }),
-      };
+      try {
+        const operation = await syncService.getSyncOperationById(operationId);
+        result = { operation };
+      } catch (notFoundError) {
+        return {
+          statusCode: 404,
+          headers,
+          body: JSON.stringify({
+            success: false,
+            error: {
+              code: 'NOT_FOUND',
+              message: `Operation with ID ${operationId} not found`,
+            },
+            data: null,
+            metadata: {
+              requestId: `req_${Date.now()}`,
+              timestamp: new Date().toISOString(),
+              duration: Date.now() - startTime
+            }
+          }),
+        };
+      }
     }
 
     const duration = Date.now() - startTime;
@@ -163,7 +180,7 @@ exports.handler = async (event, context) => {
     console.error('Error in sync-status function:', error);
 
     return {
-      statusCode: 200,
+      statusCode: 500,
       headers,
       body: JSON.stringify({
         success: false,

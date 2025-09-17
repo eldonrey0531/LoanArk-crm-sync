@@ -35,13 +35,14 @@ Horizontal scaling support; 99.9% uptime target; Graceful error handling; Compre
 ### Technology Stack Requirements
 
 - Frontend: React 18 + TypeScript + Vite
-- Backend: Netlify Functions (Node.js runtime)
+- Backend: Netlify Functions (Node.js runtime) + Express server (development)
 - Database: Supabase (PostgreSQL)
 - External APIs: HubSpot CRM API v3+
 - UI Framework: Radix UI + Tailwind CSS
 - State Management: React Query + Context API
 - Build Tool: Vite with SWC
 - Package Manager: npm (with lockfile)
+- Testing: Vitest + React Testing Library + Playwright + MSW
 
 ### Code Quality Standards
 
