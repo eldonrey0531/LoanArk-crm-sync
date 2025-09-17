@@ -1,0 +1,179 @@
+// netlify/functions/sync-status.js
+
+const { EmailVerificationSyncService } = require('../../src/services/emailVerificationSyncService');
+
+exports.handler = async (event, context) => {
+  // Allow CORS
+  const headers = {
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+    'Access-Control-Allow-Methods': 'GET, OPTIONS',
+  };
+
+  // Handle preflight
+  if (event.httpMethod === 'OPTIONS') {
+    return { statusCode: 200, headers, body: '' };
+  }
+
+  if (event.httpMethod !== 'GET') {
+    return {
+      statusCode: 200,
+      headers,
+      body: JSON.stringify({
+        success: false,
+        error: {
+          code: 'METHOD_NOT_ALLOWED',
+          message: 'Method Not Allowed. Use GET.',
+        },
+        data: null,
+        metadata: {
+          requestId: `req_${Date.now()}`,
+          timestamp: new Date().toISOString(),
+          duration: 0
+        }
+      }),
+    };
+  }
+
+  try {
+    // Extract operationId from path
+    const pathParts = event.path.split('/');
+    const operationId = pathParts[pathParts.length - 1];
+
+    if (!operationId || operationId === 'sync-status') {
+      return {
+        statusCode: 200,
+        headers,
+        body: JSON.stringify({
+          success: false,
+          error: {
+            code: 'VALIDATION_ERROR',
+            message: 'Operation ID is required in the URL path',
+          },
+          data: null,
+          metadata: {
+            requestId: `req_${Date.now()}`,
+            timestamp: new Date().toISOString(),
+            duration: 0
+          }
+        }),
+      };
+    }
+
+    // Validate operationId format (basic validation)
+    if (typeof operationId !== 'string' || operationId.length < 10) {
+      return {
+        statusCode: 200,
+        headers,
+        body: JSON.stringify({
+          success: false,
+          error: {
+            code: 'VALIDATION_ERROR',
+            message: 'Invalid operation ID format',
+          },
+          data: null,
+          metadata: {
+            requestId: `req_${Date.now()}`,
+            timestamp: new Date().toISOString(),
+            duration: 0
+          }
+        }),
+      };
+    }
+
+    const startTime = Date.now();
+
+    // Initialize sync service
+    const syncService = new EmailVerificationSyncService();
+
+    // Get operation status
+    const operation = await syncService.getSyncStatus(operationId);
+
+    if (!operation) {
+      return {
+        statusCode: 200,
+        headers,
+        body: JSON.stringify({
+          success: false,
+          error: {
+            code: 'NOT_FOUND',
+            message: `Operation with ID ${operationId} not found`,
+          },
+          data: null,
+          metadata: {
+            requestId: `req_${Date.now()}`,
+            timestamp: new Date().toISOString(),
+            duration: 0
+          }
+        }),
+      };
+    }
+
+    const duration = Date.now() - startTime;
+
+    // Calculate operation duration
+    let operationDuration = 0;
+    if (operation.completedAt) {
+      operationDuration = operation.completedAt.getTime() - operation.startedAt.getTime();
+    } else {
+      operationDuration = Date.now() - operation.startedAt.getTime();
+    }
+
+    return {
+      statusCode: 200,
+      headers,
+      body: JSON.stringify({
+        success: true,
+        data: {
+          operationId: operation.id,
+          status: operation.status,
+          supabaseContactId: operation.supabaseContactId,
+          hubspotContactId: operation.hubspotContactId,
+          startedAt: operation.startedAt.toISOString(),
+          completedAt: operation.completedAt?.toISOString(),
+          duration: operationDuration,
+          sourceValue: operation.sourceValue,
+          targetValue: operation.targetValue,
+          result: operation.result ? {
+            previousValue: operation.result.previousValue,
+            newValue: operation.result.newValue,
+            hubspotResponse: operation.result.hubspotResponse
+          } : null,
+          error: operation.error ? {
+            code: operation.error.code,
+            message: operation.error.message,
+            canRetry: operation.error.canRetry,
+            retryCount: operation.error.retryCount
+          } : null
+        },
+        error: null,
+        metadata: {
+          requestId: `req_${Date.now()}`,
+          timestamp: new Date().toISOString(),
+          duration: duration
+        }
+      }),
+    };
+
+  } catch (error) {
+    console.error('Error in sync-status function:', error);
+
+    return {
+      statusCode: 200,
+      headers,
+      body: JSON.stringify({
+        success: false,
+        error: {
+          code: 'INTERNAL_ERROR',
+          message: error.message || 'Internal server error',
+        },
+        data: null,
+        metadata: {
+          requestId: `req_${Date.now()}`,
+          timestamp: new Date().toISOString(),
+          duration: 0
+        }
+      }),
+    };
+  }
+};

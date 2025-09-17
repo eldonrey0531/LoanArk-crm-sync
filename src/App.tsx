@@ -20,6 +20,7 @@ import NotFound from './pages/NotFound';
 import HubSpotCallback from './pages/HubSpotCallback';
 import SupabaseDatabase from './pages/SupabaseDatabase';
 import HubSpotContacts from './pages/HubSpotContacts';
+import EmailVerificationSyncPage from './pages/EmailVerificationSyncPage';
 
 const queryClient = new QueryClient();
 
@@ -65,6 +66,11 @@ const App = () => {
                     <Route path='settings' element={<Settings />} />
                     <Route path='supabase-database' element={<SupabaseDatabase />} />
                     <Route path='hubspot-contacts' element={<HubSpotContacts />} />
+                    <Route path='email-verification-sync' element={
+                      <ErrorBoundary>
+                        <EmailVerificationSyncPage />
+                      </ErrorBoundary>
+                    } />
                     {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                   </Route>
                   <Route path='/auth/hubspot/callback' element={<HubSpotCallback />} />

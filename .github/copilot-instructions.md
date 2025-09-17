@@ -88,6 +88,7 @@ src/
 - Conflict resolution strategies
 - Audit logging for all changes
 - Real-time status monitoring
+- **Email Verification Sync**: Sync email verification status from Supabase contacts to HubSpot using hs_object_id matching
 
 ## Performance Goals
 - UI response time < 2 seconds
@@ -102,10 +103,11 @@ src/
 - Mobile-responsive design
 
 ## Recent Changes
-1. **OAuth Authentication System**: Complete implementation with HubSpot OAuth 2.0
-2. **Netlify Deployment**: Automated CI/CD pipeline configured
-3. **Testing Infrastructure**: Comprehensive test suite with 15 OAuth tests
-4. **Documentation**: Complete setup and deployment guides
+1. **Email Verification Status Sync**: New webpage for syncing email verification status from Supabase to HubSpot contacts
+2. **OAuth Authentication System**: Complete implementation with HubSpot OAuth 2.0
+3. **Netlify Deployment**: Automated CI/CD pipeline configured
+4. **Testing Infrastructure**: Comprehensive test suite with 15 OAuth tests
+5. **Documentation**: Complete setup and deployment guides
 
 ## Common Patterns
 
@@ -133,19 +135,47 @@ class ApiService {
 }
 ```
 
-### Component Structure
+### Email Verification Sync Pattern
 ```typescript
-interface ComponentProps {
-  data: DataType;
-  onAction: (action: ActionType) => void;
+// Service for syncing email verification status
+class EmailVerificationSyncService {
+  async syncToHubSpot(supabaseContactId: number, hubspotContactId: string, status: string) {
+    try {
+      // Validate contact exists in Supabase
+      const contact = await this.getSupabaseContact(supabaseContactId);
+      
+      // Update HubSpot contact
+      const result = await this.updateHubSpotContact(hubspotContactId, {
+        email_verification_status: status
+      });
+      
+      return { success: true, data: result };
+    } catch (error) {
+      console.error('Sync failed:', error);
+      return { success: false, error: error.message };
+    }
+  }
+}
+```
+
+### Sync Status UI Pattern
+```typescript
+// Component for displaying sync operation status
+interface SyncStatusProps {
+  status: 'idle' | 'pending' | 'success' | 'error';
+  onRetry?: () => void;
 }
 
-export const ComponentName: React.FC<ComponentProps> = ({ data, onAction }) => {
-  return (
-    <div>
-      {/* Component implementation */}
+export const SyncStatus: React.FC<SyncStatusProps> = ({ status, onRetry }) => {
+  if (status === 'pending') return <Loader2 className="animate-spin" />;
+  if (status === 'success') return <CheckCircle className="text-green-500" />;
+  if (status === 'error') return (
+    <div className="flex items-center gap-2">
+      <XCircle className="text-red-500" />
+      {onRetry && <Button onClick={onRetry} size="sm">Retry</Button>}
     </div>
   );
+  return null;
 };
 ```
 
