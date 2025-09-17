@@ -96,54 +96,31 @@ exports.handler = async (event, context) => {
     const pathParts = event.path.split('/');
     const operationId = pathParts[pathParts.length - 1];
 
-    if (!operationId || operationId === 'sync-status') {
-      return {
-        statusCode: 200,
-        headers,
-        body: JSON.stringify({
-          success: false,
-          error: {
-            code: 'VALIDATION_ERROR',
-            message: 'Operation ID is required in the URL path',
-          },
-          data: null,
-          metadata: {
-            requestId: `req_${Date.now()}`,
-            timestamp: new Date().toISOString(),
-            duration: 0
-          }
-        }),
-      };
-    }
-
-    // Validate operationId format (basic validation)
-    if (typeof operationId !== 'string' || operationId.length < 10) {
-      return {
-        statusCode: 200,
-        headers,
-        body: JSON.stringify({
-          success: false,
-          error: {
-            code: 'VALIDATION_ERROR',
-            message: 'Invalid operation ID format',
-          },
-          data: null,
-          metadata: {
-            requestId: `req_${Date.now()}`,
-            timestamp: new Date().toISOString(),
-            duration: 0
-          }
-        }),
-      };
-    }
-
     const startTime = Date.now();
 
     // Initialize sync service
     const syncService = new EmailVerificationSyncService();
 
-    // Get operation status
-    const operation = await syncService.getSyncOperationById(operationId);
+    let result;
+    if (!operationId || operationId === 'sync-status') {
+      // Return all operations
+      const operations = await syncService.getSyncOperations();
+      result = {
+        operations: operations,
+        total: operations.length,
+        summary: {
+          total: operations.length,
+          completed: operations.filter(op => op.status === 'completed').length,
+          inProgress: operations.filter(op => op.status === 'in_progress').length,
+          failed: operations.filter(op => op.status === 'failed').length,
+          pending: operations.filter(op => op.status === 'pending').length
+        }
+      };
+    } else {
+      // Return specific operation
+      const operation = await syncService.getSyncOperationById(operationId);
+      result = { operation };
+    }
 
     if (!operation) {
       return {
@@ -167,41 +144,12 @@ exports.handler = async (event, context) => {
 
     const duration = Date.now() - startTime;
 
-    // Calculate operation duration
-    let operationDuration = 0;
-    if (operation.completedAt) {
-      operationDuration = operation.completedAt.getTime() - operation.startedAt.getTime();
-    } else {
-      operationDuration = Date.now() - operation.startedAt.getTime();
-    }
-
     return {
       statusCode: 200,
       headers,
       body: JSON.stringify({
         success: true,
-        data: {
-          operationId: operation.id,
-          status: operation.status,
-          supabaseContactId: operation.supabaseContactId,
-          hubspotContactId: operation.hubspotContactId,
-          startedAt: operation.startedAt.toISOString(),
-          completedAt: operation.completedAt?.toISOString(),
-          duration: operationDuration,
-          sourceValue: operation.sourceValue,
-          targetValue: operation.targetValue,
-          result: operation.result ? {
-            previousValue: operation.result.previousValue,
-            newValue: operation.result.newValue,
-            hubspotResponse: operation.result.hubspotResponse
-          } : null,
-          error: operation.error ? {
-            code: operation.error.code,
-            message: operation.error.message,
-            canRetry: operation.error.canRetry,
-            retryCount: operation.error.retryCount
-          } : null
-        },
+        data: result,
         error: null,
         metadata: {
           requestId: `req_${Date.now()}`,
