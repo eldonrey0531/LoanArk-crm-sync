@@ -1,432 +1,860 @@
-import React, { useState } from 'react';import React, { useState } from 'react';import React, { useState } from 'react';import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';import React, { useState } from 'react';import React, { useState } from 'react';import React, { useState } from 'react';import React, { useState } from 'react';
 
-import {
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
-  RefreshCw,import {
+import { Button } from '@/components/ui/button';import {
 
-  CheckCircle,
+import { Badge } from '@/components/ui/badge';
 
-  AlertTriangle,  RefreshCw,import {import {
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';  RefreshCw,import {
+
+import { Input } from '@/components/ui/input';
+
+import { Label } from '@/components/ui/label';  CheckCircle,
+
+import { Checkbox } from '@/components/ui/checkbox';
+
+import { ScrollArea } from '@/components/ui/scroll-area';  AlertTriangle,  RefreshCw,import {import {
+
+import { Separator } from '@/components/ui/separator';
+
+import {  Database,
+
+  RefreshCw,
+
+  CheckCircle,  Building2,  CheckCircle,
+
+  XCircle,
+
+  AlertCircle,  ArrowRightLeft,
+
+  ArrowRight,
+
+  Users,  ArrowDown,  AlertTriangle,  RefreshCw,  RefreshCw,
 
   Database,
 
-  Building2,  CheckCircle,
+  Sync,  Loader2
 
-  ArrowRightLeft,
+  Search,
 
-  ArrowDown,  AlertTriangle,  RefreshCw,  RefreshCw,
+  Filter,} from 'lucide-react';  Database,
 
-  Loader2
+  Download,
 
-} from 'lucide-react';  Database,
+  Upload
 
+} from 'lucide-react';
 
+import { useToast } from '@/hooks/use-toast';import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';  Building2,  CheckCircle,  CheckCircle,
 
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';  Building2,  CheckCircle,  CheckCircle,
+import { useContacts } from '@/hooks/useContacts';
 
-import { Button } from '@/components/ui/button';
+import { useHubSpotContacts } from '@/hooks/useHubSpotContacts';import { Button } from '@/components/ui/button';
+
+import { useHubSpotSync } from '@/hooks/useHubSpotSync';
 
 import { Badge } from '@/components/ui/badge';  ArrowRightLeft,
 
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+interface SupabaseContact {
 
-  ArrowDown,  AlertTriangle,  AlertTriangle,
+  id: number;import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
-// Import custom hooks
+  email: string;
 
-import { useEmailVerificationRecords } from '@/hooks/useEmailVerificationRecords';  Loader2
+  first_name: string;  ArrowDown,  AlertTriangle,  AlertTriangle,
 
+  last_name: string;
 
+  email_verification_status: string;// Import custom hooks
 
-// Import toast} from 'lucide-react';  Database,  Database,
+  created_at: string;
 
-import { toast } from '@/hooks/use-toast';
+  updated_at: string;import { useEmailVerificationRecords } from '@/hooks/useEmailVerificationRecords';  Loader2
 
+  hs_object_id?: string;
 
-
-export default function EmailVerificationSyncPage() {
-
-  // State managementimport { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';  Building2,  Building2,
-
-  const [activeTab, setActiveTab] = useState('comparison');
-
-  const [selectedSupabaseContact, setSelectedSupabaseContact] = useState(null);import { Button } from '@/components/ui/button';
-
-  const [selectedHubspotContact, setSelectedHubspotContact] = useState(null);
-
-  const [isSyncing, setIsSyncing] = useState(false);import { Badge } from '@/components/ui/badge';  ArrowRightLeft,  ArrowRightLeft,
+}
 
 
 
-  // Custom hooks for data fetchingimport { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+interface HubSpotContact {// Import toast} from 'lucide-react';  Database,  Database,
 
-  const {
+  id: string;
 
-    data: supabaseRecords,  ArrowDown,  ArrowDown,
+  email: string;import { toast } from '@/hooks/use-toast';
 
-    isLoading: supabaseLoading,
+  firstname: string;
+
+  lastname: string;
+
+  email_verification_status?: string;
+
+  createdate: string;export default function EmailVerificationSyncPage() {
+
+  lastmodifieddate: string;
+
+}  // State managementimport { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';  Building2,  Building2,
+
+
+
+interface SyncResult {  const [activeTab, setActiveTab] = useState('comparison');
+
+  success: boolean;
+
+  message: string;  const [selectedSupabaseContact, setSelectedSupabaseContact] = useState(null);import { Button } from '@/components/ui/button';
+
+  contactId?: string;
+
+}  const [selectedHubspotContact, setSelectedHubspotContact] = useState(null);
+
+
+
+export default function EmailVerificationSyncPage() {  const [isSyncing, setIsSyncing] = useState(false);import { Badge } from '@/components/ui/badge';  ArrowRightLeft,  ArrowRightLeft,
+
+  const { toast } = useToast();
+
+  const [selectedSupabaseContacts, setSelectedSupabaseContacts] = useState<Set<number>>(new Set());
+
+  const [selectedHubSpotContacts, setSelectedHubSpotContacts] = useState<Set<string>>(new Set());
+
+  const [syncStatus, setSyncStatus] = useState<'idle' | 'syncing' | 'completed' | 'error'>('idle');  // Custom hooks for data fetchingimport { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+
+  const [searchTerm, setSearchTerm] = useState('');
+
+  const [filterStatus, setFilterStatus] = useState<string>('all');  const {
+
+
+
+  // Fetch data from hooks    data: supabaseRecords,  ArrowDown,  ArrowDown,
+
+  const { data: supabaseContacts, isLoading: supabaseLoading, error: supabaseError } = useContacts();
+
+  const { data: hubspotContacts, isLoading: hubspotLoading, error: hubspotError } = useHubSpotContacts();    isLoading: supabaseLoading,
+
+  const { syncContact, isLoading: syncLoading } = useHubSpotSync();
 
     error: supabaseError,// Import custom hooks
 
-    refetch: refetchSupabase
+  // Filter contacts based on search and status
 
-  } = useEmailVerificationRecords();import { useEmailVerificationRecords } from '@/hooks/useEmailVerificationRecords';  Loader2  Loader2
+  const filteredSupabaseContacts = supabaseContacts?.filter(contact => {    refetch: refetchSupabase
+
+    const matchesSearch = searchTerm === '' ||
+
+      contact.email.toLowerCase().includes(searchTerm.toLowerCase()) ||  } = useEmailVerificationRecords();import { useEmailVerificationRecords } from '@/hooks/useEmailVerificationRecords';  Loader2  Loader2
+
+      `${contact.first_name} ${contact.last_name}`.toLowerCase().includes(searchTerm.toLowerCase());
 
 
+
+    const matchesFilter = filterStatus === 'all' || contact.email_verification_status === filterStatus;
 
   // Mock HubSpot data for now
 
-  const hubspotContacts = [
+    return matchesSearch && matchesFilter;
 
-    {// Import toast} from 'lucide-react';} from 'lucide-react';
+  }) || [];  const hubspotContacts = [
 
-      id: 'contact_123',
+
+
+  const filteredHubSpotContacts = hubspotContacts?.filter(contact => {    {// Import toast} from 'lucide-react';} from 'lucide-react';
+
+    const matchesSearch = searchTerm === '' ||
+
+      contact.email.toLowerCase().includes(searchTerm.toLowerCase()) ||      id: 'contact_123',
+
+      `${contact.firstname} ${contact.lastname}`.toLowerCase().includes(searchTerm.toLowerCase());
 
       properties: {import { toast } from '@/hooks/use-toast';
 
-        firstname: 'John',
+    return matchesSearch;
 
-        lastname: 'Doe',
+  }) || [];        firstname: 'John',
 
-        email: 'john.doe@example.com',
 
-        email_verification_status: 'unverified'export default function EmailVerificationSyncPage() {
 
-      }
+  const handleSupabaseContactSelect = (contactId: number, checked: boolean) => {        lastname: 'Doe',
 
-    },  // State managementimport { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+    const newSelected = new Set(selectedSupabaseContacts);
 
-    {
+    if (checked) {        email: 'john.doe@example.com',
 
-      id: 'contact_124',  const [activeTab, setActiveTab] = useState('comparison');
+      newSelected.add(contactId);
 
-      properties: {
+    } else {        email_verification_status: 'unverified'export default function EmailVerificationSyncPage() {
 
-        firstname: 'Jane',  const [selectedSupabaseContact, setSelectedSupabaseContact] = useState(null);import { Button } from '@/components/ui/button';import { Button } from '@/components/ui/button';
+      newSelected.delete(contactId);
 
-        lastname: 'Smith',
+    }      }
 
-        email: 'jane.smith@example.com',  const [selectedHubspotContact, setSelectedHubspotContact] = useState(null);
+    setSelectedSupabaseContacts(newSelected);
 
-        email_verification_status: 'verified'
+  };    },  // State managementimport { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
-      }  const [isSyncing, setIsSyncing] = useState(false);import { Badge } from '@/components/ui/badge';import { Badge } from '@/components/ui/badge';
 
-    },
 
-    {
+  const handleHubSpotContactSelect = (contactId: string, checked: boolean) => {    {
 
-      id: 'contact_125',
+    const newSelected = new Set(selectedHubSpotContacts);
 
-      properties: {  // Custom hooks for data fetchingimport { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+    if (checked) {      id: 'contact_124',  const [activeTab, setActiveTab] = useState('comparison');
+
+      newSelected.add(contactId);
+
+    } else {      properties: {
+
+      newSelected.delete(contactId);
+
+    }        firstname: 'Jane',  const [selectedSupabaseContact, setSelectedSupabaseContact] = useState(null);import { Button } from '@/components/ui/button';import { Button } from '@/components/ui/button';
+
+    setSelectedHubSpotContacts(newSelected);
+
+  };        lastname: 'Smith',
+
+
+
+  const handleBulkSync = async () => {        email: 'jane.smith@example.com',  const [selectedHubspotContact, setSelectedHubspotContact] = useState(null);
+
+    if (selectedSupabaseContacts.size === 0) {
+
+      toast({        email_verification_status: 'verified'
+
+        title: "No contacts selected",
+
+        description: "Please select Supabase contacts to sync.",      }  const [isSyncing, setIsSyncing] = useState(false);import { Badge } from '@/components/ui/badge';import { Badge } from '@/components/ui/badge';
+
+        variant: "destructive"
+
+      });    },
+
+      return;
+
+    }    {
+
+
+
+    setSyncStatus('syncing');      id: 'contact_125',
+
+
+
+    try {      properties: {  // Custom hooks for data fetchingimport { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+
+      const results: SyncResult[] = [];
 
         firstname: 'Bob',
 
-        lastname: 'Johnson',  const {
+      for (const supabaseId of selectedSupabaseContacts) {
+
+        const supabaseContact = supabaseContacts?.find(c => c.id === supabaseId);        lastname: 'Johnson',  const {
+
+        if (!supabaseContact) continue;
 
         email: 'bob.johnson@example.com',
 
-        email_verification_status: 'pending'    data: supabaseRecords,
+        // Find matching HubSpot contact by email
 
-      }
+        const hubspotContact = hubspotContacts?.find(c => c.email === supabaseContact.email);        email_verification_status: 'pending'    data: supabaseRecords,
 
-    }    isLoading: supabaseLoading,
+        if (!hubspotContact) {
 
-  ];
+          results.push({      }
 
-    error: supabaseError,// Import custom hooks// Import custom hooks
+            success: false,
 
-  // Handle manual sync between selected contacts
+            message: `No matching HubSpot contact found for ${supabaseContact.email}`,    }    isLoading: supabaseLoading,
 
-  const handleManualSync = async () => {    refetch: refetchSupabase
+            contactId: supabaseContact.id.toString()
+
+          });  ];
+
+          continue;
+
+        }    error: supabaseError,// Import custom hooks// Import custom hooks
+
+
+
+        try {  // Handle manual sync between selected contacts
+
+          await syncContact(hubspotContact.id, {
+
+            email_verification_status: supabaseContact.email_verification_status  const handleManualSync = async () => {    refetch: refetchSupabase
+
+          });
 
     if (!selectedSupabaseContact || !selectedHubspotContact) return;
 
-  } = useEmailVerificationRecords();import { useEmailVerificationRecords } from '@/hooks/useEmailVerificationRecords';import { useEmailVerificationRecords } from '@/hooks/useEmailVerificationRecords';
+          results.push({
 
-    try {
+            success: true,  } = useEmailVerificationRecords();import { useEmailVerificationRecords } from '@/hooks/useEmailVerificationRecords';import { useEmailVerificationRecords } from '@/hooks/useEmailVerificationRecords';
 
-      setIsSyncing(true);
+            message: `Successfully synced ${supabaseContact.email}`,
 
-      toast({
+            contactId: supabaseContact.id.toString()    try {
 
-        title: 'Starting sync...',  // Mock HubSpot data for now
+          });
 
-        description: `Syncing ${selectedSupabaseContact.email} to HubSpot`,
+        } catch (error) {      setIsSyncing(true);
+
+          results.push({
+
+            success: false,      toast({
+
+            message: `Failed to sync ${supabaseContact.email}: ${error instanceof Error ? error.message : 'Unknown error'}`,
+
+            contactId: supabaseContact.id.toString()        title: 'Starting sync...',  // Mock HubSpot data for now
+
+          });
+
+        }        description: `Syncing ${selectedSupabaseContact.email} to HubSpot`,
+
+      }
 
       });  const hubspotContacts = [
 
+      const successCount = results.filter(r => r.success).length;
+
+      const errorCount = results.filter(r => !r.success).length;
 
 
-      // TODO: Implement actual sync logic here    {// Import toast// Import toast
+
+      setSyncStatus('completed');      // TODO: Implement actual sync logic here    {// Import toast// Import toast
+
+      setSelectedSupabaseContacts(new Set());
 
       // This will call the sync service to update HubSpot contact
 
-      id: 'contact_123',
-
-      await new Promise(resolve => setTimeout(resolve, 2000)); // Simulate API call
-
-      properties: {import { toast } from '@/hooks/use-toast';import { toast } from '@/hooks/use-toast';
-
       toast({
 
-        title: 'Sync completed',        firstname: 'John',
+        title: "Sync completed",      id: 'contact_123',
 
-        description: `Successfully synced ${selectedSupabaseContact.email}`,
+        description: `${successCount} contacts synced successfully, ${errorCount} failed.`,
 
-      });        lastname: 'Doe',
-
-
-
-      // Reset selections        email: 'john.doe@example.com',
-
-      setSelectedSupabaseContact(null);
-
-      setSelectedHubspotContact(null);        email_verification_status: 'unverified'export default function EmailVerificationSyncPage() {export default function EmailVerificationSyncPage() {
-
-
-
-    } catch (error) {      }
-
-      toast({
-
-        title: 'Sync failed',    },  // State management  // State management
-
-        description: error instanceof Error ? error.message : 'Unknown error occurred.',
-
-        variant: 'destructive',    {
+        variant: successCount > 0 ? "default" : "destructive"      await new Promise(resolve => setTimeout(resolve, 2000)); // Simulate API call
 
       });
 
-    } finally {      id: 'contact_124',  const [activeTab, setActiveTab] = useState('comparison');  const [activeTab, setActiveTab] = useState('comparison');
+      properties: {import { toast } from '@/hooks/use-toast';import { toast } from '@/hooks/use-toast';
 
-      setIsSyncing(false);
+    } catch (error) {
 
-    }      properties: {
+      setSyncStatus('error');      toast({
+
+      toast({
+
+        title: "Sync failed",        title: 'Sync completed',        firstname: 'John',
+
+        description: error instanceof Error ? error.message : "An unknown error occurred",
+
+        variant: "destructive"        description: `Successfully synced ${selectedSupabaseContact.email}`,
+
+      });
+
+    }      });        lastname: 'Doe',
 
   };
 
-        firstname: 'Jane',  const [selectedSupabaseContact, setSelectedSupabaseContact] = useState(null);  const [selectedSupabaseContact, setSelectedSupabaseContact] = useState(null);
+
+
+  const getStatusBadge = (status: string) => {
+
+    switch (status) {      // Reset selections        email: 'john.doe@example.com',
+
+      case 'verified':
+
+        return <Badge variant="default" className="bg-green-100 text-green-800">Verified</Badge>;      setSelectedSupabaseContact(null);
+
+      case 'pending':
+
+        return <Badge variant="secondary">Pending</Badge>;      setSelectedHubspotContact(null);        email_verification_status: 'unverified'export default function EmailVerificationSyncPage() {export default function EmailVerificationSyncPage() {
+
+      case 'failed':
+
+        return <Badge variant="destructive">Failed</Badge>;
+
+      default:
+
+        return <Badge variant="outline">Unknown</Badge>;    } catch (error) {      }
+
+    }
+
+  };      toast({
+
+
+
+  const getSyncStatusIcon = () => {        title: 'Sync failed',    },  // State management  // State management
+
+    switch (syncStatus) {
+
+      case 'syncing':        description: error instanceof Error ? error.message : 'Unknown error occurred.',
+
+        return <RefreshCw className="h-4 w-4 animate-spin" />;
+
+      case 'completed':        variant: 'destructive',    {
+
+        return <CheckCircle className="h-4 w-4 text-green-500" />;
+
+      case 'error':      });
+
+        return <XCircle className="h-4 w-4 text-red-500" />;
+
+      default:    } finally {      id: 'contact_124',  const [activeTab, setActiveTab] = useState('comparison');  const [activeTab, setActiveTab] = useState('comparison');
+
+        return <Sync className="h-4 w-4" />;
+
+    }      setIsSyncing(false);
+
+  };
+
+    }      properties: {
 
   return (
 
-    <div className="container mx-auto p-6 space-y-6">        lastname: 'Smith',
+    <div className="container mx-auto p-6 space-y-6">  };
 
       <div className="flex items-center justify-between">
 
-        <div>        email: 'jane.smith@example.com',  const [selectedHubspotContact, setSelectedHubspotContact] = useState(null);  const [selectedHubspotContact, setSelectedHubspotContact] = useState(null);
+        <div>        firstname: 'Jane',  const [selectedSupabaseContact, setSelectedSupabaseContact] = useState(null);  const [selectedSupabaseContact, setSelectedSupabaseContact] = useState(null);
 
           <h1 className="text-3xl font-bold">Email Verification Sync</h1>
 
-          <p className="text-muted-foreground">        email_verification_status: 'verified'
+          <p className="text-muted-foreground">  return (
 
-            Manually sync email verification status between Supabase and HubSpot
+            Sync email verification status between Supabase and HubSpot contacts
 
-          </p>      }  const [isSyncing, setIsSyncing] = useState(false);  const [isSyncing, setIsSyncing] = useState(false);
+          </p>    <div className="container mx-auto p-6 space-y-6">        lastname: 'Smith',
 
         </div>
 
-        <Button    },
+        <div className="flex items-center gap-2">      <div className="flex items-center justify-between">
 
-          onClick={() => {
+          {getSyncStatusIcon()}
 
-            refetchSupabase();    {
+          <span className="text-sm text-muted-foreground capitalize">        <div>        email: 'jane.smith@example.com',  const [selectedHubspotContact, setSelectedHubspotContact] = useState(null);  const [selectedHubspotContact, setSelectedHubspotContact] = useState(null);
 
-          }}
+            {syncStatus}
 
-          disabled={supabaseLoading}      id: 'contact_125',
+          </span>          <h1 className="text-3xl font-bold">Email Verification Sync</h1>
 
-          variant="outline"
+        </div>
 
-        >      properties: {  // Custom hooks for data fetching  // Custom hooks for data fetching
-
-          <RefreshCw className={`h-4 w-4 mr-2 ${supabaseLoading ? 'animate-spin' : ''}`} />
-
-          Refresh        firstname: 'Bob',
-
-        </Button>
-
-      </div>        lastname: 'Johnson',  const {  const {
+      </div>          <p className="text-muted-foreground">        email_verification_status: 'verified'
 
 
 
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">        email: 'bob.johnson@example.com',
+      {/* Search and Filter Controls */}            Manually sync email verification status between Supabase and HubSpot
 
-        <TabsList className="grid w-full grid-cols-2">
+      <Card>
 
-          <TabsTrigger value="comparison">Side-by-Side Comparison</TabsTrigger>        email_verification_status: 'pending'    data: supabaseRecords,    data: supabaseRecords,
+        <CardHeader>          </p>      }  const [isSyncing, setIsSyncing] = useState(false);  const [isSyncing, setIsSyncing] = useState(false);
+
+          <CardTitle className="flex items-center gap-2">
+
+            <Search className="h-5 w-5" />        </div>
+
+            Search & Filter
+
+          </CardTitle>        <Button    },
+
+        </CardHeader>
+
+        <CardContent className="space-y-4">          onClick={() => {
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+            <div className="space-y-2">            refetchSupabase();    {
+
+              <Label htmlFor="search">Search Contacts</Label>
+
+              <Input          }}
+
+                id="search"
+
+                placeholder="Search by email or name..."          disabled={supabaseLoading}      id: 'contact_125',
+
+                value={searchTerm}
+
+                onChange={(e) => setSearchTerm(e.target.value)}          variant="outline"
+
+              />
+
+            </div>        >      properties: {  // Custom hooks for data fetching  // Custom hooks for data fetching
+
+            <div className="space-y-2">
+
+              <Label htmlFor="filter">Filter by Status</Label>          <RefreshCw className={`h-4 w-4 mr-2 ${supabaseLoading ? 'animate-spin' : ''}`} />
+
+              <select
+
+                id="filter"          Refresh        firstname: 'Bob',
+
+                className="w-full px-3 py-2 border border-input bg-background rounded-md"
+
+                value={filterStatus}        </Button>
+
+                onChange={(e) => setFilterStatus(e.target.value)}
+
+              >      </div>        lastname: 'Johnson',  const {  const {
+
+                <option value="all">All Statuses</option>
+
+                <option value="verified">Verified</option>
+
+                <option value="pending">Pending</option>
+
+                <option value="failed">Failed</option>      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">        email: 'bob.johnson@example.com',
+
+              </select>
+
+            </div>        <TabsList className="grid w-full grid-cols-2">
+
+          </div>
+
+        </CardContent>          <TabsTrigger value="comparison">Side-by-Side Comparison</TabsTrigger>        email_verification_status: 'pending'    data: supabaseRecords,    data: supabaseRecords,
+
+      </Card>
 
           <TabsTrigger value="operations">Sync Operations</TabsTrigger>
 
-        </TabsList>      }
+      {/* Three Column Layout */}
 
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">        </TabsList>      }
 
+        {/* Supabase Contacts Column */}
 
-        <TabsContent value="comparison" className="space-y-6">    }    isLoading: supabaseLoading,    isLoading: supabaseLoading,
+        <Card className="lg:col-span-1">
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <CardHeader>
 
-            {/* Supabase Contacts */}  ];
+            <CardTitle className="flex items-center gap-2">        <TabsContent value="comparison" className="space-y-6">    }    isLoading: supabaseLoading,    isLoading: supabaseLoading,
 
-            <div className="space-y-4">
+              <Database className="h-5 w-5" />
 
-              <div className="flex items-center gap-2">    error: supabaseError,    error: supabaseError,
+              Supabase Contacts          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
-                <Database className="h-5 w-5 text-blue-500" />
+              {supabaseContacts && (
 
-                <h2 className="text-xl font-semibold">Supabase Contacts</h2>  // Handle manual sync between selected contacts
+                <Badge variant="secondary">{filteredSupabaseContacts.length}</Badge>            {/* Supabase Contacts */}  ];
+
+              )}
+
+            </CardTitle>            <div className="space-y-4">
+
+          </CardHeader>
+
+          <CardContent>              <div className="flex items-center gap-2">    error: supabaseError,    error: supabaseError,
+
+            {supabaseLoading ? (
+
+              <div className="flex items-center justify-center py-8">                <Database className="h-5 w-5 text-blue-500" />
+
+                <RefreshCw className="h-6 w-6 animate-spin" />
+
+                <span className="ml-2">Loading contacts...</span>                <h2 className="text-xl font-semibold">Supabase Contacts</h2>  // Handle manual sync between selected contacts
 
               </div>
 
-  const handleManualSync = async () => {    refetch: refetchSupabase    refetch: refetchSupabase
+            ) : supabaseError ? (              </div>
 
-              <div className="border rounded-lg p-4 space-y-4 max-h-96 overflow-y-auto">
+              <div className="flex items-center gap-2 text-red-600 py-4">
 
-                {supabaseLoading ? (    if (!selectedSupabaseContact || !selectedHubspotContact) return;
+                <AlertCircle className="h-5 w-5" />  const handleManualSync = async () => {    refetch: refetchSupabase    refetch: refetchSupabase
 
-                  <div className="flex items-center justify-center py-8">
+                <span>Failed to load Supabase contacts</span>
 
-                    <Loader2 className="h-6 w-6 animate-spin" />  } = useEmailVerificationRecords();  } = useEmailVerificationRecords();
+              </div>              <div className="border rounded-lg p-4 space-y-4 max-h-96 overflow-y-auto">
 
-                    <span className="ml-2">Loading contacts...</span>
+            ) : (
 
-                  </div>    try {
+              <ScrollArea className="h-96">                {supabaseLoading ? (    if (!selectedSupabaseContact || !selectedHubspotContact) return;
 
-                ) : supabaseError ? (
+                <div className="space-y-2">
 
-                  <div className="text-center py-8 text-red-500">      setIsSyncing(true);
+                  {filteredSupabaseContacts.map((contact) => (                  <div className="flex items-center justify-center py-8">
 
-                    <AlertTriangle className="h-8 w-8 mx-auto mb-2" />
+                    <div
 
-                    <p>Failed to load Supabase contacts</p>      toast({
+                      key={contact.id}                    <Loader2 className="h-6 w-6 animate-spin" />  } = useEmailVerificationRecords();  } = useEmailVerificationRecords();
 
-                    <p className="text-sm text-muted-foreground">{supabaseError.message}</p>
+                      className="flex items-center space-x-2 p-3 border rounded-lg hover:bg-muted/50"
 
-                  </div>        title: 'Starting sync...',  // Mock HubSpot data for now  // Mock HubSpot data for now
+                    >                    <span className="ml-2">Loading contacts...</span>
 
-                ) : supabaseRecords?.records?.length > 0 ? (
+                      <Checkbox
 
-                  supabaseRecords.records.map((contact) => (        description: `Syncing ${selectedSupabaseContact.email} to HubSpot`,
+                        checked={selectedSupabaseContacts.has(contact.id)}                  </div>    try {
 
-                    <Card
+                        onCheckedChange={(checked) =>
 
-                      key={contact.id}      });  const hubspotContacts = [  const hubspotContacts = [
+                          handleSupabaseContactSelect(contact.id, checked as boolean)                ) : supabaseError ? (
 
-                      className={`cursor-pointer transition-colors ${
+                        }
 
-                        selectedSupabaseContact?.id === contact.id
+                      />                  <div className="text-center py-8 text-red-500">      setIsSyncing(true);
 
-                          ? 'ring-2 ring-blue-500 bg-blue-50'
+                      <div className="flex-1 min-w-0">
 
-                          : 'hover:bg-gray-50'      // TODO: Implement actual sync logic here    {    {
+                        <div className="flex items-center justify-between">                    <AlertTriangle className="h-8 w-8 mx-auto mb-2" />
 
-                      }`}
+                          <p className="text-sm font-medium truncate">
 
-                      onClick={() => setSelectedSupabaseContact(contact)}      // This will call the sync service to update HubSpot contact
+                            {contact.first_name} {contact.last_name}                    <p>Failed to load Supabase contacts</p>      toast({
 
-                    >
+                          </p>
 
-                      <CardContent className="p-4">      id: 'contact_123',      id: 'contact_123',
-
-                        <div className="flex items-center justify-between">
-
-                          <div>      await new Promise(resolve => setTimeout(resolve, 2000)); // Simulate API call
-
-                            <p className="font-medium">{contact.email}</p>
-
-                            <p className="text-sm text-muted-foreground">      properties: {      properties: {
-
-                              Status: {contact.email_verification_status || 'unknown'}
-
-                            </p>      toast({
-
-                          </div>
-
-                          <Badge        title: 'Sync completed',        firstname: 'John',        firstname: 'John',
-
-                            variant={
-
-                              contact.email_verification_status === 'verified'        description: `Successfully synced ${selectedSupabaseContact.email}`,
-
-                                ? 'default'
-
-                                : contact.email_verification_status === 'pending'      });        lastname: 'Doe',        lastname: 'Doe',
-
-                                ? 'secondary'
-
-                                : 'destructive'
-
-                            }
-
-                          >      // Reset selections        email: 'john.doe@example.com',        email: 'john.doe@example.com',
-
-                            {contact.email_verification_status || 'unknown'}
-
-                          </Badge>      setSelectedSupabaseContact(null);
+                          {getStatusBadge(contact.email_verification_status)}                    <p className="text-sm text-muted-foreground">{supabaseError.message}</p>
 
                         </div>
 
+                        <p className="text-xs text-muted-foreground truncate">                  </div>        title: 'Starting sync...',  // Mock HubSpot data for now  // Mock HubSpot data for now
+
+                          {contact.email}
+
+                        </p>                ) : supabaseRecords?.records?.length > 0 ? (
+
+                      </div>
+
+                    </div>                  supabaseRecords.records.map((contact) => (        description: `Syncing ${selectedSupabaseContact.email} to HubSpot`,
+
+                  ))}
+
+                </div>                    <Card
+
+              </ScrollArea>
+
+            )}                      key={contact.id}      });  const hubspotContacts = [  const hubspotContacts = [
+
+          </CardContent>
+
+        </Card>                      className={`cursor-pointer transition-colors ${
+
+
+
+        {/* Sync Controls Column */}                        selectedSupabaseContact?.id === contact.id
+
+        <Card className="lg:col-span-1">
+
+          <CardHeader>                          ? 'ring-2 ring-blue-500 bg-blue-50'
+
+            <CardTitle className="flex items-center gap-2">
+
+              <Sync className="h-5 w-5" />                          : 'hover:bg-gray-50'      // TODO: Implement actual sync logic here    {    {
+
+              Sync Controls
+
+            </CardTitle>                      }`}
+
+          </CardHeader>
+
+          <CardContent className="space-y-4">                      onClick={() => setSelectedSupabaseContact(contact)}      // This will call the sync service to update HubSpot contact
+
+            <div className="text-center space-y-4">
+
+              <div className="flex items-center justify-center">                    >
+
+                <ArrowRight className="h-8 w-8 text-muted-foreground" />
+
+              </div>                      <CardContent className="p-4">      id: 'contact_123',      id: 'contact_123',
+
+
+
+              <div className="space-y-2">                        <div className="flex items-center justify-between">
+
+                <p className="text-sm text-muted-foreground">
+
+                  Selected: {selectedSupabaseContacts.size} contacts                          <div>      await new Promise(resolve => setTimeout(resolve, 2000)); // Simulate API call
+
+                </p>
+
+                <Button                            <p className="font-medium">{contact.email}</p>
+
+                  onClick={handleBulkSync}
+
+                  disabled={selectedSupabaseContacts.size === 0 || syncLoading}                            <p className="text-sm text-muted-foreground">      properties: {      properties: {
+
+                  className="w-full"
+
+                >                              Status: {contact.email_verification_status || 'unknown'}
+
+                  {syncLoading ? (
+
+                    <>                            </p>      toast({
+
+                      <RefreshCw className="h-4 w-4 animate-spin mr-2" />
+
+                      Syncing...                          </div>
+
+                    </>
+
+                  ) : (                          <Badge        title: 'Sync completed',        firstname: 'John',        firstname: 'John',
+
+                    <>
+
+                      <Upload className="h-4 w-4 mr-2" />                            variant={
+
+                      Sync Selected Contacts
+
+                    </>                              contact.email_verification_status === 'verified'        description: `Successfully synced ${selectedSupabaseContact.email}`,
+
+                  )}
+
+                </Button>                                ? 'default'
+
+              </div>
+
+                                : contact.email_verification_status === 'pending'      });        lastname: 'Doe',        lastname: 'Doe',
+
+              <Separator />
+
+                                ? 'secondary'
+
+              <div className="space-y-2">
+
+                <Button variant="outline" className="w-full">                                : 'destructive'
+
+                  <Download className="h-4 w-4 mr-2" />
+
+                  Export Results                            }
+
+                </Button>
+
+                <Button variant="outline" className="w-full">                          >      // Reset selections        email: 'john.doe@example.com',        email: 'john.doe@example.com',
+
+                  <RefreshCw className="h-4 w-4 mr-2" />
+
+                  Refresh Data                            {contact.email_verification_status || 'unknown'}
+
+                </Button>
+
+              </div>                          </Badge>      setSelectedSupabaseContact(null);
+
+            </div>
+
+          </CardContent>                        </div>
+
+        </Card>
+
                       </CardContent>      setSelectedHubspotContact(null);        email_verification_status: 'unverified'        email_verification_status: 'unverified'
 
-                    </Card>
+        {/* HubSpot Contacts Column */}
 
-                  ))
+        <Card className="lg:col-span-1">                    </Card>
 
-                ) : (
+          <CardHeader>
 
-                  <div className="text-center py-8 text-muted-foreground">    } catch (error) {      }      }
+            <CardTitle className="flex items-center gap-2">                  ))
 
-                    <Database className="h-8 w-8 mx-auto mb-2 opacity-50" />
+              <Users className="h-5 w-5" />
 
-                    <p>No Supabase contacts found</p>      toast({
+              HubSpot Contacts                ) : (
 
-                  </div>
+              {hubspotContacts && (
 
-                )}        title: 'Sync failed',    },    },
+                <Badge variant="secondary">{filteredHubSpotContacts.length}</Badge>                  <div className="text-center py-8 text-muted-foreground">    } catch (error) {      }      }
+
+              )}
+
+            </CardTitle>                    <Database className="h-8 w-8 mx-auto mb-2 opacity-50" />
+
+          </CardHeader>
+
+          <CardContent>                    <p>No Supabase contacts found</p>      toast({
+
+            {hubspotLoading ? (
+
+              <div className="flex items-center justify-center py-8">                  </div>
+
+                <RefreshCw className="h-6 w-6 animate-spin" />
+
+                <span className="ml-2">Loading contacts...</span>                )}        title: 'Sync failed',    },    },
 
               </div>
 
-            </div>        description: error instanceof Error ? error.message : 'Unknown error occurred.',
+            ) : hubspotError ? (              </div>
 
+              <div className="flex items-center gap-2 text-red-600 py-4">
 
+                <AlertCircle className="h-5 w-5" />            </div>        description: error instanceof Error ? error.message : 'Unknown error occurred.',
 
-            {/* Sync Controls */}        variant: 'destructive',    {    {
-
-            <div className="space-y-4">
-
-              <div className="flex items-center gap-2">      });
-
-                <ArrowRightLeft className="h-5 w-5 text-green-500" />
-
-                <h2 className="text-xl font-semibold">Sync Controls</h2>    } finally {      id: 'contact_124',      id: 'contact_124',
+                <span>Failed to load HubSpot contacts</span>
 
               </div>
 
-      setIsSyncing(false);
+            ) : (
 
-              <Card className="p-4">
+              <ScrollArea className="h-96">            {/* Sync Controls */}        variant: 'destructive',    {    {
 
-                <div className="space-y-4">    }      properties: {      properties: {
+                <div className="space-y-2">
 
-                  {selectedSupabaseContact && selectedHubspotContact ? (
+                  {filteredHubSpotContacts.map((contact) => (            <div className="space-y-4">
 
-                    <>  };
+                    <div
 
-                      <div className="text-center">
+                      key={contact.id}              <div className="flex items-center gap-2">      });
 
-                        <h3 className="font-medium mb-2">Ready to Sync</h3>        firstname: 'Jane',        firstname: 'Jane',
+                      className="flex items-center space-x-2 p-3 border rounded-lg hover:bg-muted/50"
 
-                        <p className="text-sm text-muted-foreground mb-4">
+                    >                <ArrowRightLeft className="h-5 w-5 text-green-500" />
 
-                          Sync email verification status from Supabase to HubSpot  return (
+                      <Checkbox
 
-                        </p>
+                        checked={selectedHubSpotContacts.has(contact.id)}                <h2 className="text-xl font-semibold">Sync Controls</h2>    } finally {      id: 'contact_124',      id: 'contact_124',
 
-                      </div>    <div className="container mx-auto p-6 space-y-6">        lastname: 'Smith',        lastname: 'Smith',
+                        onCheckedChange={(checked) =>
 
+                          handleHubSpotContactSelect(contact.id, checked as boolean)              </div>
 
+                        }
 
-                      <div className="space-y-2">      <div className="flex items-center justify-between">
+                      />      setIsSyncing(false);
+
+                      <div className="flex-1 min-w-0">
+
+                        <div className="flex items-center justify-between">              <Card className="p-4">
+
+                          <p className="text-sm font-medium truncate">
+
+                            {contact.firstname} {contact.lastname}                <div className="space-y-4">    }      properties: {      properties: {
+
+                          </p>
+
+                          {contact.email_verification_status &&                  {selectedSupabaseContact && selectedHubspotContact ? (
+
+                            getStatusBadge(contact.email_verification_status)
+
+                          }                    <>  };
+
+                        </div>
+
+                        <p className="text-xs text-muted-foreground truncate">                      <div className="text-center">
+
+                          {contact.email}
+
+                        </p>                        <h3 className="font-medium mb-2">Ready to Sync</h3>        firstname: 'Jane',        firstname: 'Jane',
+
+                      </div>
+
+                    </div>                        <p className="text-sm text-muted-foreground mb-4">
+
+                  ))}
+
+                </div>                          Sync email verification status from Supabase to HubSpot  return (
+
+              </ScrollArea>
+
+            )}                        </p>
+
+          </CardContent>
+
+        </Card>                      </div>    <div className="container mx-auto p-6 space-y-6">        lastname: 'Smith',        lastname: 'Smith',
+
+      </div>
+
+    </div>
+
+  );
+
+}                      <div className="space-y-2">      <div className="flex items-center justify-between">
 
                         <div className="flex justify-between text-sm">
 
