@@ -1,7 +1,61 @@
 // netlify/functions/email-verification-records.js
 
 const { createClient } = require('@supabase/supabase-js');
-const { SupabaseEmailVerificationService } = require('../../src/services/supabaseEmailVerificationService');
+
+// Supabase Email Verification Service - embedded directly in the function
+class SupabaseEmailVerificationService {
+  constructor(supabaseClient) {
+    this.supabaseClient = supabaseClient;
+  }
+
+  async getContactsWithEmailVerification(params = {}) {
+    try {
+      let query = this.supabaseClient
+        .from('contacts')
+        .select('*')
+        .not('email_verification_status', 'is', null)
+        .not('hs_object_id', 'is', null);
+
+      // Apply sorting
+      if (params.sortBy && params.sortOrder) {
+        query = query.order(params.sortBy, { ascending: params.sortOrder === 'asc' });
+      } else {
+        query = query.order('created_at', { ascending: false });
+      }
+
+      // Apply pagination
+      const page = params.page || 1;
+      const limit = params.limit || 50;
+      const offset = (page - 1) * limit;
+
+      query = query.range(offset, offset + limit - 1);
+
+      const { data, error, count } = await query;
+
+      if (error) {
+        throw new Error(`Database query failed: ${error.message}`);
+      }
+
+      const totalRecords = count || 0;
+      const totalPages = Math.ceil(totalRecords / limit);
+
+      return {
+        records: data || [],
+        pagination: {
+          page,
+          limit,
+          totalRecords,
+          totalPages,
+          hasNext: page < totalPages,
+          hasPrev: page > 1
+        }
+      };
+    } catch (error) {
+      console.error('Error fetching contacts:', error);
+      throw error;
+    }
+  }
+}
 
 exports.handler = async (event, context) => {
   // Allow CORS
@@ -63,10 +117,8 @@ exports.handler = async (event, context) => {
 
     const supabaseClient = createClient(supabaseUrl, supabaseKey);
 
-    // Initialize service
-    const supabaseService = new SupabaseEmailVerificationService();
-    // Note: In a real implementation, you'd initialize with the client
-    // For now, we'll use mock data since we don't have the actual service integration
+    // Initialize service with client
+    const supabaseService = new SupabaseEmailVerificationService(supabaseClient);
 
     // Parse query parameters
     const queryParams = event.queryStringParameters || {};
@@ -121,46 +173,8 @@ exports.handler = async (event, context) => {
 
     const startTime = Date.now();
 
-    // Mock data for now - in production, this would call the actual service
-    const mockContacts = [
-      {
-        id: 1,
-        hs_object_id: 'contact_123',
-        email_verification_status: 'verified',
-        firstname: 'John',
-        lastname: 'Doe',
-        email: 'john.doe@example.com',
-        created_at: '2024-01-15T10:30:00Z',
-        updated_at: '2024-01-20T14:45:00Z'
-      },
-      {
-        id: 2,
-        hs_object_id: 'contact_124',
-        email_verification_status: 'unverified',
-        firstname: 'Jane',
-        lastname: 'Smith',
-        email: 'jane.smith@example.com',
-        created_at: '2024-01-16T09:15:00Z',
-        updated_at: '2024-01-19T16:20:00Z'
-      },
-      {
-        id: 3,
-        hs_object_id: 'contact_125',
-        email_verification_status: 'pending',
-        firstname: 'Bob',
-        lastname: 'Johnson',
-        email: 'bob.johnson@example.com',
-        created_at: '2024-01-17T11:45:00Z',
-        updated_at: '2024-01-18T13:30:00Z'
-      }
-    ];
-
-    // Apply pagination
-    const totalRecords = mockContacts.length;
-    const totalPages = Math.ceil(totalRecords / params.limit);
-    const startIndex = (params.page - 1) * params.limit;
-    const endIndex = startIndex + params.limit;
-    const paginatedRecords = mockContacts.slice(startIndex, endIndex);
+    // Call the service to get contacts
+    const result = await supabaseService.getContactsWithEmailVerification(params);
 
     const duration = Date.now() - startTime;
 
@@ -169,17 +183,7 @@ exports.handler = async (event, context) => {
       headers,
       body: JSON.stringify({
         success: true,
-        data: {
-          records: paginatedRecords,
-          pagination: {
-            page: params.page,
-            limit: params.limit,
-            total: totalRecords,
-            totalPages: totalPages,
-            hasNext: params.page < totalPages,
-            hasPrev: params.page > 1
-          }
-        },
+        data: result,
         error: null,
         metadata: {
           requestId: `req_${Date.now()}`,

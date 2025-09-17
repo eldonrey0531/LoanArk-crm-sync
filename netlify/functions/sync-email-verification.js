@@ -1,8 +1,72 @@
 // netlify/functions/sync-email-verification.js
 
 const { createClient } = require('@supabase/supabase-js');
-const { SupabaseEmailVerificationService } = require('../../src/services/supabaseEmailVerificationService');
-const { EmailVerificationSyncService } = require('../../src/services/emailVerificationSyncService');
+
+// Embedded Supabase Email Verification Service
+class SupabaseEmailVerificationService {
+  constructor(supabaseClient) {
+    this.supabaseClient = supabaseClient;
+  }
+
+  async getContactById(contactId) {
+    try {
+      const { data, error } = await this.supabaseClient
+        .from('contacts')
+        .select('*')
+        .eq('id', contactId)
+        .single();
+
+      if (error) {
+        throw new Error(`Database query failed: ${error.message}`);
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Error fetching contact:', error);
+      throw error;
+    }
+  }
+}
+
+// Embedded Email Verification Sync Service
+class EmailVerificationSyncService {
+  constructor(supabaseService) {
+    this.supabaseService = supabaseService;
+  }
+
+  async syncToHubSpot(supabaseContactId, hubspotContactId, status) {
+    try {
+      // Validate contact exists in Supabase
+      const contact = await this.supabaseService.getContactById(supabaseContactId);
+
+      if (!contact) {
+        throw new Error('Contact not found in Supabase');
+      }
+
+      // Mock HubSpot update - in production, this would call HubSpot API
+      console.log(`Updating HubSpot contact ${hubspotContactId} with email_verification_status: ${status}`);
+
+      // Simulate API delay
+      await new Promise(resolve => setTimeout(resolve, 500));
+
+      return {
+        success: true,
+        data: {
+          supabaseContactId,
+          hubspotContactId,
+          status,
+          syncedAt: new Date().toISOString()
+        }
+      };
+    } catch (error) {
+      console.error('Sync failed:', error);
+      return {
+        success: false,
+        error: error.message
+      };
+    }
+  }
+}
 
 exports.handler = async (event, context) => {
   // Allow CORS
@@ -130,8 +194,35 @@ exports.handler = async (event, context) => {
 
     const startTime = Date.now();
 
-    // Initialize services (mock for now)
-    const syncService = new EmailVerificationSyncService();
+    // Initialize Supabase client
+    const supabaseUrl = process.env.SUPABASE_URL;
+    const supabaseKey = process.env.SUPABASE_ANON_KEY;
+
+    if (!supabaseUrl || !supabaseKey) {
+      return {
+        statusCode: 200,
+        headers,
+        body: JSON.stringify({
+          success: false,
+          error: {
+            code: 'CONFIGURATION_ERROR',
+            message: 'Supabase configuration not found',
+          },
+          data: null,
+          metadata: {
+            requestId: `req_${Date.now()}`,
+            timestamp: new Date().toISOString(),
+            duration: 0
+          }
+        }),
+      };
+    }
+
+    const supabaseClient = createClient(supabaseUrl, supabaseKey);
+
+    // Initialize services
+    const supabaseService = new SupabaseEmailVerificationService(supabaseClient);
+    const syncService = new EmailVerificationSyncService(supabaseService);
 
     // Perform the sync operation
     const syncResult = await syncService.syncToHubSpot(
