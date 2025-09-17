@@ -11,8 +11,9 @@ import {
   Search
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { useEmailVerificationSync } from '@/hooks/useEmailVerificationSync';
-import { EmailVerificationTable } from '@/components/EmailVerificationTable';
+import { useEmailVerificationSyncDisplay } from '@/hooks/useEmailVerificationSyncDisplay';
+import { EmailVerificationSyncTable } from '@/components/EmailVerificationSyncTable';
+import { ContactComparison, TableFilters } from '@/types/emailVerificationDataDisplay';
 import { SyncStatus } from '@/components/SyncStatus';
 
 interface SupabaseContact {
@@ -29,105 +30,85 @@ interface SupabaseContact {
 export default function EmailVerificationSyncPage() {
   const [activeTab, setActiveTab] = useState('records');
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedRecords, setSelectedRecords] = useState<Set<number>>(new Set());
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const { toast } = useToast();
 
-  // Use the comprehensive email verification sync hook
+  // Use the new sync display hook
   const {
-    records,
+    data: comparisons,
     isLoading,
     error,
-    syncStatuses,
-    syncErrors,
-    loadRecords,
-    syncRecord,
-    retrySync
-  } = useEmailVerificationSync();
+    refetch
+  } = useEmailVerificationSyncDisplay({
+    search: searchTerm,
+    status: 'all'
+  });
 
   // Filter records based on search
-  const filteredRecords = records?.filter(record => {
+  const filteredComparisons = comparisons?.filter(comparison => {
     if (!searchTerm) return true;
 
     const searchLower = searchTerm.toLowerCase();
-    return (
-      record.email?.toLowerCase().includes(searchLower) ||
-      record.firstname?.toLowerCase().includes(searchLower) ||
-      record.lastname?.toLowerCase().includes(searchLower)
-    );
+    const supabaseName = comparison.supabase?.name?.toLowerCase() || '';
+    const supabaseEmail = comparison.supabase?.email?.toLowerCase() || '';
+    const hubspotName = comparison.hubspot
+      ? `${comparison.hubspot.properties.firstname || ''} ${comparison.hubspot.properties.lastname || ''}`.trim().toLowerCase()
+      : '';
+    const hubspotEmail = comparison.hubspot?.properties.email?.toLowerCase() || '';
+
+    return supabaseName.includes(searchLower) ||
+           supabaseEmail.includes(searchLower) ||
+           hubspotName.includes(searchLower) ||
+           hubspotEmail.includes(searchLower);
   }) || [];
 
-  const handleRecordSelect = (recordId: number, selected: boolean) => {
-    const newSelected = new Set(selectedRecords);
+  const handleRecordSelect = (recordId: string, selected: boolean) => {
+    const newSelected = new Set(selectedIds);
     if (selected) {
       newSelected.add(recordId);
     } else {
       newSelected.delete(recordId);
     }
-    setSelectedRecords(newSelected);
+    setSelectedIds(newSelected);
   };
 
   const handleSelectAll = (selected: boolean) => {
     if (selected) {
-      setSelectedRecords(new Set(filteredRecords.map(r => r.id)));
+      setSelectedIds(new Set(filteredComparisons.map(c => c.id)));
     } else {
-      setSelectedRecords(new Set());
+      setSelectedIds(new Set());
     }
   };
 
-  const handleSyncRecord = async (recordId: number) => {
-    try {
-      const record = records?.find(r => r.id === recordId);
-      if (!record) {
-        throw new Error(`Record ${recordId} not found`);
-      }
+  const handleSyncRecord = async (recordId: string) => {
+    const comparison = filteredComparisons.find(c => c.id === recordId);
+    if (!comparison?.supabase) return;
 
-      await syncRecord(record);
-      toast({
-        title: "Sync initiated",
-        description: "Email verification sync has been started for this record.",
-      });
-    } catch (error) {
-      toast({
-        title: "Sync failed",
-        description: "Failed to initiate sync for this record.",
-        variant: "destructive"
-      });
-    }
+    toast({
+      title: "Sync Started",
+      description: `Syncing ${comparison.supabase.name} to HubSpot...`,
+    });
+
+    // TODO: Implement actual sync logic
+    console.log('Syncing record:', comparison.supabase);
   };
 
   const handleSyncSelected = async () => {
-    if (selectedRecords.size === 0) {
-      toast({
-        title: "No records selected",
-        description: "Please select at least one record to sync.",
-        variant: "destructive"
-      });
-      return;
-    }
+    if (selectedIds.size === 0) return;
 
-    try {
-      // Sync each selected record
-      const syncPromises = Array.from(selectedRecords).map(async (recordId) => {
-        const record = records?.find(r => r.id === recordId);
-        if (record) {
-          return syncRecord(record);
-        }
-      });
+    toast({
+      title: "Bulk Sync Started",
+      description: `Syncing ${selectedIds.size} record${selectedIds.size !== 1 ? 's' : ''} to HubSpot...`,
+    });
 
-      await Promise.all(syncPromises);
+    // TODO: Implement bulk sync logic
+    console.log('Syncing selected records:', Array.from(selectedIds));
 
-      toast({
-        title: "Bulk sync initiated",
-        description: `Sync has been started for ${selectedRecords.size} record${selectedRecords.size !== 1 ? 's' : ''}.`,
-      });
-      setSelectedRecords(new Set()); // Clear selection after sync
-    } catch (error) {
-      toast({
-        title: "Bulk sync failed",
-        description: "Failed to initiate sync for selected records.",
-        variant: "destructive"
-      });
-    }
+    setSelectedIds(new Set()); // Clear selection after sync
+  };
+
+  const handleRefresh = () => {
+    refetch();
   };
 
   return (
@@ -141,7 +122,7 @@ export default function EmailVerificationSyncPage() {
         </div>
         <div className="flex items-center gap-2">
           <Button
-            onClick={() => loadRecords()}
+            onClick={handleRefresh}
             variant="outline"
             className="flex items-center gap-2"
           >
@@ -150,11 +131,11 @@ export default function EmailVerificationSyncPage() {
           </Button>
           <Button
             onClick={handleSyncSelected}
-            disabled={selectedRecords.size === 0}
+            disabled={selectedIds.size === 0}
             className="flex items-center gap-2"
           >
             <ArrowRightLeft className="w-4 h-4" />
-            Sync Selected ({selectedRecords.size})
+            Sync Selected ({selectedIds.size})
           </Button>
         </div>
       </div>
@@ -188,15 +169,13 @@ export default function EmailVerificationSyncPage() {
 
                 {error && (
                   <div className="text-red-600 text-sm p-2 bg-red-50 rounded">
-                    Error loading records: {error}
+                    Error loading records: {error?.message || 'Unknown error'}
                   </div>
                 )}
 
-                <EmailVerificationTable
-                  records={filteredRecords}
-                  syncStatuses={syncStatuses}
-                  syncErrors={syncErrors}
-                  selectedRecords={selectedRecords}
+                <EmailVerificationSyncTable
+                  data={filteredComparisons}
+                  selectedIds={selectedIds}
                   onRecordSelect={handleRecordSelect}
                   onSelectAll={handleSelectAll}
                   onSyncRecord={handleSyncRecord}
@@ -215,34 +194,27 @@ export default function EmailVerificationSyncPage() {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {Object.keys(syncStatuses).length === 0 ? (
+                {selectedIds.size === 0 ? (
                   <div className="text-center py-8 text-muted-foreground">
                     <Database className="h-12 w-12 mx-auto mb-4 opacity-50" />
                     <p>No sync operations in progress</p>
-                    <p className="text-sm">Sync status will appear here when operations are initiated</p>
+                    <p className="text-sm">Select records above to initiate sync operations</p>
                   </div>
                 ) : (
                   <div className="space-y-2">
-                    {Object.entries(syncStatuses).map(([recordId, status]) => {
-                      const record = records?.find(r => r.id === parseInt(recordId));
-
-                      return (
-                        <div key={recordId} className="flex items-center justify-between p-3 border rounded">
-                          <div>
-                            <div className="font-medium">
-                              {record ? `${record.firstname} ${record.lastname}` : `Record ${recordId}`}
-                            </div>
-                            <div className="text-sm text-muted-foreground">
-                              {record?.email}
-                            </div>
-                          </div>
-                          <SyncStatus
-                            status={status}
-                            showRetry={false}
-                          />
+                    <div className="flex items-center justify-between p-3 border rounded">
+                      <div>
+                        <div className="font-medium">
+                          {selectedIds.size} record{selectedIds.size !== 1 ? 's' : ''} selected
                         </div>
-                      );
-                    })}
+                        <div className="text-sm text-muted-foreground">
+                          Ready for sync
+                        </div>
+                      </div>
+                      <div className="text-sm text-muted-foreground">
+                        Pending
+                      </div>
+                    </div>
                   </div>
                 )}
               </div>

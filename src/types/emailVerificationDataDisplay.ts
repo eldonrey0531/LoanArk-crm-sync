@@ -161,6 +161,15 @@ export interface ComparisonResponse {
 // COMPONENT PROP TYPES
 // =============================================================================
 
+// Table Filters Type
+export interface TableFilters {
+  search: string;
+  status: 'all' | 'matched' | 'supabase_only' | 'hubspot_only' | 'mismatch';
+  sortOrder?: 'asc' | 'desc';
+  page?: number;
+  pageSize?: number;
+}
+
 // Main Container Component
 export interface EmailVerificationDataDisplayProps {
   initialPageSize?: number;
