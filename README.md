@@ -63,7 +63,7 @@ npm run dev:full
 This project is built with:
 
 - **Frontend**: React 18 + TypeScript + Vite
-- **Backend**: Netlify Functions + Express server (development)
+- **Backend**: Vercel Serverless Functions + Express server (development)
 - **Database**: Supabase (PostgreSQL)
 - **External API**: HubSpot CRM API v3+
 - **UI Framework**: Radix UI + Tailwind CSS
@@ -71,7 +71,7 @@ This project is built with:
 - **Testing**: Vitest + React Testing Library + Playwright + MSW
 - **Build Tools**: Vite + SWC + TypeScript
 - **Code Quality**: ESLint + Prettier + Husky + lint-staged
-- **Deployment**: Netlify (frontend) + Netlify Functions (backend)
+- **Deployment**: Vercel (frontend) + Vercel Serverless Functions (backend)
 
 ## CI/CD Pipeline
 
@@ -80,7 +80,7 @@ This project uses GitHub Actions for automated testing, building, and deployment
 ### 🚀 Automated Workflows
 
 - **Continuous Integration**: Automated testing and linting on every push and PR
-- **Continuous Deployment**: Automatic deployment to Netlify on main branch pushes
+- **Continuous Deployment**: Automatic deployment to Vercel on main branch pushes
 - **Security Scanning**: Weekly security audits and dependency checks
 - **Database Migrations**: Automated Supabase schema updates
 - **Release Management**: Automated changelog generation and release creation
@@ -95,7 +95,7 @@ This project uses GitHub Actions for automated testing, building, and deployment
 2. **Required Secrets**:
    - `VITE_SUPABASE_URL` & `VITE_SUPABASE_ANON_KEY`
    - `VITE_HUBSPOT_CLIENT_ID` & `VITE_HUBSPOT_CLIENT_SECRET`
-   - `NETLIFY_AUTH_TOKEN` & `NETLIFY_SITE_ID`
+   - `VERCEL_TOKEN` & `VERCEL_ORG_ID` & `VERCEL_PROJECT_ID`
    - `SUPABASE_ACCESS_TOKEN` & `SUPABASE_PROJECT_REF`
 
 ### 📖 Documentation

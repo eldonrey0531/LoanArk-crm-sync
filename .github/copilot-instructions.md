@@ -46,7 +46,7 @@ All development must comply with these non-negotiable principles:
 
 ## Technology Stack
 - **Frontend**: React 18 + TypeScript + Vite
-- **Backend**: Netlify Functions (Node.js) + Express server
+- **Backend**: Vercel Serverless Functions (Node.js) + Express server
 - **Database**: Supabase (PostgreSQL)
 - **External API**: HubSpot CRM API v3+
 - **UI Framework**: Radix UI + Tailwind CSS
@@ -55,7 +55,7 @@ All development must comply with these non-negotiable principles:
 - **Build Tools**: Vite + SWC + TypeScript
 - **Package Manager**: npm (with Bun support)
 - **Code Quality**: ESLint + Prettier + Husky + lint-staged
-- **Deployment**: Netlify (frontend) + Netlify Functions (backend)
+- **Deployment**: Vercel (frontend) + Vercel Serverless Functions (backend)
 
 ## Code Style & Conventions
 

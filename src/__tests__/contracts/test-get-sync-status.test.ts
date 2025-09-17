@@ -16,7 +16,7 @@ import {
 } from '../../types/emailVerification';
 
 // Mock the Netlify function endpoint
-const API_BASE_URL = 'http://localhost:8888/.netlify/functions';
+const API_BASE_URL = 'http://localhost:3000/api';
 
 // Test data
 const validOperationId = 'test-operation-123';

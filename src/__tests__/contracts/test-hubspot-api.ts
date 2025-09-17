@@ -19,7 +19,7 @@ import {
 } from '../../../specs/005-show-data-from/contracts/api-contracts';
 
 // Mock the API endpoints
-const API_BASE_URL = 'http://localhost:8888/.netlify/functions';
+const API_BASE_URL = 'http://localhost:3000/api';
 
 // Test data matching the contracts
 const mockHubSpotContact = {

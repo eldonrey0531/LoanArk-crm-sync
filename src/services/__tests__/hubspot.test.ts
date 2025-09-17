@@ -58,10 +58,10 @@ mockFetch.mockImplementation(
     const urlString =
       typeof url === 'string' ? url : url instanceof URL ? url.href : url.url;
 
-    // Handle Netlify function calls - check for both absolute and relative URLs
+    // Handle Vercel API route calls - check for both absolute and relative URLs
     if (
-      urlString.includes('/.netlify/functions/hubspot-test') ||
-      urlString.endsWith('/.netlify/functions/hubspot-test')
+      urlString.includes('/api/hubspot-test') ||
+      urlString.endsWith('/api/hubspot-test')
     ) {
       return {
         ok: true,
@@ -74,8 +74,8 @@ mockFetch.mockImplementation(
     }
 
     if (
-      urlString.includes('/.netlify/functions/hubspot-contacts') ||
-      urlString.endsWith('/.netlify/functions/hubspot-contacts')
+      urlString.includes('/api/hubspot-contacts') ||
+      urlString.endsWith('/api/hubspot-contacts')
     ) {
       return {
         ok: true,

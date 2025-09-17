@@ -80,8 +80,8 @@ export const handlers = [
     });
   }),
 
-  // Netlify function mocks for HubSpot service
-  http.get('*/.netlify/functions/hubspot-test', () => {
+  // Vercel API route mocks for HubSpot service
+  http.get('*/api/hubspot-test', () => {
     return HttpResponse.json({
       connected: true,
       total: 150,
@@ -89,7 +89,7 @@ export const handlers = [
     });
   }),
 
-  http.post('*/.netlify/functions/hubspot-contacts', () => {
+  http.post('*/api/hubspot-contacts', () => {
     return HttpResponse.json({
       results: [
         {
@@ -127,7 +127,7 @@ export const handlers = [
     });
   }),
 
-  http.post('*/.netlify/functions/hubspot-contacts-all', () => {
+  http.post('*/api/hubspot-contacts-all', () => {
     return HttpResponse.json({
       results: [
         {

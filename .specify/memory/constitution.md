@@ -35,7 +35,7 @@ Horizontal scaling support; 99.9% uptime target; Graceful error handling; Compre
 ### Technology Stack Requirements
 
 - Frontend: React 18 + TypeScript + Vite
-- Backend: Netlify Functions (Node.js runtime) + Express server (development)
+- Backend: Vercel Serverless Functions (Node.js runtime) + Express server (development)
 - Database: Supabase (PostgreSQL)
 - External APIs: HubSpot CRM API v3+
 - UI Framework: Radix UI + Tailwind CSS
@@ -102,7 +102,7 @@ Horizontal scaling support; 99.9% uptime target; Graceful error handling; Compre
 
 ### Deployment Process
 
-- Automated CI/CD pipeline
+- Automated CI/CD pipeline with Vercel
 - Staging environment for testing
 - Production deployment requires approval
 - Rollback plan documented

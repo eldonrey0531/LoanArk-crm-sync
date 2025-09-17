@@ -63,9 +63,9 @@ class HubSpotService {
     try {
       console.log('🔍 Testing HubSpot connection...');
 
-      // Use existing Netlify function for consistency
+      // Use Vercel API route for HubSpot connection test
       const response = await this.makeRequest(
-        '/.netlify/functions/hubspot-test',
+        '/api/hubspot-test',
         {
           method: 'GET',
           timeout: this.config.timeout,
@@ -116,7 +116,7 @@ class HubSpotService {
       console.log('📡 Fetching HubSpot contacts...', params);
 
       const response = await this.makeRequest(
-        '/.netlify/functions/hubspot-contacts',
+        '/api/hubspot-contacts',
         {
           method: 'POST',
           headers: {

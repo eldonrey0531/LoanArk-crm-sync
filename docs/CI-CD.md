@@ -14,7 +14,7 @@ This project uses GitHub Actions for comprehensive CI/CD automation, including t
 
 **Jobs:**
 - **Test & Build**: Runs linting, type checking, formatting, and builds the application
-- **Deploy to Netlify**: Deploys to production on pushes to `main`
+- **Deploy to Vercel**: Deploys to production on pushes to `main`
 - **Deploy Preview**: Creates preview deployments for pull requests
 
 ### 2. Database Migration (`database.yml`)
