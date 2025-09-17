@@ -4,9 +4,15 @@ param([string]$AgentType)
 $ErrorActionPreference = 'Stop'
 
 $repoRoot = git rev-parse --show-toplevel
-$currentBranch = git rev-parse --abbrev-ref HEAD
-$featureDir = Join-Path $repoRoot "specs/$currentBranch"
-$newPlan = Join-Path $featureDir 'plan.md'
+$configFile = Join-Path $repoRoot 'config.json'
+if (Test-Path $configFile) {
+    $config = Get-Content $configFile | ConvertFrom-Json
+    $newPlan = $config.IMPL_PLAN
+} else {
+    $currentBranch = git rev-parse --abbrev-ref HEAD
+    $featureDir = Join-Path $repoRoot "specs/$currentBranch"
+    $newPlan = Join-Path $featureDir 'plan.md'
+}
 if (-not (Test-Path $newPlan)) { Write-Error "ERROR: No plan.md found at $newPlan"; exit 1 }
 
 $claudeFile = Join-Path $repoRoot 'CLAUDE.md'

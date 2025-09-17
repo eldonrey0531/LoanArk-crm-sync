@@ -1,22 +1,16 @@
-# Implementation Plan: CRM Sync Implementation
+# Implementation Plan: Add HubSpot Database and Contacts Pages
 
-**Branch**: `001-crm-sync` | **Date**: 2025-09-17 | **Spec**: specs/001-crm-sync/spec.md
-**Input**: Feature specification from `/specs/001-crm-sync/spec.md`
-
-## Execution Fl**Phase Status**:
+**Branch**: `002-i-want-to` | **Date**: September 17, 2025 | **Spec**: C:\Users\raze0\Documents\trial\LoanArk-crm-sync-main\specs\002-i-want-to\spec.md
+***Phase Status**:
 
 - [x] Phase 0: Research complete (/plan command)
 - [x] Phase 1: Design complete (/plan command)
-- [x] Phase 2: Task planning complete (/tasks command - describe approach only)
+- [x] Phase 2: Task planning complete (/plan command - describe approach only)
 - [x] Phase 3: Tasks generated (/tasks command)
-- [x] Phase 4: Implementation complete (OAuth authentication system deployed)
-- [ ] Phase 5: Validation passed
+- [x] Phase 4: Implementation complete
+- [x] Phase 5: Validation passed: Feature specification from `/specs/002-i-want-to/spec.md`
 
-**Gate Status**:
-
-- [x] Initial Constitution Check: PASS
-- [x] Post-Design Constitution Check: PASS
-- [x] All NEEDS CLARIFICATION resolvedmmand scope)
+## Execution Flow (/plan command scope)
 
 ```
 1. Load feature spec from Input path
@@ -46,44 +40,39 @@
 
 ## Summary
 
-**COMPLETED**: Comprehensive CRM synchronization system for LoanArk with HubSpot OAuth authentication, real-time data sync, connection monitoring, and user-friendly dashboards. The solution uses React/TypeScript frontend with Netlify Functions backend and Supabase database, following security-first architecture and TDD principles.
-
-**Current Status**: 
-- ✅ OAuth Authentication System: Fully implemented and deployed
-- ✅ HubSpot API Integration: Complete with token management
-- ✅ Frontend UI: Responsive dashboard with authentication flow
-- ✅ Backend Services: Netlify Functions with OAuth support
-- ✅ Testing Infrastructure: Comprehensive test suite (15 OAuth tests passing)
-- ✅ Documentation: Complete setup and deployment guides
-- ✅ CI/CD Pipeline: Automated deployment to Netlify configured
-
-**Next Steps**: Phase 5 validation and production monitoring
+Add two new pages to the CRM sync application: a HubSpot Database page displaying synced contact records and a HubSpot Contacts page displaying live contact data from HubSpot API, both showing contact information in table format with specific required properties.
 
 ## Technical Context
 
-**Language/Version**: TypeScript 5.3, Node.js 18+
-**Primary Dependencies**: React 18, Vite 5.0, Supabase client, HubSpot API
-**Storage**: Supabase (PostgreSQL), localStorage for caching
-**Testing**: React Testing Library, Jest, Playwright for E2E
-**Target Platform**: Web browsers (Chrome, Firefox, Safari, Edge)
-**Project Type**: Web application (frontend + backend)
-**Performance Goals**: < 2s UI response, < 5min sync for 1000 contacts, 99.9% uptime
-**Constraints**: Mobile-responsive, WCAG 2.1 AA accessibility, HTTPS-only, < 500KB bundle
-**Scale/Scope**: Up to 50 concurrent users, 10k+ contacts, real-time sync monitoring
+**Language/Version**: TypeScript 5.x  
+**Primary Dependencies**: React 18, HubSpot CRM API v3+, Supabase, Radix UI, Tailwind CSS  
+**Storage**: Supabase (PostgreSQL) for synced data, HubSpot API for live data  
+**Testing**: Vitest + React Testing Library for unit tests, Playwright for E2E tests  
+**Target Platform**: Web browsers (Chrome, Firefox, Safari, Edge)  
+**Project Type**: web application (frontend + backend)  
+**Performance Goals**: UI response time < 2 seconds, API calls optimized with caching  
+**Constraints**: Type-safe development, security-first (OAuth, HTTPS), accessibility (WCAG 2.1 AA), mobile-responsive  
+**Scale/Scope**: Support 50+ concurrent users, display contact data with 13 properties
 
 ## Constitution Check
 
 _GATE: Must pass before Phase 0 research. Re-check after Phase 1 design._
 
-**Security-First Architecture**: ✅ PASS - API keys encrypted, HTTPS-only, input validation implemented
-**Type-Safe Development**: ✅ PASS - TypeScript mandatory, strict checking enabled
-**Test-Driven Development**: ✅ PASS - TDD approach planned, comprehensive test coverage required
-**Real-Time Data Integrity**: ✅ PASS - Transactional updates, audit logging, conflict resolution
-**Performance Optimization**: ✅ PASS - Performance goals defined, monitoring planned
-**User-Centric Design**: ✅ PASS - Mobile-first, accessibility compliance, UX focus
-**Scalability & Reliability**: ✅ PASS - Horizontal scaling support, 99.9% uptime target
+- ✅ Security-First Architecture: Uses OAuth for HubSpot authentication, HTTPS-only, secure token storage
+- ✅ Type-Safe Development: TypeScript with strict checking, comprehensive interfaces
+- ✅ Test-Driven Development: Unit tests (>80% coverage), integration tests for API, E2E tests for user flows
+- ✅ Real-Time Data Integrity: Sync operations maintain consistency, audit logging
+- ✅ Performance Optimization: UI <2s, API caching, bundle <500KB
+- ✅ User-Centric Design: Mobile-responsive, WCAG 2.1 AA, intuitive UX
+- ✅ Scalability & Reliability: Horizontal scaling support, graceful error handling
+- ✅ Technology Stack: React 18 + TypeScript + Vite, Netlify Functions, Supabase, HubSpot API v3+, Radix UI + Tailwind, React Query + Context
+- ✅ Code Quality: ESLint, Prettier, Husky, Conventional Commits
+- ✅ Security Requirements: HTTPS, env vars for keys, input validation, XSS/CSRF protection
+- ✅ Performance Standards: Lighthouse >90 performance, Core Web Vitals
+- ✅ Development Workflow: Feature branches, code review, quality gates
+- ✅ Deployment: Automated CI/CD with Netlify
 
-**Gate Status**: ✅ PASS - All constitutional principles satisfied
+**Status**: PASS - No violations detected
 
 ## Project Structure
 
@@ -137,30 +126,26 @@ ios/ or android/
 └── [platform-specific structure]
 ```
 
-**Structure Decision**: Web application (frontend + backend) - Option 2 selected due to React frontend with Netlify Functions backend
+**Structure Decision**: Option 2: Web application (frontend + backend detected)
 
 ## Phase 0: Outline & Research
 
-1. **Extract unknowns from Technical Context** above:
-   - For each NEEDS CLARIFICATION → research task
-   - For each dependency → best practices task
-   - For each integration → patterns task
+1. **Extract unknowns from Technical Context**:
+   - HubSpot contact properties mapping and API endpoints
+   - Table component best practices for large datasets
+   - Data fetching strategies for synced vs live data
 
 2. **Generate and dispatch research agents**:
 
    ```
-   For each unknown in Technical Context:
-     Task: "Research {unknown} for {feature context}"
-   For each technology choice:
-     Task: "Find best practices for {tech} in {domain}"
+   Task: "Research HubSpot CRM API v3 contact properties and endpoints"
+   Task: "Find best practices for displaying tabular data in React with Radix UI"
+   Task: "Research data synchronization patterns for local vs remote data sources"
    ```
 
-3. **Consolidate findings** in `research.md` using format:
-   - Decision: [what was chosen]
-   - Rationale: [why chosen]
-   - Alternatives considered: [what else evaluated]
+3. **Consolidate findings** in `research.md`
 
-**Output**: research.md with all NEEDS CLARIFICATION resolved
+**Output**: research.md with decisions documented
 
 ## Phase 1: Design & Contracts
 
@@ -197,42 +182,27 @@ _Prerequisites: research.md complete_
 
 ## Phase 2: Task Planning Approach
 
-_COMPLETED: tasks.md generated with 35 actionable implementation tasks_
+_This section describes what the /tasks command will do - DO NOT execute during /plan_
 
 **Task Generation Strategy**:
 
-- ✅ Loaded Phase 1 design artifacts (data-model.md, contracts/, quickstart.md)
-- ✅ Generated implementation tasks from API contracts
-- ✅ Created database setup and migration tasks
-- ✅ Generated frontend component development tasks
-- ✅ Created integration and testing tasks
-- ✅ Established task dependencies and parallel execution opportunities
-
-**Task Categories**:
-
-1. **Infrastructure Setup** (5 tasks): Database schema, environment configuration
-2. **Backend Development** (10 tasks): API endpoints, HubSpot integration, data processing
-3. **Frontend Development** (10 tasks): UI components, state management, user interactions
-4. **Integration Tasks** (5 tasks): API integration, error handling, authentication
-5. **Testing Tasks** (3 tasks): Unit tests, integration tests, E2E tests
-6. **Documentation & Deployment** (2 tasks): Documentation completion and production deployment
+- Load tasks-template.md as base
+- Generate tasks from Phase 1 design docs (contracts, data model, quickstart)
+- Each API endpoint → contract test task [P]
+- Each page component → implementation task
+- Data fetching hooks → service layer tasks
+- UI components for tables → component tasks
 
 **Ordering Strategy**:
 
-- Infrastructure first (database, environment)
-- Backend development (APIs, services)
-- Frontend development (UI, components)
-- Integration and testing (end-to-end validation)
-- Documentation and deployment preparation
+- TDD order: API contract tests first
+- Dependency order: Services before components before pages
+- Parallel execution for independent components [P]
+- Sequential for dependent features
 
-**Parallel Execution Opportunities**:
+**Estimated Output**: 15-20 numbered, ordered tasks in tasks.md
 
-- [P] Database schema creation and API development
-- [P] Frontend component development and backend service implementation
-- [P] Unit test creation and integration test development
-- [P] Documentation writing and deployment preparation
-
-**Actual Output**: 35 numbered tasks with clear acceptance criteria, dependencies, and time estimates
+**IMPORTANT**: This phase is executed by the /tasks command, NOT by /plan
 
 ## Phase 3+: Future Implementation
 
@@ -259,9 +229,9 @@ _This checklist is updated during execution flow_
 
 - [x] Phase 0: Research complete (/plan command)
 - [x] Phase 1: Design complete (/plan command)
-- [x] Phase 2: Task planning complete (/tasks command - describe approach only)
-- [x] Phase 3: Tasks generated (/tasks command)
-- [x] Phase 4: Implementation complete (OAuth authentication system deployed)
+- [ ] Phase 2: Task planning complete (/tasks command - describe approach only)
+- [ ] Phase 3: Tasks generated (/tasks command)
+- [ ] Phase 4: Implementation complete
 - [ ] Phase 5: Validation passed
 
 **Gate Status**:

@@ -18,6 +18,8 @@ import Logs from './pages/Logs';
 import Settings from './pages/Settings';
 import NotFound from './pages/NotFound';
 import HubSpotCallback from './pages/HubSpotCallback';
+import HubSpotDatabase from './pages/HubSpotDatabase';
+import HubSpotContacts from './pages/HubSpotContacts';
 
 const queryClient = new QueryClient();
 
@@ -61,6 +63,8 @@ const App = () => {
                     <Route path='sync-monitor' element={<SyncMonitor />} />
                     <Route path='logs' element={<Logs />} />
                     <Route path='settings' element={<Settings />} />
+                    <Route path='hubspot-database' element={<HubSpotDatabase />} />
+                    <Route path='hubspot-contacts' element={<HubSpotContacts />} />
                     {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                   </Route>
                   <Route path='/auth/hubspot/callback' element={<HubSpotCallback />} />

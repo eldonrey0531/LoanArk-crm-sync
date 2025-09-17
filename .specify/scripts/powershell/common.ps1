@@ -26,8 +26,15 @@ function Get-FeatureDir {
 
 function Get-FeaturePathsEnv {
     $repoRoot = Get-RepoRoot
-    $currentBranch = Get-CurrentBranch
-    $featureDir = Get-FeatureDir -RepoRoot $repoRoot -Branch $currentBranch
+    $configFile = Join-Path $repoRoot 'config.json'
+    if (Test-Path $configFile) {
+        $config = Get-Content $configFile | ConvertFrom-Json
+        $featureDir = $config.SPECS_DIR
+        $currentBranch = $config.BRANCH
+    } else {
+        $currentBranch = Get-CurrentBranch
+        $featureDir = Get-FeatureDir -RepoRoot $repoRoot -Branch $currentBranch
+    }
     [PSCustomObject]@{
         REPO_ROOT    = $repoRoot
         CURRENT_BRANCH = $currentBranch
