@@ -56,7 +56,7 @@
 
 - [x] T003 [P] Contract test GET /hubspot-contacts-sync in netlify/functions/__tests__/test_hubspot_contacts_sync.test.js
 - [x] T004 [P] Contract test GET /hubspot-contacts-live in netlify/functions/__tests__/test_hubspot_contacts_live.test.js
-- [x] T005 [P] Integration test HubSpot database page data loading in e2e/hubspot-database-page.spec.ts
+- [x] T005 [P] Integration test Supabase database page data loading in e2e/supabase-database-page.spec.ts
 - [x] T006 [P] Integration test HubSpot contacts page data loading in e2e/hubspot-contacts-page.spec.ts
 
 ## Phase 3.3: Core Implementation (ONLY after tests are failing)

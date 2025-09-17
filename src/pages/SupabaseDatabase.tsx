@@ -2,7 +2,7 @@ import React from 'react';
 import { useHubSpotContacts } from '../hooks/useHubSpotContacts';
 import { ContactsTable } from '../components/ContactsTable';
 
-const HubSpotDatabase: React.FC = () => {
+const SupabaseDatabase: React.FC = () => {
   const {
     data,
     isLoading,
@@ -20,10 +20,10 @@ const HubSpotDatabase: React.FC = () => {
     <div className="container mx-auto px-4 py-8">
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900 mb-2">
-          HubSpot Database
+          Supabase Database
         </h1>
         <p className="text-gray-600">
-          View contacts synchronized from HubSpot to the local database.
+          View contacts synchronized from HubSpot to the Supabase database.
           This data may be slightly delayed from the live HubSpot data.
         </p>
       </div>
@@ -50,4 +50,4 @@ const HubSpotDatabase: React.FC = () => {
   );
 };
 
-export default HubSpotDatabase;
+export default SupabaseDatabase;

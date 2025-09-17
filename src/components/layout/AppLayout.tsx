@@ -19,7 +19,7 @@ import {
 const navigation = [
   { name: 'Dashboard', href: '/', icon: Home },
   { name: 'Contacts', href: '/contacts', icon: Users },
-  { name: 'HubSpot Database', href: '/hubspot-database', icon: Database },
+  { name: 'Supabase Database', href: '/supabase-database', icon: Database },
   { name: 'HubSpot Contacts', href: '/hubspot-contacts', icon: Zap },
   { name: 'Latest Created', href: '/latest-created', icon: FileText },
   { name: 'Latest Updated', href: '/latest-updated', icon: RefreshCw },
