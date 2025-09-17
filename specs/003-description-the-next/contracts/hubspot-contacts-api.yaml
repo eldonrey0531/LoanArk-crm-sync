@@ -1,0 +1,238 @@
+openapi: 3.0.3
+info:
+  title: HubSpot Live Contacts API
+  description: API for retrieving paginated contact data directly from HubSpot CRM
+  version: 1.0.0
+  contact:
+    name: LoanArk CRM Sync Team
+
+servers:
+  - url: /.netlify/functions/hubspot-contacts-live
+    description: Netlify Function endpoint
+
+paths:
+  /:
+    get:
+      summary: Get paginated contacts from HubSpot
+      description: Retrieve live contact data directly from HubSpot CRM with server-side pagination
+      operationId: getHubSpotContacts
+      tags:
+        - contacts
+        - pagination
+        - hubspot
+      parameters:
+        - name: limit
+          in: query
+          description: Number of contacts to return per page (1-100, HubSpot limit)
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 25
+        - name: offset
+          in: query
+          description: Pagination offset (0-based, converted to HubSpot 'after' parameter)
+          required: false
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+        - name: properties
+          in: query
+          description: Comma-separated list of HubSpot contact properties to include
+          required: false
+          schema:
+            type: string
+            default: "hs_object_id,email,email_verification_status,firstname,lastname,phone,mobilephone,client_type_vip_status,client_type_prospects,address,city,zip,createdate,lastmodifieddate"
+      responses:
+        '200':
+          description: Successful response with paginated HubSpot contacts
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContactListResponse'
+              example:
+                contacts:
+                  - hs_object_id: "67890"
+                    email: "jane.smith@example.com"
+                    firstname: "Jane"
+                    lastname: "Smith"
+                    createdate: "2023-02-10T09:15:00Z"
+                    lastmodifieddate: "2023-07-15T16:20:00Z"
+                total: 5000
+                hasMore: true
+                pagination:
+                  pageIndex: 1
+                  pageSize: 25
+                  totalPages: 200
+        '400':
+          description: Invalid request parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: HubSpot authentication failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '429':
+          description: HubSpot API rate limit exceeded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+components:
+  schemas:
+    Contact:
+      type: object
+      required:
+        - hs_object_id
+      properties:
+        hs_object_id:
+          type: string
+          description: HubSpot contact ID
+          example: "67890"
+        email:
+          type: string
+          format: email
+          description: Contact email address
+          example: "jane.smith@example.com"
+        email_verification_status:
+          type: string
+          enum: ["verified", "unverified", "unknown"]
+          description: Email verification status from HubSpot
+          example: "verified"
+        firstname:
+          type: string
+          description: Contact first name
+          example: "Jane"
+        lastname:
+          type: string
+          description: Contact last name
+          example: "Smith"
+        phone:
+          type: string
+          description: Primary phone number
+          example: "+1-555-0987"
+        mobilephone:
+          type: string
+          description: Mobile phone number
+          example: "+1-555-0988"
+        client_type_vip_status:
+          type: string
+          description: VIP client status from HubSpot
+          example: "true"
+        client_type_prospects:
+          type: string
+          description: Prospect client type from HubSpot
+          example: "warm"
+        address:
+          type: string
+          description: Street address
+          example: "456 Oak Ave"
+        city:
+          type: string
+          description: City
+          example: "New York"
+        zip:
+          type: string
+          description: Postal code
+          example: "10001"
+        createdate:
+          type: string
+          format: date-time
+          description: Contact creation date in HubSpot
+          example: "2023-02-10T09:15:00Z"
+        lastmodifieddate:
+          type: string
+          format: date-time
+          description: Last modification date in HubSpot
+          example: "2023-07-15T16:20:00Z"
+
+    ContactListResponse:
+      type: object
+      required:
+        - contacts
+        - total
+        - hasMore
+      properties:
+        contacts:
+          type: array
+          items:
+            $ref: '#/components/schemas/Contact'
+          description: Array of HubSpot contact records
+        total:
+          type: integer
+          minimum: 0
+          description: Total number of contacts in HubSpot (estimated)
+          example: 5000
+        hasMore:
+          type: boolean
+          description: Whether more contacts are available via HubSpot pagination
+          example: true
+        pagination:
+          type: object
+          description: Optional pagination metadata
+          properties:
+            pageIndex:
+              type: integer
+              minimum: 0
+              description: Current page index (0-based)
+              example: 1
+            pageSize:
+              type: integer
+              minimum: 1
+              maximum: 100
+              description: Number of records per page (HubSpot limit: 100)
+              example: 25
+            totalPages:
+              type: integer
+              minimum: 0
+              description: Estimated total pages (based on total count)
+              example: 200
+
+    ErrorResponse:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          type: string
+          description: Error message
+          example: "HubSpot authentication failed"
+        contacts:
+          type: array
+          items:
+            $ref: '#/components/schemas/Contact'
+          description: Empty array on error
+        total:
+          type: integer
+          example: 0
+        hasMore:
+          type: boolean
+          example: false
+
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      description: HubSpot OAuth access token
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: Authorization
+      description: HubSpot API key (fallback for backward compatibility)
+
+security:
+  - BearerAuth: []
+  - ApiKeyAuth: []

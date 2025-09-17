@@ -19,6 +19,11 @@ export interface ContactListResponse {
   contacts: HubSpotContact[];
   total: number;
   hasMore: boolean;
+  pagination?: {
+    pageIndex: number;
+    pageSize: number;
+    totalPages: number;
+  };
 }
 
 export interface ContactQueryParams {
