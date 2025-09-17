@@ -135,6 +135,7 @@ export interface ComparisonRequest {
   page_size?: number;
   filter_status?: 'all' | 'matched' | 'supabase_only' | 'hubspot_only' | 'mismatch';
   search?: string;
+  has_hubspot_match?: boolean;
 }
 
 export interface ComparisonResponse {

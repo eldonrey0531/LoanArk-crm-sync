@@ -14,6 +14,7 @@ import {
   Settings,
   Database,
   Zap,
+  BarChart3,
 } from 'lucide-react';
 
 const navigation = [
@@ -22,6 +23,7 @@ const navigation = [
   { name: 'Supabase Database', href: '/supabase-database', icon: Database },
   { name: 'HubSpot Contacts', href: '/hubspot-contacts', icon: Zap },
   { name: 'Email Verification Sync', href: '/email-verification-sync', icon: RefreshCw },
+  { name: 'Email Verification Data Display', href: '/email-verification-data-display', icon: BarChart3 },
   { name: 'Latest Created', href: '/latest-created', icon: FileText },
   { name: 'Latest Updated', href: '/latest-updated', icon: RefreshCw },
   { name: 'Sync Monitor', href: '/sync-monitor', icon: Activity },

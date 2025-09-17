@@ -27,7 +27,9 @@ import {
   CheckCircle,
   XCircle,
   Minus,
-  Loader2
+  Loader2,
+  Database,
+  ArrowRightLeft
 } from 'lucide-react';
 
 // Import child components
@@ -313,74 +315,69 @@ export const ComparisonTable: React.FC<ComparisonTableProps> = ({
                     />
                   </TableHead>
                 )}
+                {/* Supabase Columns */}
                 <TableHead
-                  {...createAccessibleCellProps('Contact name', true)}
-                  className={`cursor-pointer hover:bg-muted/50 ${compact ? 'py-2' : ''}`}
-                  onClick={() => handleSort('name')}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' || e.key === ' ') {
-                      e.preventDefault();
-                      handleSort('name');
-                    }
-                  }}
-                  tabIndex={0}
-                  role="columnheader"
-                  aria-sort={sortField === 'name' ? (sortDirection === 'asc' ? 'ascending' : 'descending') : 'none'}
+                  {...createAccessibleCellProps('Supabase contact name', true)}
+                  className="text-center border-r-2 border-gray-300 bg-blue-50"
+                  colSpan={3}
+                >
+                  <div className="flex items-center justify-center gap-2">
+                    <Database className="h-4 w-4 text-blue-600" />
+                    <span className="font-semibold text-blue-700">Supabase</span>
+                  </div>
+                </TableHead>
+                {/* HubSpot Columns */}
+                <TableHead
+                  {...createAccessibleCellProps('HubSpot contact data', true)}
+                  className="text-center bg-green-50"
+                  colSpan={3}
+                >
+                  <div className="flex items-center justify-center gap-2">
+                    <ArrowRightLeft className="h-4 w-4 text-green-600" />
+                    <span className="font-semibold text-green-700">HubSpot</span>
+                  </div>
+                </TableHead>
+              </TableRow>
+              <TableRow role="row">
+                {selectable && <TableHead />}
+                {/* Supabase Sub-headers */}
+                <TableHead
+                  {...createAccessibleCellProps('Supabase contact name', true)}
+                  className="text-center bg-blue-50 font-medium text-blue-700 border-r border-gray-200"
                 >
                   Name
-                  {sortField === 'name' && (
-                    <span className="ml-1" aria-hidden="true">
-                      {sortDirection === 'asc' ? '↑' : '↓'}
-                    </span>
-                  )}
-                  <span className="sr-only">
-                    {sortField === 'name'
-                      ? `sorted ${sortDirection === 'asc' ? 'ascending' : 'descending'}`
-                      : 'click to sort'
-                    }
-                  </span>
                 </TableHead>
                 <TableHead
-                  {...createAccessibleCellProps('Email address', true)}
-                  className={`cursor-pointer hover:bg-muted/50 ${compact ? 'py-2' : ''}`}
-                  onClick={() => handleSort('email')}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' || e.key === ' ') {
-                      e.preventDefault();
-                      handleSort('email');
-                    }
-                  }}
-                  tabIndex={0}
-                  role="columnheader"
-                  aria-sort={sortField === 'email' ? (sortDirection === 'asc' ? 'ascending' : 'descending') : 'none'}
+                  {...createAccessibleCellProps('Supabase HubSpot object ID', true)}
+                  className="text-center bg-blue-50 font-medium text-blue-700 border-r border-gray-200"
                 >
-                  Email
-                  {sortField === 'email' && (
-                    <span className="ml-1" aria-hidden="true">
-                      {sortDirection === 'asc' ? '↑' : '↓'}
-                    </span>
-                  )}
-                  <span className="sr-only">
-                    {sortField === 'email'
-                      ? `sorted ${sortDirection === 'asc' ? 'ascending' : 'descending'}`
-                      : 'click to sort'
-                    }
-                  </span>
+                  HS Object ID
                 </TableHead>
-                <TableHead {...createAccessibleCellProps('Email verification status', true)}>
-                  Email Verification Status
+                <TableHead
+                  {...createAccessibleCellProps('Supabase email verification status', true)}
+                  className="text-center bg-blue-50 font-medium text-blue-700 border-r-2 border-gray-300"
+                >
+                  Email Verification
                 </TableHead>
-                <TableHead {...createAccessibleCellProps('Data source', true)}>
-                  Source
+                {/* HubSpot Sub-headers */}
+                <TableHead
+                  {...createAccessibleCellProps('HubSpot contact name', true)}
+                  className="text-center bg-green-50 font-medium text-green-700 border-r border-gray-200"
+                >
+                  Name
                 </TableHead>
-                <TableHead {...createAccessibleCellProps('Comparison status', true)}>
-                  Status
+                <TableHead
+                  {...createAccessibleCellProps('HubSpot object ID', true)}
+                  className="text-center bg-green-50 font-medium text-green-700 border-r border-gray-200"
+                >
+                  HS Object ID
                 </TableHead>
-                {!compact && (
-                  <TableHead {...createAccessibleCellProps('Last synchronization date', true)}>
-                    Last Sync
-                  </TableHead>
-                )}
+                <TableHead
+                  {...createAccessibleCellProps('HubSpot email verification status', true)}
+                  className="text-center bg-green-50 font-medium text-green-700"
+                >
+                  Email Verification
+                </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -419,37 +416,58 @@ export const ComparisonTable: React.FC<ComparisonTableProps> = ({
                         />
                       </TableCell>
                     )}
-                    <TableCell {...createAccessibleCellProps(`Name: ${contactName}`)}>
-                      {comparison.supabase?.name || comparison.hubspot?.properties.firstname + ' ' + comparison.hubspot?.properties.lastname || 'Unknown'}
+                    {/* Supabase Data */}
+                    <TableCell
+                      {...createAccessibleCellProps(`Supabase name: ${comparison.supabase?.name || 'N/A'}`)}
+                      className="bg-blue-50/30 border-r border-gray-200"
+                    >
+                      <span className="text-blue-700">
+                        {comparison.supabase?.name || 'N/A'}
+                      </span>
                     </TableCell>
-                    <TableCell {...createAccessibleCellProps(`Email: ${comparison.supabase?.email || comparison.hubspot?.properties.email || 'N/A'}`)}>
-                      {comparison.supabase?.email || comparison.hubspot?.properties.email || 'N/A'}
+                    <TableCell
+                      {...createAccessibleCellProps(`Supabase HS Object ID: ${comparison.supabase?.hs_object_id || 'N/A'}`)}
+                      className="bg-blue-50/30 border-r border-gray-200"
+                    >
+                      <span className="font-mono text-sm text-blue-700">
+                        {comparison.supabase?.hs_object_id || 'N/A'}
+                      </span>
                     </TableCell>
-                    <TableCell {...createAccessibleCellProps(`Email verification status: ${comparison.supabase?.email_verification_status || comparison.hubspot?.properties.email_verification_status || 'N/A'}`)}>
-                      <div className="flex items-center gap-2">
-                        <span className="font-mono text-sm">
-                          {comparison.supabase?.email_verification_status || comparison.hubspot?.properties.email_verification_status || 'N/A'}
-                        </span>
-                        {comparison.differences.some(d => d.field === 'email_verification_status') && (
-                          <Badge variant="destructive" className="text-xs">
-                            Different
-                          </Badge>
-                        )}
-                      </div>
+                    <TableCell
+                      {...createAccessibleCellProps(`Supabase email verification: ${comparison.supabase?.email_verification_status || 'N/A'}`)}
+                      className="bg-blue-50/30 border-r-2 border-gray-300"
+                    >
+                      <span className="font-mono text-sm text-blue-700">
+                        {comparison.supabase?.email_verification_status || 'N/A'}
+                      </span>
                     </TableCell>
-                    <TableCell {...createAccessibleCellProps(`Data source: ${comparison.supabase ? 'Supabase' : 'HubSpot'}`)}>
-                      <div className="flex flex-col gap-1">
-                        {comparison.supabase && <Badge variant="secondary">Supabase</Badge>}
-                        {comparison.hubspot && <Badge variant="outline">HubSpot</Badge>}
-                      </div>
+                    {/* HubSpot Data */}
+                    <TableCell
+                      {...createAccessibleCellProps(`HubSpot name: ${comparison.hubspot ? `${comparison.hubspot.properties.firstname || ''} ${comparison.hubspot.properties.lastname || ''}`.trim() || 'N/A' : 'N/A'}`)}
+                      className="bg-green-50/30 border-r border-gray-200"
+                    >
+                      <span className="text-green-700">
+                        {comparison.hubspot
+                          ? `${comparison.hubspot.properties.firstname || ''} ${comparison.hubspot.properties.lastname || ''}`.trim() || 'N/A'
+                          : 'N/A'
+                        }
+                      </span>
                     </TableCell>
-                    <TableCell {...createAccessibleCellProps(`Status: ${statusDisplay.label}`)}>
-                      <div className={`flex items-center gap-2 px-2 py-1 rounded ${statusDisplay.bgColor}`}>
-                        <span className={statusDisplay.color} aria-hidden="true">{statusDisplay.icon}</span>
-                        <span className={`text-sm font-medium ${statusDisplay.color}`}>
-                          {statusDisplay.label}
-                        </span>
-                      </div>
+                    <TableCell
+                      {...createAccessibleCellProps(`HubSpot HS Object ID: ${comparison.hubspot?.id || 'N/A'}`)}
+                      className="bg-green-50/30 border-r border-gray-200"
+                    >
+                      <span className="font-mono text-sm text-green-700">
+                        {comparison.hubspot?.id || 'N/A'}
+                      </span>
+                    </TableCell>
+                    <TableCell
+                      {...createAccessibleCellProps(`HubSpot email verification: ${comparison.hubspot?.properties.email_verification_status || 'N/A'}`)}
+                      className="bg-green-50/30"
+                    >
+                      <span className="font-mono text-sm text-green-700">
+                        {comparison.hubspot?.properties.email_verification_status || 'N/A'}
+                      </span>
                     </TableCell>
                     {!compact && (
                       <TableCell {...createAccessibleCellProps(`Last sync: ${comparison.last_sync ? new Date(comparison.last_sync).toLocaleDateString() : 'Never'}`)}>

@@ -2,221 +2,164 @@
 
 const { createClient } = require('@supabase/supabase-js');
 
-// Supabase Email Verification Service - embedded directly in the function
-class SupabaseEmailVerificationService {
-  constructor(supabaseClient) {
-    this.supabaseClient = supabaseClient;
-  }
+// Initialize Supabase client
+const supabaseUrl = process.env.SUPABASE_URL;
+const supabaseKey = process.env.SUPABASE_ANON_KEY;
 
-  async getContactsWithEmailVerification(params = {}) {
-    try {
-      let query = this.supabaseClient
-        .from('contacts')
-        .select('*', { count: 'exact' })
-        .not('email_verification_status', 'is', null)
-        .not('hs_object_id', 'is', null);
-
-      // Apply sorting
-      const sortBy = params.sortBy || 'updated_at';
-      const sortOrder = params.sortOrder || 'desc';
-      const ascending = sortOrder === 'asc';
-
-      query = query.order(sortBy, { ascending });
-
-      // Apply pagination
-      const page = params.page || 1;
-      const limit = params.limit || 50;
-      const offset = (page - 1) * limit;
-
-      query = query.range(offset, offset + limit - 1);
-
-      const { data, error, count } = await query;
-
-      if (error) {
-        throw new Error(`Database query failed: ${error.message}`);
-      }
-
-      const totalRecords = count || 0;
-      const totalPages = Math.ceil(totalRecords / limit);
-
-      return {
-        records: data || [],
-        pagination: {
-          page,
-          limit,
-          totalRecords,
-          totalPages,
-          hasNext: page < totalPages,
-          hasPrev: page > 1
-        }
-      };
-    } catch (error) {
-      console.error('Error fetching contacts:', error);
-      throw error;
-    }
-  }
+if (!supabaseUrl || !supabaseKey) {
+  throw new Error('Missing Supabase environment variables');
 }
 
+const supabase = createClient(supabaseUrl, supabaseKey);
+
 exports.handler = async (event, context) => {
-  // Allow CORS
+  // Enable CORS
   const headers = {
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Headers': 'Content-Type, Authorization',
     'Access-Control-Allow-Methods': 'GET, OPTIONS',
-    'Content-Type': 'application/json',
+    'Content-Type': 'application/json'
   };
 
-  // Handle preflight
+  // Handle preflight requests
   if (event.httpMethod === 'OPTIONS') {
-    return { statusCode: 200, headers, body: '' };
-  }
-
-  // Check authorization
-  const authHeader = event.headers.authorization || event.headers.Authorization;
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
     return {
-      statusCode: 401,
+      statusCode: 200,
       headers,
-      body: JSON.stringify({
-        success: false,
-        error: 'Unauthorized',
-        data: null,
-        metadata: {
-          requestId: `req_${Date.now()}`,
-          timestamp: new Date().toISOString(),
-          duration: 0
-        }
-      }),
+      body: JSON.stringify({ message: 'CORS preflight response' })
     };
   }
 
+  // Only allow GET requests
   if (event.httpMethod !== 'GET') {
     return {
       statusCode: 405,
       headers,
       body: JSON.stringify({
         success: false,
-        error: 'Method not allowed',
-        data: null,
-        metadata: {
-          requestId: `req_${Date.now()}`,
+        error: {
+          code: 'METHOD_NOT_ALLOWED',
+          message: 'Only GET method is allowed',
           timestamp: new Date().toISOString(),
-          duration: 0
+          requestId: context.awsRequestId
         }
-      }),
+      })
     };
   }
 
   try {
-    // Initialize Supabase client
-    const supabaseUrl = process.env.SUPABASE_URL;
-    const supabaseKey = process.env.SUPABASE_ANON_KEY;
+    // Parse query parameters
+    const queryParams = event.queryStringParameters || {};
 
-    if (!supabaseUrl || !supabaseKey) {
+    // Pagination parameters
+    const page = parseInt(queryParams.page) || 1;
+    const limit = Math.min(parseInt(queryParams.limit) || 50, 1000); // Max 1000 records
+    const offset = (page - 1) * limit;
+
+    // Filter parameters
+    const statusFilter = queryParams.status ? queryParams.status.split(',') : null;
+    const dateFrom = queryParams.dateFrom;
+    const dateTo = queryParams.dateTo;
+
+    // Build query
+    let query = supabase
+      .from('contacts')
+      .select('*', { count: 'exact' })
+      .not('email_verification_status', 'is', null)
+      .order('created_at', { ascending: false })
+      .range(offset, offset + limit - 1);
+
+    // Apply status filter if provided
+    if (statusFilter && statusFilter.length > 0) {
+      query = query.in('email_verification_status', statusFilter);
+    }
+
+    // Apply date range filter if provided
+    if (dateFrom) {
+      query = query.gte('created_at', dateFrom);
+    }
+    if (dateTo) {
+      query = query.lte('created_at', dateTo);
+    }
+
+    // Execute query
+    const { data: records, error, count } = await query;
+
+    if (error) {
+      console.error('Supabase query error:', error);
+
       return {
         statusCode: 500,
         headers,
         body: JSON.stringify({
           success: false,
-          error: 'Database configuration missing',
-          data: null,
-          metadata: {
-            requestId: `req_${Date.now()}`,
+          error: {
+            code: 'DATABASE_ERROR',
+            message: 'Failed to fetch email verification records',
+            details: process.env.NODE_ENV === 'development' ? error.message : undefined,
             timestamp: new Date().toISOString(),
-            duration: 0
+            requestId: context.awsRequestId
           }
-        }),
+        })
       };
     }
 
-    const supabaseClient = createClient(supabaseUrl, supabaseKey);
+    // Calculate pagination metadata
+    const totalPages = Math.ceil(count / limit);
+    const hasNextPage = page < totalPages;
+    const hasPreviousPage = page > 1;
 
-    // Initialize service with client
-    const supabaseService = new SupabaseEmailVerificationService(supabaseClient);
+    // Transform records to match API contract
+    const transformedRecords = (records || []).map(record => ({
+      id: record.id,
+      name: record.name,
+      email: record.email,
+      hs_object_id: record.hs_object_id,
+      email_verification_status: record.email_verification_status,
+      created_at: record.created_at,
+      updated_at: record.updated_at
+    }));
 
-    // Parse query parameters
-    const queryParams = event.queryStringParameters || {};
-
-    const params = {
-      page: queryParams.page ? parseInt(queryParams.page) : 1,
-      limit: queryParams.limit ? Math.min(parseInt(queryParams.limit), 100) : 50,
-      sortBy: queryParams.sortBy || 'updated_at',
-      sortOrder: queryParams.sortOrder || 'desc'
-    };
-
-    // Validate parameters
-    if (params.page < 1) {
-      return {
-        statusCode: 400,
-        headers,
-        body: JSON.stringify({
-          success: false,
-          error: 'Page must be greater than 0',
-          data: null,
-          metadata: {
-            requestId: `req_${Date.now()}`,
-            timestamp: new Date().toISOString(),
-            duration: 0
-          }
-        }),
-      };
-    }
-
-    if (params.limit < 1 || params.limit > 100) {
-      return {
-        statusCode: 400,
-        headers,
-        body: JSON.stringify({
-          success: false,
-          error: 'Limit must be between 1 and 100',
-          data: null,
-          metadata: {
-            requestId: `req_${Date.now()}`,
-            timestamp: new Date().toISOString(),
-            duration: 0
-          }
-        }),
-      };
-    }
-
-    const startTime = Date.now();
-
-    // Call the service to get contacts
-    const result = await supabaseService.getContactsWithEmailVerification(params);
-
-    const duration = Date.now() - startTime;
-
+    // Return successful response
     return {
       statusCode: 200,
       headers,
       body: JSON.stringify({
         success: true,
-        data: result,
-        error: null,
-        metadata: {
-          requestId: `req_${Date.now()}`,
-          timestamp: new Date().toISOString(),
-          duration: duration
+        data: {
+          records: transformedRecords,
+          pagination: {
+            page,
+            limit,
+            total: count,
+            totalPages,
+            hasNextPage,
+            hasPreviousPage
+          },
+          metadata: {
+            filteredCount: transformedRecords.length,
+            lastUpdated: new Date().toISOString()
+          }
         }
-      }),
+      })
     };
 
   } catch (error) {
-    console.error('Error in email-verification-records function:', error);
+    console.error('Unexpected error:', error);
 
     return {
       statusCode: 500,
       headers,
       body: JSON.stringify({
         success: false,
-        error: error.message || 'Internal server error',
-        data: null,
-        metadata: {
-          requestId: `req_${Date.now()}`,
+        error: {
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'An unexpected error occurred',
+          details: process.env.NODE_ENV === 'development' ? error.message : undefined,
           timestamp: new Date().toISOString(),
-          duration: 0
+          requestId: context.awsRequestId
         }
-      }),
+      })
     };
   }
 };

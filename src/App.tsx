@@ -21,6 +21,7 @@ import HubSpotCallback from './pages/HubSpotCallback';
 import SupabaseDatabase from './pages/SupabaseDatabase';
 import HubSpotContacts from './pages/HubSpotContacts';
 import EmailVerificationSyncPage from './pages/EmailVerificationSyncPage';
+import EmailVerificationDataDisplayPage from './pages/EmailVerificationDataDisplayPage';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -99,6 +100,11 @@ const App = () => {
                     <Route path='email-verification-sync' element={
                       <ErrorBoundary>
                         <EmailVerificationSyncPage />
+                      </ErrorBoundary>
+                    } />
+                    <Route path='email-verification-data-display' element={
+                      <ErrorBoundary>
+                        <EmailVerificationDataDisplayPage />
                       </ErrorBoundary>
                     } />
                     {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
