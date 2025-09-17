@@ -80,7 +80,8 @@ export default async function handler(req, res) {
     if (error) {
       console.error('Supabase query error:', error);
 
-      return {
+      
+res.status(500).json({
         statusCode: 500,
         headers,
         body: JSON.stringify({
@@ -113,7 +114,8 @@ export default async function handler(req, res) {
     }));
 
     // Return successful response
-    return {
+    
+res.status(500).json({
       statusCode: 200,
       headers,
       body: JSON.stringify({
@@ -139,7 +141,8 @@ export default async function handler(req, res) {
   } catch (error) {
     console.error('Unexpected error:', error);
 
-    return {
+    
+res.status(500).json({
       statusCode: 500,
       headers,
       body: JSON.stringify({
