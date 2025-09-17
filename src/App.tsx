@@ -22,7 +22,37 @@ import SupabaseDatabase from './pages/SupabaseDatabase';
 import HubSpotContacts from './pages/HubSpotContacts';
 import EmailVerificationSyncPage from './pages/EmailVerificationSyncPage';
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      // Cache data for 5 minutes
+      staleTime: 5 * 60 * 1000,
+      // Keep data in cache for 10 minutes
+      gcTime: 10 * 60 * 1000,
+      // Retry failed requests 3 times with exponential backoff
+      retry: (failureCount, error) => {
+        // Don't retry on 4xx errors (client errors)
+        if (error instanceof Error && error.message.includes('4')) {
+          return false;
+        }
+        // Retry up to 3 times for other errors
+        return failureCount < 3;
+      },
+      retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+      // Don't refetch on window focus by default
+      refetchOnWindowFocus: false,
+      // Refetch on reconnect
+      refetchOnReconnect: true,
+      // Refetch on mount if data is stale
+      refetchOnMount: true
+    },
+    mutations: {
+      // Retry mutations once on failure
+      retry: 1,
+      retryDelay: 1000
+    }
+  }
+});
 
 const App = () => {
   useEffect(() => {
