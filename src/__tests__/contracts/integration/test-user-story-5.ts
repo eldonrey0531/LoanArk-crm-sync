@@ -20,23 +20,25 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
-import {
-  ExportControlsProps
-} from '../../../../specs/005-show-data-from/contracts/component-contracts';
+import { ExportControlsProps } from '../../../../specs/005-show-data-from/contracts/component-contracts';
 
 // Mock the export controls component (this will fail until implemented)
 const MockExportControls = (props: ExportControlsProps) => {
-  return React.createElement('div', {
-    'data-testid': 'export-controls',
-    ...props
-  }, 'Mock Export Controls');
+  return React.createElement(
+    'div',
+    {
+      'data-testid': 'export-controls',
+      ...props,
+    },
+    'Mock Export Controls'
+  );
 };
 
 describe('User Story 5: Export Data', () => {
   const defaultProps: ExportControlsProps = {
     formats: ['csv', 'json', 'pdf'],
     disabled: false,
-    onExport: vi.fn()
+    onExport: vi.fn(),
   };
 
   beforeEach(() => {
@@ -58,7 +60,7 @@ describe('User Story 5: Export Data', () => {
   it('should support CSV export format', () => {
     const csvOnlyProps: ExportControlsProps = {
       ...defaultProps,
-      formats: ['csv']
+      formats: ['csv'],
     };
 
     expect(() => {
@@ -69,7 +71,7 @@ describe('User Story 5: Export Data', () => {
   it('should support JSON export format', () => {
     const jsonOnlyProps: ExportControlsProps = {
       ...defaultProps,
-      formats: ['json']
+      formats: ['json'],
     };
 
     expect(() => {
@@ -80,7 +82,7 @@ describe('User Story 5: Export Data', () => {
   it('should support PDF export format', () => {
     const pdfOnlyProps: ExportControlsProps = {
       ...defaultProps,
-      formats: ['pdf']
+      formats: ['pdf'],
     };
 
     expect(() => {
@@ -91,7 +93,7 @@ describe('User Story 5: Export Data', () => {
   it('should support multiple export formats', () => {
     const multipleFormatsProps: ExportControlsProps = {
       ...defaultProps,
-      formats: ['csv', 'json', 'pdf']
+      formats: ['csv', 'json', 'pdf'],
     };
 
     expect(() => {
@@ -102,7 +104,7 @@ describe('User Story 5: Export Data', () => {
   it('should handle disabled state', () => {
     const disabledProps: ExportControlsProps = {
       ...defaultProps,
-      disabled: true
+      disabled: true,
     };
 
     expect(() => {
@@ -115,7 +117,7 @@ describe('User Story 5: Export Data', () => {
 
     const props: ExportControlsProps = {
       ...defaultProps,
-      onExport: mockOnExport
+      onExport: mockOnExport,
     };
 
     render(MockExportControls(props));
@@ -128,7 +130,7 @@ describe('User Story 5: Export Data', () => {
     // Test with invalid format (should fail in real implementation)
     const invalidFormatProps: ExportControlsProps = {
       ...defaultProps,
-      formats: ['invalid' as any]
+      formats: ['invalid' as any],
     };
 
     expect(() => {
@@ -139,7 +141,7 @@ describe('User Story 5: Export Data', () => {
   it('should handle empty formats array', () => {
     const emptyFormatsProps: ExportControlsProps = {
       ...defaultProps,
-      formats: []
+      formats: [],
     };
 
     expect(() => {
@@ -150,7 +152,7 @@ describe('User Story 5: Export Data', () => {
   it('should support custom styling', () => {
     const props: ExportControlsProps = {
       ...defaultProps,
-      className: 'custom-export-controls'
+      className: 'custom-export-controls',
     };
 
     expect(() => {
@@ -166,7 +168,7 @@ describe('User Story 5: Export Data', () => {
 
       const props: ExportControlsProps = {
         ...defaultProps,
-        onExport: mockOnExport
+        onExport: mockOnExport,
       };
 
       render(MockExportControls(props));

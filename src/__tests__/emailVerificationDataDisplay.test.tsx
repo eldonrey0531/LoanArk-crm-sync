@@ -23,7 +23,7 @@ const mockComparisons: ContactComparison[] = [
       email_verification_status: 'verified',
       hs_object_id: 'contact_123',
       created_at: '2025-01-01T00:00:00Z',
-      updated_at: '2025-01-02T00:00:00Z'
+      updated_at: '2025-01-02T00:00:00Z',
     },
     hubspot: {
       id: 'contact_123',
@@ -32,14 +32,14 @@ const mockComparisons: ContactComparison[] = [
         lastname: 'Doe',
         email: 'john.doe@example.com',
         email_verification_status: 'verified',
-        hs_object_id: 'contact_123'
+        hs_object_id: 'contact_123',
       },
       createdAt: '2025-01-01T00:00:00Z',
-      updatedAt: '2025-01-02T00:00:00Z'
+      updatedAt: '2025-01-02T00:00:00Z',
     },
     match_status: 'matched',
     differences: [],
-    last_sync: '2025-01-02T00:00:00Z'
+    last_sync: '2025-01-02T00:00:00Z',
   },
   {
     id: 'contact_124',
@@ -50,22 +50,23 @@ const mockComparisons: ContactComparison[] = [
       email_verification_status: 'pending',
       hs_object_id: 'contact_124',
       created_at: '2025-01-01T00:00:00Z',
-      updated_at: '2025-01-02T00:00:00Z'
+      updated_at: '2025-01-02T00:00:00Z',
     },
     hubspot: null,
     match_status: 'supabase_only',
     differences: [],
-    last_sync: '2025-01-02T00:00:00Z'
-  }
+    last_sync: '2025-01-02T00:00:00Z',
+  },
 ];
 
-const createTestQueryClient = () => new QueryClient({
-  defaultOptions: {
-    queries: {
-      retry: false,
+const createTestQueryClient = () =>
+  new QueryClient({
+    defaultOptions: {
+      queries: {
+        retry: false,
+      },
     },
-  },
-});
+  });
 
 describe('EmailVerificationSyncTable', () => {
   it('renders Supabase and HubSpot tables with data', () => {
@@ -117,7 +118,9 @@ describe('EmailVerificationSyncTable', () => {
       />
     );
 
-    expect(screen.getByText('No email verification records found')).toBeInTheDocument();
+    expect(
+      screen.getByText('No email verification records found')
+    ).toBeInTheDocument();
   });
 
   it('handles selection correctly', () => {

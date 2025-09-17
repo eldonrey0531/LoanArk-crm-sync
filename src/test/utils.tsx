@@ -50,7 +50,8 @@ export const createMockFunction = <T extends (...args: any[]) => any>(
   return jest.fn(implementation);
 };
 
-export const waitForNextTick = () => new Promise(resolve => setTimeout(resolve, 0));
+export const waitForNextTick = () =>
+  new Promise(resolve => setTimeout(resolve, 0));
 
 export const createTestQueryClient = () => {
   return new QueryClient({

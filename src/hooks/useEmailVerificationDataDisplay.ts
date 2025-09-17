@@ -11,14 +11,17 @@ import { useMemo } from 'react';
 
 // Import custom hooks
 import { useComparisonData } from './useComparisonData';
-import { useComparisonFilters, useComparisonSelection } from './useComparisonFilters';
+import {
+  useComparisonFilters,
+  useComparisonSelection,
+} from './useComparisonFilters';
 
 // Import types
 import {
   EmailVerificationDataDisplayProps,
   ContactComparison,
   TableFilters,
-  ComparisonResponse
+  ComparisonResponse,
 } from '@/types/emailVerificationDataDisplay';
 
 export interface UseEmailVerificationDataDisplayOptions {
@@ -85,7 +88,7 @@ export const useEmailVerificationDataDisplay = ({
   initialPageSize = 25,
   onRecordSelect,
   onError,
-  onLoadingChange
+  onLoadingChange,
 }: UseEmailVerificationDataDisplayOptions = {}): UseEmailVerificationDataDisplayReturn => {
   // Use filter and selection hooks
   const {
@@ -98,7 +101,7 @@ export const useEmailVerificationDataDisplay = ({
     setPage,
     setPageSize,
     hasActiveFilters,
-    filterCount
+    filterCount,
   } = useComparisonFilters({
     initialPageSize,
     onFiltersChange: () => {
@@ -109,7 +112,7 @@ export const useEmailVerificationDataDisplay = ({
     },
     onPageSizeChange: () => {
       // Page size changed, data will be refetched automatically
-    }
+    },
   });
 
   const {
@@ -121,11 +124,11 @@ export const useEmailVerificationDataDisplay = ({
     deselectAll,
     isSelected,
     hasSelection,
-    selectionCount
+    selectionCount,
   } = useComparisonSelection({
     onSelectionChange: () => {
       // Selection changed
-    }
+    },
   });
 
   // Use data fetching hook
@@ -137,14 +140,14 @@ export const useEmailVerificationDataDisplay = ({
     isError,
     error,
     refetch,
-    isRefetching
+    isRefetching,
   } = useComparisonData({
     filters,
     page,
     pageSize,
     enabled: true,
     refetchOnWindowFocus: false,
-    staleTime: 5 * 60 * 1000 // 5 minutes
+    staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
   // Computed values
@@ -219,7 +222,7 @@ export const useEmailVerificationDataDisplay = ({
     totalRecords,
     currentPageRecords,
     hasData,
-    isEmpty
+    isEmpty,
   };
 };
 
@@ -247,13 +250,20 @@ export const useDataDisplayStats = (
         completionRate: 0,
         totalProcessed: 0,
         estimatedTimeRemaining: null,
-        progressPercentage: 0
+        progressPercentage: 0,
       };
     }
 
-    const total = summary.total_matched + summary.total_supabase_only + summary.total_hubspot_only + summary.total_mismatches;
+    const total =
+      summary.total_matched +
+      summary.total_supabase_only +
+      summary.total_hubspot_only +
+      summary.total_mismatches;
     const matched = summary.total_matched;
-    const mismatched = summary.total_supabase_only + summary.total_hubspot_only + summary.total_mismatches;
+    const mismatched =
+      summary.total_supabase_only +
+      summary.total_hubspot_only +
+      summary.total_mismatches;
 
     const matchRate = total > 0 ? (matched / total) * 100 : 0;
     const mismatchRate = total > 0 ? (mismatched / total) * 100 : 0;
@@ -268,7 +278,7 @@ export const useDataDisplayStats = (
       completionRate: Math.round(completionRate),
       totalProcessed: total,
       estimatedTimeRemaining: null, // Could be calculated based on processing rate
-      progressPercentage: Math.round(progressPercentage)
+      progressPercentage: Math.round(progressPercentage),
     };
   }, [summary, isLoading]);
 };

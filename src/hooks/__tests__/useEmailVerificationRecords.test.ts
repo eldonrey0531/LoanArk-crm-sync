@@ -26,9 +26,8 @@ const createWrapper = () => {
       },
     },
   });
-  return ({ children }: { children: React.ReactNode }) => (
-    React.createElement(QueryClientProvider, { client: queryClient }, children)
-  );
+  return ({ children }: { children: React.ReactNode }) =>
+    React.createElement(QueryClientProvider, { client: queryClient }, children);
 };
 
 describe('useEmailVerificationRecords', () => {
@@ -41,13 +40,12 @@ describe('useEmailVerificationRecords', () => {
   it('should return loading state initially', () => {
     (mockAuthService.isAuthenticated as Mock).mockReturnValue(true);
     (mockAuthService.getAuthHeader as Mock).mockResolvedValue({
-      Authorization: 'Bearer test-token'
+      Authorization: 'Bearer test-token',
     });
 
-    const { result } = renderHook(
-      () => useEmailVerificationRecords(),
-      { wrapper: createWrapper() }
-    );
+    const { result } = renderHook(() => useEmailVerificationRecords(), {
+      wrapper: createWrapper(),
+    });
 
     expect(result.current.isLoading).toBe(true);
     expect(result.current.data).toBeUndefined();
@@ -57,10 +55,9 @@ describe('useEmailVerificationRecords', () => {
   it('should handle unauthenticated state', () => {
     (mockAuthService.isAuthenticated as Mock).mockReturnValue(false);
 
-    const { result } = renderHook(
-      () => useEmailVerificationRecords(),
-      { wrapper: createWrapper() }
-    );
+    const { result } = renderHook(() => useEmailVerificationRecords(), {
+      wrapper: createWrapper(),
+    });
 
     expect(result.current.isAuthenticated).toBe(false);
     expect(result.current.isLoading).toBe(true); // Query is disabled
@@ -77,8 +74,8 @@ describe('useEmailVerificationRecords', () => {
           email_verification_status: 'verified',
           hs_object_id: 'contact_123',
           created_at: '2025-01-01T00:00:00Z',
-          updated_at: '2025-01-02T00:00:00Z'
-        }
+          updated_at: '2025-01-02T00:00:00Z',
+        },
       ],
       pagination: {
         page: 1,
@@ -86,8 +83,8 @@ describe('useEmailVerificationRecords', () => {
         total: 1,
         totalPages: 1,
         hasNext: false,
-        hasPrev: false
-      }
+        hasPrev: false,
+      },
     };
 
     const mockResponse = {
@@ -97,18 +94,18 @@ describe('useEmailVerificationRecords', () => {
       metadata: {
         requestId: 'req_123',
         timestamp: '2025-01-01T00:00:00Z',
-        duration: 150
-      }
+        duration: 150,
+      },
     };
 
     (mockAuthService.isAuthenticated as Mock).mockReturnValue(true);
     (mockAuthService.getAuthHeader as Mock).mockResolvedValue({
-      Authorization: 'Bearer test-token'
+      Authorization: 'Bearer test-token',
     });
 
     mockFetch.mockResolvedValueOnce({
       ok: true,
-      json: () => Promise.resolve(mockResponse)
+      json: () => Promise.resolve(mockResponse),
     });
 
     const { result } = renderHook(
@@ -128,8 +125,8 @@ describe('useEmailVerificationRecords', () => {
         method: 'GET',
         headers: expect.objectContaining({
           'Content-Type': 'application/json',
-          Authorization: 'Bearer test-token'
-        })
+          Authorization: 'Bearer test-token',
+        }),
       })
     );
   });
@@ -138,34 +135,34 @@ describe('useEmailVerificationRecords', () => {
     (mockAuthService.isAuthenticated as Mock).mockReturnValue(true);
     (mockAuthService.getAuthHeader as Mock).mockResolvedValue(null);
 
-    const { result } = renderHook(
-      () => useEmailVerificationRecords(),
-      { wrapper: createWrapper() }
-    );
+    const { result } = renderHook(() => useEmailVerificationRecords(), {
+      wrapper: createWrapper(),
+    });
 
     await waitFor(() => {
       expect(result.current.isLoading).toBe(false);
     });
 
-    expect(result.current.error?.message).toContain('Failed to get authentication token');
+    expect(result.current.error?.message).toContain(
+      'Failed to get authentication token'
+    );
   });
 
   it('should handle 401 authentication errors from API', async () => {
     (mockAuthService.isAuthenticated as Mock).mockReturnValue(true);
     (mockAuthService.getAuthHeader as Mock).mockResolvedValue({
-      Authorization: 'Bearer invalid-token'
+      Authorization: 'Bearer invalid-token',
     });
 
     mockFetch.mockResolvedValueOnce({
       ok: false,
       status: 401,
-      statusText: 'Unauthorized'
+      statusText: 'Unauthorized',
     });
 
-    const { result } = renderHook(
-      () => useEmailVerificationRecords(),
-      { wrapper: createWrapper() }
-    );
+    const { result } = renderHook(() => useEmailVerificationRecords(), {
+      wrapper: createWrapper(),
+    });
 
     await waitFor(() => {
       expect(result.current.isLoading).toBe(false);
@@ -177,19 +174,18 @@ describe('useEmailVerificationRecords', () => {
   it('should handle 403 forbidden errors', async () => {
     (mockAuthService.isAuthenticated as Mock).mockReturnValue(true);
     (mockAuthService.getAuthHeader as Mock).mockResolvedValue({
-      Authorization: 'Bearer test-token'
+      Authorization: 'Bearer test-token',
     });
 
     mockFetch.mockResolvedValueOnce({
       ok: false,
       status: 403,
-      statusText: 'Forbidden'
+      statusText: 'Forbidden',
     });
 
-    const { result } = renderHook(
-      () => useEmailVerificationRecords(),
-      { wrapper: createWrapper() }
-    );
+    const { result } = renderHook(() => useEmailVerificationRecords(), {
+      wrapper: createWrapper(),
+    });
 
     await waitFor(() => {
       expect(result.current.isLoading).toBe(false);
@@ -203,30 +199,29 @@ describe('useEmailVerificationRecords', () => {
       success: false,
       error: {
         code: 'VALIDATION_ERROR',
-        message: 'Invalid parameters'
+        message: 'Invalid parameters',
       },
       data: null,
       metadata: {
         requestId: 'req_123',
         timestamp: '2025-01-01T00:00:00Z',
-        duration: 150
-      }
+        duration: 150,
+      },
     };
 
     (mockAuthService.isAuthenticated as Mock).mockReturnValue(true);
     (mockAuthService.getAuthHeader as Mock).mockResolvedValue({
-      Authorization: 'Bearer test-token'
+      Authorization: 'Bearer test-token',
     });
 
     mockFetch.mockResolvedValueOnce({
       ok: true,
-      json: () => Promise.resolve(mockErrorResponse)
+      json: () => Promise.resolve(mockErrorResponse),
     });
 
-    const { result } = renderHook(
-      () => useEmailVerificationRecords(),
-      { wrapper: createWrapper() }
-    );
+    const { result } = renderHook(() => useEmailVerificationRecords(), {
+      wrapper: createWrapper(),
+    });
 
     await waitFor(() => {
       expect(result.current.isLoading).toBe(false);
@@ -244,8 +239,8 @@ describe('useEmailVerificationRecords', () => {
         total: 0,
         totalPages: 0,
         hasNext: false,
-        hasPrev: false
-      }
+        hasPrev: false,
+      },
     };
 
     const mockResponse = {
@@ -255,27 +250,28 @@ describe('useEmailVerificationRecords', () => {
       metadata: {
         requestId: 'req_123',
         timestamp: '2025-01-01T00:00:00Z',
-        duration: 150
-      }
+        duration: 150,
+      },
     };
 
     (mockAuthService.isAuthenticated as Mock).mockReturnValue(true);
     (mockAuthService.getAuthHeader as Mock).mockResolvedValue({
-      Authorization: 'Bearer test-token'
+      Authorization: 'Bearer test-token',
     });
 
     mockFetch.mockResolvedValueOnce({
       ok: true,
-      json: () => Promise.resolve(mockResponse)
+      json: () => Promise.resolve(mockResponse),
     });
 
     const { result } = renderHook(
-      () => useEmailVerificationRecords({
-        page: 2,
-        limit: 10,
-        sortBy: 'firstname',
-        sortOrder: 'asc'
-      }),
+      () =>
+        useEmailVerificationRecords({
+          page: 2,
+          limit: 10,
+          sortBy: 'firstname',
+          sortOrder: 'asc',
+        }),
       { wrapper: createWrapper() }
     );
 
@@ -292,15 +288,14 @@ describe('useEmailVerificationRecords', () => {
   it('should handle network errors', async () => {
     (mockAuthService.isAuthenticated as Mock).mockReturnValue(true);
     (mockAuthService.getAuthHeader as Mock).mockResolvedValue({
-      Authorization: 'Bearer test-token'
+      Authorization: 'Bearer test-token',
     });
 
     mockFetch.mockRejectedValueOnce(new Error('Network error'));
 
-    const { result } = renderHook(
-      () => useEmailVerificationRecords(),
-      { wrapper: createWrapper() }
-    );
+    const { result } = renderHook(() => useEmailVerificationRecords(), {
+      wrapper: createWrapper(),
+    });
 
     await waitFor(() => {
       expect(result.current.isLoading).toBe(false);
@@ -312,21 +307,31 @@ describe('useEmailVerificationRecords', () => {
   it('should handle timeout correctly', async () => {
     (mockAuthService.isAuthenticated as Mock).mockReturnValue(true);
     (mockAuthService.getAuthHeader as Mock).mockResolvedValue({
-      Authorization: 'Bearer test-token'
+      Authorization: 'Bearer test-token',
     });
 
     // Mock a delayed response that exceeds timeout
-    mockFetch.mockImplementationOnce(() =>
-      new Promise(resolve => setTimeout(() => resolve({
-        ok: true,
-        json: () => Promise.resolve({ success: true, data: { records: [], pagination: {} } })
-      }), 11000)) // 11 seconds, exceeds 10 second timeout
+    mockFetch.mockImplementationOnce(
+      () =>
+        new Promise(resolve =>
+          setTimeout(
+            () =>
+              resolve({
+                ok: true,
+                json: () =>
+                  Promise.resolve({
+                    success: true,
+                    data: { records: [], pagination: {} },
+                  }),
+              }),
+            11000
+          )
+        ) // 11 seconds, exceeds 10 second timeout
     );
 
-    const { result } = renderHook(
-      () => useEmailVerificationRecords(),
-      { wrapper: createWrapper() }
-    );
+    const { result } = renderHook(() => useEmailVerificationRecords(), {
+      wrapper: createWrapper(),
+    });
 
     await waitFor(() => {
       expect(result.current.isLoading).toBe(false);
@@ -338,10 +343,9 @@ describe('useEmailVerificationRecords', () => {
   it('should disable query when not authenticated', () => {
     (mockAuthService.isAuthenticated as Mock).mockReturnValue(false);
 
-    const { result } = renderHook(
-      () => useEmailVerificationRecords(),
-      { wrapper: createWrapper() }
-    );
+    const { result } = renderHook(() => useEmailVerificationRecords(), {
+      wrapper: createWrapper(),
+    });
 
     expect(result.current.isAuthenticated).toBe(false);
     expect(result.current.isLoading).toBe(true); // Query is disabled but still in loading state initially
@@ -351,23 +355,23 @@ describe('useEmailVerificationRecords', () => {
   it('should provide refetch function', async () => {
     (mockAuthService.isAuthenticated as Mock).mockReturnValue(true);
     (mockAuthService.getAuthHeader as Mock).mockResolvedValue({
-      Authorization: 'Bearer test-token'
+      Authorization: 'Bearer test-token',
     });
 
     mockFetch.mockResolvedValueOnce({
       ok: true,
-      json: () => Promise.resolve({
-        success: true,
-        data: { records: [], pagination: {} },
-        error: null,
-        metadata: {}
-      })
+      json: () =>
+        Promise.resolve({
+          success: true,
+          data: { records: [], pagination: {} },
+          error: null,
+          metadata: {},
+        }),
     });
 
-    const { result } = renderHook(
-      () => useEmailVerificationRecords(),
-      { wrapper: createWrapper() }
-    );
+    const { result } = renderHook(() => useEmailVerificationRecords(), {
+      wrapper: createWrapper(),
+    });
 
     await waitFor(() => {
       expect(result.current.isLoading).toBe(false);

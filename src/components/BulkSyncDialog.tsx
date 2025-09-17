@@ -31,9 +31,11 @@ export function BulkSyncDialog({
   open,
   onOpenChange,
   contacts,
-  onSync
+  onSync,
 }: BulkSyncDialogProps) {
-  const [selectedContacts, setSelectedContacts] = useState<SupabaseContact[]>([]);
+  const [selectedContacts, setSelectedContacts] = useState<SupabaseContact[]>(
+    []
+  );
   const [isSyncing, setIsSyncing] = useState(false);
   const [progress, setProgress] = useState(0);
   const [completed, setCompleted] = useState(0);
@@ -89,9 +91,10 @@ export function BulkSyncDialog({
       setTimeout(() => {
         onOpenChange(false);
       }, 2000);
-
     } catch (error) {
-      setErrors([error instanceof Error ? error.message : 'Unknown error occurred']);
+      setErrors([
+        error instanceof Error ? error.message : 'Unknown error occurred',
+      ]);
     } finally {
       setIsSyncing(false);
     }
@@ -99,56 +102,61 @@ export function BulkSyncDialog({
 
   const getVerificationStatusColor = (status: string | null) => {
     switch (status) {
-      case 'verified': return 'bg-green-100 text-green-800';
-      case 'unverified': return 'bg-red-100 text-red-800';
-      case 'pending': return 'bg-yellow-100 text-yellow-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'verified':
+        return 'bg-green-100 text-green-800';
+      case 'unverified':
+        return 'bg-red-100 text-red-800';
+      case 'pending':
+        return 'bg-yellow-100 text-yellow-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
     }
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[80vh] overflow-hidden">
+      <DialogContent className='max-w-4xl max-h-[80vh] overflow-hidden'>
         <DialogHeader>
           <DialogTitle>Bulk Email Verification Sync</DialogTitle>
           <DialogDescription>
-            Select contacts to sync their email verification status from Supabase to HubSpot.
+            Select contacts to sync their email verification status from
+            Supabase to HubSpot.
           </DialogDescription>
         </DialogHeader>
 
-        <div className="flex flex-col space-y-4 overflow-hidden">
+        <div className='flex flex-col space-y-4 overflow-hidden'>
           {/* Selection Controls */}
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-2">
+          <div className='flex items-center justify-between'>
+            <div className='flex items-center space-x-2'>
               <Checkbox
                 checked={selectedContacts.length === contacts.length}
                 onCheckedChange={handleSelectAll}
                 disabled={isSyncing}
               />
-              <span className="text-sm">
+              <span className='text-sm'>
                 Select All ({contacts.length} contacts)
               </span>
             </div>
-            <Badge variant="outline">
-              {selectedContacts.length} selected
-            </Badge>
+            <Badge variant='outline'>{selectedContacts.length} selected</Badge>
           </div>
 
           {/* Progress Bar */}
           {isSyncing && (
-            <div className="space-y-2">
-              <div className="flex justify-between text-sm">
+            <div className='space-y-2'>
+              <div className='flex justify-between text-sm'>
                 <span>Syncing contacts...</span>
-                <span>{completed}/{selectedContacts.length}</span>
+                <span>
+                  {completed}/{selectedContacts.length}
+                </span>
               </div>
-              <Progress value={progress} className="w-full" />
+              <Progress value={progress} className='w-full' />
             </div>
           )}
 
           {/* Success Message */}
           {!isSyncing && progress === 100 && (
             <Alert>
-              <CheckCircle className="h-4 w-4" />
+              <CheckCircle className='h-4 w-4' />
               <AlertDescription>
                 Successfully synced {completed} contacts!
               </AlertDescription>
@@ -157,8 +165,8 @@ export function BulkSyncDialog({
 
           {/* Error Messages */}
           {errors.length > 0 && (
-            <Alert variant="destructive">
-              <AlertTriangle className="h-4 w-4" />
+            <Alert variant='destructive'>
+              <AlertTriangle className='h-4 w-4' />
               <AlertDescription>
                 {errors.map((error, index) => (
                   <div key={index}>{error}</div>
@@ -168,31 +176,35 @@ export function BulkSyncDialog({
           )}
 
           {/* Contacts List */}
-          <div className="flex-1 overflow-auto border rounded-lg">
-            <div className="p-4 space-y-2">
-              {contacts.map((contact) => (
+          <div className='flex-1 overflow-auto border rounded-lg'>
+            <div className='p-4 space-y-2'>
+              {contacts.map(contact => (
                 <div
                   key={contact.id}
-                  className="flex items-center justify-between p-3 border rounded hover:bg-gray-50"
+                  className='flex items-center justify-between p-3 border rounded hover:bg-gray-50'
                 >
-                  <div className="flex items-center space-x-3">
+                  <div className='flex items-center space-x-3'>
                     <Checkbox
                       checked={selectedContacts.some(c => c.id === contact.id)}
-                      onCheckedChange={(checked) =>
+                      onCheckedChange={checked =>
                         handleSelectContact(contact, checked as boolean)
                       }
                       disabled={isSyncing}
                     />
                     <div>
-                      <div className="font-medium">
+                      <div className='font-medium'>
                         {contact.firstname} {contact.lastname}
                       </div>
-                      <div className="text-sm text-muted-foreground">
+                      <div className='text-sm text-muted-foreground'>
                         {contact.email}
                       </div>
                     </div>
                   </div>
-                  <Badge className={getVerificationStatusColor(contact.email_verification_status)}>
+                  <Badge
+                    className={getVerificationStatusColor(
+                      contact.email_verification_status
+                    )}
+                  >
                     {contact.email_verification_status || 'unknown'}
                   </Badge>
                 </div>
@@ -202,7 +214,11 @@ export function BulkSyncDialog({
         </div>
 
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isSyncing}>
+          <Button
+            variant='outline'
+            onClick={() => onOpenChange(false)}
+            disabled={isSyncing}
+          >
             Cancel
           </Button>
           <Button
@@ -211,12 +227,12 @@ export function BulkSyncDialog({
           >
             {isSyncing ? (
               <>
-                <RotateCcw className="w-4 h-4 mr-2 animate-spin" />
+                <RotateCcw className='w-4 h-4 mr-2 animate-spin' />
                 Syncing...
               </>
             ) : (
               <>
-                <RotateCcw className="w-4 h-4 mr-2" />
+                <RotateCcw className='w-4 h-4 mr-2' />
                 Sync {selectedContacts.length} Contacts
               </>
             )}

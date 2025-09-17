@@ -28,13 +28,16 @@ export function useSyncStatistics(): UseSyncStatisticsReturn {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
 
-      const response = await fetch(`/.netlify/functions/email-verification-records?limit=1000`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        signal: controller.signal,
-      });
+      const response = await fetch(
+        `/.netlify/functions/email-verification-records?limit=1000`,
+        {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          signal: controller.signal,
+        }
+      );
 
       clearTimeout(timeoutId);
 
@@ -46,16 +49,22 @@ export function useSyncStatistics(): UseSyncStatisticsReturn {
 
       if (result.success && result.data?.records) {
         const records = result.data.records;
-        const verifiedContacts = records.filter((r: any) => r.email_verification_status === 'verified').length;
-        const unverifiedContacts = records.filter((r: any) => r.email_verification_status === 'unverified').length;
-        const pendingContacts = records.filter((r: any) => r.email_verification_status === 'pending').length;
+        const verifiedContacts = records.filter(
+          (r: any) => r.email_verification_status === 'verified'
+        ).length;
+        const unverifiedContacts = records.filter(
+          (r: any) => r.email_verification_status === 'unverified'
+        ).length;
+        const pendingContacts = records.filter(
+          (r: any) => r.email_verification_status === 'pending'
+        ).length;
 
         const statistics: SyncStatistics = {
           totalContacts: records.length,
           verifiedContacts,
           unverifiedContacts,
           pendingContacts,
-          lastSyncDate: new Date().toISOString()
+          lastSyncDate: new Date().toISOString(),
         };
 
         return statistics;
@@ -72,6 +81,6 @@ export function useSyncStatistics(): UseSyncStatisticsReturn {
       }
       return failureCount < 3;
     },
-    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+    retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 30000),
   });
 }

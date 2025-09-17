@@ -15,7 +15,7 @@ import {
   HubSpotContactResponse,
   HubSpotContact,
   HubSpotFilterGroup,
-  ApiError
+  ApiError,
 } from '../types/emailVerificationDataDisplay';
 
 // Mock HubSpot client - in production, this would be the actual HubSpot API client
@@ -32,34 +32,41 @@ export function initializeHubSpotApiService(client: any) {
  * HubSpot API Service implementation
  */
 export class HubSpotApiServiceImpl implements HubSpotApiService {
-
   /**
    * Fetch contacts from HubSpot
    *
    * @param params - The request parameters
    * @returns Promise<HubSpotContactsResponse> - The response with contacts and pagination
    */
-  async fetchContacts(params: HubSpotContactsRequest = {}): Promise<HubSpotContactsResponse> {
+  async fetchContacts(
+    params: HubSpotContactsRequest = {}
+  ): Promise<HubSpotContactsResponse> {
     try {
       if (!hubspotClient) {
         throw new ApiError({
           type: 'server',
           message: 'HubSpot client not initialized',
-          retryable: false
+          retryable: false,
         });
       }
 
       const {
         after,
         limit = 100,
-        properties = ['firstname', 'lastname', 'email', 'email_verification_status', 'hs_object_id'],
-        filterGroups
+        properties = [
+          'firstname',
+          'lastname',
+          'email',
+          'email_verification_status',
+          'hs_object_id',
+        ],
+        filterGroups,
       } = params;
 
       // Build the request payload
       const requestBody: any = {
         properties,
-        limit
+        limit,
       };
 
       // Add pagination
@@ -73,29 +80,36 @@ export class HubSpotApiServiceImpl implements HubSpotApiService {
       }
 
       // Execute the API call
-      const response = await hubspotClient.post('/crm/v3/objects/contacts/search', requestBody);
+      const response = await hubspotClient.post(
+        '/crm/v3/objects/contacts/search',
+        requestBody
+      );
 
       if (!response.data) {
         throw new ApiError({
           type: 'server',
           message: 'Invalid response from HubSpot API',
-          retryable: true
+          retryable: true,
         });
       }
 
       // Transform data to match our interface
-      const contacts: HubSpotContact[] = (response.data.results || []).map((contact: any) => ({
-        id: contact.id,
-        properties: {
-          firstname: contact.properties?.firstname || '',
-          lastname: contact.properties?.lastname || '',
-          email: contact.properties?.email || '',
-          email_verification_status: contact.properties?.email_verification_status,
-          hs_object_id: contact.properties?.hs_object_id || contact.id
-        },
-        createdAt: contact.createdAt || contact.properties?.createdate || '',
-        updatedAt: contact.updatedAt || contact.properties?.lastmodifieddate || ''
-      }));
+      const contacts: HubSpotContact[] = (response.data.results || []).map(
+        (contact: any) => ({
+          id: contact.id,
+          properties: {
+            firstname: contact.properties?.firstname || '',
+            lastname: contact.properties?.lastname || '',
+            email: contact.properties?.email || '',
+            email_verification_status:
+              contact.properties?.email_verification_status,
+            hs_object_id: contact.properties?.hs_object_id || contact.id,
+          },
+          createdAt: contact.createdAt || contact.properties?.createdate || '',
+          updatedAt:
+            contact.updatedAt || contact.properties?.lastmodifieddate || '',
+        })
+      );
 
       // Extract pagination info
       const pagination = response.data.paging || {};
@@ -107,19 +121,18 @@ export class HubSpotApiServiceImpl implements HubSpotApiService {
         data: contacts,
         pagination: {
           next_after: nextAfter,
-          has_more: hasMore
-        }
+          has_more: hasMore,
+        },
       };
-
     } catch (error: any) {
       if (error instanceof ApiError) {
         return {
           success: false,
           data: [],
           pagination: {
-            has_more: false
+            has_more: false,
           },
-          error: error.message
+          error: error.message,
         };
       }
 
@@ -133,7 +146,7 @@ export class HubSpotApiServiceImpl implements HubSpotApiService {
             success: false,
             data: [],
             pagination: { has_more: false },
-            error: 'HubSpot authentication failed. Please re-authenticate.'
+            error: 'HubSpot authentication failed. Please re-authenticate.',
           };
         }
 
@@ -143,7 +156,7 @@ export class HubSpotApiServiceImpl implements HubSpotApiService {
             success: false,
             data: [],
             pagination: { has_more: false },
-            error: 'HubSpot API rate limit exceeded. Please try again later.'
+            error: 'HubSpot API rate limit exceeded. Please try again later.',
           };
         }
 
@@ -151,7 +164,7 @@ export class HubSpotApiServiceImpl implements HubSpotApiService {
           success: false,
           data: [],
           pagination: { has_more: false },
-          error: hubspotError?.message || `HubSpot API error: ${status}`
+          error: hubspotError?.message || `HubSpot API error: ${status}`,
         };
       }
 
@@ -161,23 +174,24 @@ export class HubSpotApiServiceImpl implements HubSpotApiService {
           success: false,
           data: [],
           pagination: { has_more: false },
-          error: 'Network error. Please check your connection and try again.'
+          error: 'Network error. Please check your connection and try again.',
         };
       }
 
       // Handle unexpected errors
       const apiError = new ApiError({
         type: 'server',
-        message: error instanceof Error ? error.message : 'Unknown error occurred',
+        message:
+          error instanceof Error ? error.message : 'Unknown error occurred',
         details: error,
-        retryable: true
+        retryable: true,
       });
 
       return {
         success: false,
         data: [],
         pagination: { has_more: false },
-        error: apiError.message
+        error: apiError.message,
       };
     }
   }
@@ -188,24 +202,35 @@ export class HubSpotApiServiceImpl implements HubSpotApiService {
    * @param params - The request parameters containing the contact ID
    * @returns Promise<HubSpotContactResponse> - The response with contact data or null
    */
-  async fetchContact(params: HubSpotContactRequest): Promise<HubSpotContactResponse> {
+  async fetchContact(
+    params: HubSpotContactRequest
+  ): Promise<HubSpotContactResponse> {
     try {
       if (!hubspotClient) {
         throw new ApiError({
           type: 'server',
           message: 'HubSpot client not initialized',
-          retryable: false
+          retryable: false,
         });
       }
 
-      const { contactId, properties = ['firstname', 'lastname', 'email', 'email_verification_status', 'hs_object_id'] } = params;
+      const {
+        contactId,
+        properties = [
+          'firstname',
+          'lastname',
+          'email',
+          'email_verification_status',
+          'hs_object_id',
+        ],
+      } = params;
 
       // Validate input
       if (!contactId || typeof contactId !== 'string') {
         throw new ApiError({
           type: 'validation',
           message: 'Invalid contact ID provided',
-          retryable: false
+          retryable: false,
         });
       }
 
@@ -213,15 +238,18 @@ export class HubSpotApiServiceImpl implements HubSpotApiService {
       const propertiesQuery = properties.join(',');
 
       // Execute the API call
-      const response = await hubspotClient.get(`/crm/v3/objects/contacts/${contactId}`, {
-        params: { properties: propertiesQuery }
-      });
+      const response = await hubspotClient.get(
+        `/crm/v3/objects/contacts/${contactId}`,
+        {
+          params: { properties: propertiesQuery },
+        }
+      );
 
       if (!response.data) {
         throw new ApiError({
           type: 'server',
           message: 'Invalid response from HubSpot API',
-          retryable: true
+          retryable: true,
         });
       }
 
@@ -232,24 +260,29 @@ export class HubSpotApiServiceImpl implements HubSpotApiService {
           firstname: response.data.properties?.firstname || '',
           lastname: response.data.properties?.lastname || '',
           email: response.data.properties?.email || '',
-          email_verification_status: response.data.properties?.email_verification_status,
-          hs_object_id: response.data.properties?.hs_object_id || response.data.id
+          email_verification_status:
+            response.data.properties?.email_verification_status,
+          hs_object_id:
+            response.data.properties?.hs_object_id || response.data.id,
         },
-        createdAt: response.data.createdAt || response.data.properties?.createdate || '',
-        updatedAt: response.data.updatedAt || response.data.properties?.lastmodifieddate || ''
+        createdAt:
+          response.data.createdAt || response.data.properties?.createdate || '',
+        updatedAt:
+          response.data.updatedAt ||
+          response.data.properties?.lastmodifieddate ||
+          '',
       };
 
       return {
         success: true,
-        data: contact
+        data: contact,
       };
-
     } catch (error: any) {
       if (error instanceof ApiError) {
         return {
           success: false,
           data: null,
-          error: error.message
+          error: error.message,
         };
       }
 
@@ -261,7 +294,7 @@ export class HubSpotApiServiceImpl implements HubSpotApiService {
         if (status === 404) {
           return {
             success: true,
-            data: null
+            data: null,
           };
         }
 
@@ -269,7 +302,7 @@ export class HubSpotApiServiceImpl implements HubSpotApiService {
           return {
             success: false,
             data: null,
-            error: 'HubSpot authentication failed. Please re-authenticate.'
+            error: 'HubSpot authentication failed. Please re-authenticate.',
           };
         }
 
@@ -277,14 +310,14 @@ export class HubSpotApiServiceImpl implements HubSpotApiService {
           return {
             success: false,
             data: null,
-            error: 'HubSpot API rate limit exceeded. Please try again later.'
+            error: 'HubSpot API rate limit exceeded. Please try again later.',
           };
         }
 
         return {
           success: false,
           data: null,
-          error: hubspotError?.message || `HubSpot API error: ${status}`
+          error: hubspotError?.message || `HubSpot API error: ${status}`,
         };
       }
 
@@ -293,22 +326,23 @@ export class HubSpotApiServiceImpl implements HubSpotApiService {
         return {
           success: false,
           data: null,
-          error: 'Network error. Please check your connection and try again.'
+          error: 'Network error. Please check your connection and try again.',
         };
       }
 
       // Handle unexpected errors
       const apiError = new ApiError({
         type: 'server',
-        message: error instanceof Error ? error.message : 'Unknown error occurred',
+        message:
+          error instanceof Error ? error.message : 'Unknown error occurred',
         details: error,
-        retryable: true
+        retryable: true,
       });
 
       return {
         success: false,
         data: null,
-        error: apiError.message
+        error: apiError.message,
       };
     }
   }

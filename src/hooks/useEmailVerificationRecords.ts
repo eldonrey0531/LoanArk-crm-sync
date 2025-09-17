@@ -6,14 +6,16 @@ import {
   SupabaseContact,
   GetEmailVerificationRecordsParams,
   PaginationInfo,
-  GetEmailVerificationRecordsResponse
+  GetEmailVerificationRecordsResponse,
 } from '@/types/emailVerification';
 
 interface UseEmailVerificationRecordsReturn {
-  data: {
-    records: SupabaseContact[];
-    pagination: PaginationInfo;
-  } | undefined;
+  data:
+    | {
+        records: SupabaseContact[];
+        pagination: PaginationInfo;
+      }
+    | undefined;
   isLoading: boolean;
   error: Error | null;
   refetch: () => Promise<any>;
@@ -34,7 +36,10 @@ export function useEmailVerificationRecords(
 
   const query = useQuery({
     queryKey,
-    queryFn: async (): Promise<{ records: SupabaseContact[]; pagination: PaginationInfo }> => {
+    queryFn: async (): Promise<{
+      records: SupabaseContact[];
+      pagination: PaginationInfo;
+    }> => {
       // Check authentication first
       if (!isAuthenticated) {
         throw new Error('User not authenticated');
@@ -57,14 +62,17 @@ export function useEmailVerificationRecords(
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
 
-      const response = await fetch(`/.netlify/functions/email-verification-records?${queryParams}`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          ...authHeader, // Include authentication header
-        },
-        signal: controller.signal,
-      });
+      const response = await fetch(
+        `/.netlify/functions/email-verification-records?${queryParams}`,
+        {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            ...authHeader, // Include authentication header
+          },
+          signal: controller.signal,
+        }
+      );
 
       clearTimeout(timeoutId);
 
@@ -77,7 +85,9 @@ export function useEmailVerificationRecords(
         } else if (response.status === 500) {
           throw new Error('Server error. Please try again later.');
         } else {
-          throw new Error(`Failed to fetch records: ${response.status} ${response.statusText}`);
+          throw new Error(
+            `Failed to fetch records: ${response.status} ${response.statusText}`
+          );
         }
       }
 
@@ -94,23 +104,28 @@ export function useEmailVerificationRecords(
     gcTime: 10 * 60 * 1000, // 10 minutes
     retry: (failureCount, error) => {
       // Don't retry on authentication errors
-      if (error instanceof Error && (
-        error.message.includes('Authentication failed') ||
-        error.message.includes('not authenticated') ||
-        error.message.includes('401')
-      )) {
+      if (
+        error instanceof Error &&
+        (error.message.includes('Authentication failed') ||
+          error.message.includes('not authenticated') ||
+          error.message.includes('401'))
+      ) {
         return false;
       }
 
       // Don't retry on 4xx errors (except 408, 429)
-      if (error instanceof Error && error.message.includes('4') &&
-          !error.message.includes('408') && !error.message.includes('429')) {
+      if (
+        error instanceof Error &&
+        error.message.includes('4') &&
+        !error.message.includes('408') &&
+        !error.message.includes('429')
+      ) {
         return false;
       }
 
       return failureCount < 3;
     },
-    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+    retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 30000),
     enabled: isAuthenticated, // Only run query if user is authenticated
   });
 

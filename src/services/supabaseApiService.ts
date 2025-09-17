@@ -14,7 +14,7 @@ import {
   SupabaseContactRequest,
   SupabaseContactResponse,
   SupabaseContact,
-  ApiError
+  ApiError,
 } from '../types/emailVerificationDataDisplay';
 
 // Mock Supabase client - in production, this would be the actual Supabase client
@@ -31,20 +31,21 @@ export function initializeSupabaseApiService(client: any) {
  * Supabase API Service implementation
  */
 export class SupabaseApiServiceImpl implements SupabaseApiService {
-
   /**
    * Fetch contacts with email verification data
    *
    * @param params - The request parameters
    * @returns Promise<SupabaseContactsResponse> - The response with contacts and pagination
    */
-  async fetchContacts(params: SupabaseContactsRequest = {}): Promise<SupabaseContactsResponse> {
+  async fetchContacts(
+    params: SupabaseContactsRequest = {}
+  ): Promise<SupabaseContactsResponse> {
     try {
       if (!supabaseClient) {
         throw new ApiError({
           type: 'server',
           message: 'Supabase client not initialized',
-          retryable: false
+          retryable: false,
         });
       }
 
@@ -54,7 +55,7 @@ export class SupabaseApiServiceImpl implements SupabaseApiService {
         filter_verified,
         search,
         sort_by = 'created_at',
-        sort_order = 'desc'
+        sort_order = 'desc',
       } = params;
 
       // Calculate offset for pagination
@@ -77,7 +78,9 @@ export class SupabaseApiServiceImpl implements SupabaseApiService {
 
       // Apply search filter
       if (search && search.trim()) {
-        query = query.or(`firstname.ilike.%${search}%,lastname.ilike.%${search}%,email.ilike.%${search}%`);
+        query = query.or(
+          `firstname.ilike.%${search}%,lastname.ilike.%${search}%,email.ilike.%${search}%`
+        );
       }
 
       // Apply sorting
@@ -91,19 +94,21 @@ export class SupabaseApiServiceImpl implements SupabaseApiService {
           type: 'server',
           message: `Database query failed: ${error.message}`,
           details: error,
-          retryable: true
+          retryable: true,
         });
       }
 
       // Transform data to match our interface
       const contacts: SupabaseContact[] = (data || []).map((contact: any) => ({
         id: contact.id,
-        name: `${contact.firstname || ''} ${contact.lastname || ''}`.trim() || 'Unknown',
+        name:
+          `${contact.firstname || ''} ${contact.lastname || ''}`.trim() ||
+          'Unknown',
         email: contact.email || '',
         email_verification_status: contact.email_verification_status,
         hs_object_id: contact.hs_object_id || '',
         created_at: contact.created_at || contact.createdate || '',
-        updated_at: contact.updated_at || contact.lastmodifieddate || ''
+        updated_at: contact.updated_at || contact.lastmodifieddate || '',
       }));
 
       // Calculate pagination info
@@ -120,10 +125,9 @@ export class SupabaseApiServiceImpl implements SupabaseApiService {
           page_size,
           total,
           has_next: hasNext,
-          has_previous: hasPrevious
-        }
+          has_previous: hasPrevious,
+        },
       };
-
     } catch (error) {
       if (error instanceof ApiError) {
         return {
@@ -134,18 +138,19 @@ export class SupabaseApiServiceImpl implements SupabaseApiService {
             page_size: params.page_size || 25,
             total: 0,
             has_next: false,
-            has_previous: false
+            has_previous: false,
           },
-          error: error.message
+          error: error.message,
         };
       }
 
       // Handle unexpected errors
       const apiError = new ApiError({
         type: 'server',
-        message: error instanceof Error ? error.message : 'Unknown error occurred',
+        message:
+          error instanceof Error ? error.message : 'Unknown error occurred',
         details: error,
-        retryable: true
+        retryable: true,
       });
 
       return {
@@ -156,9 +161,9 @@ export class SupabaseApiServiceImpl implements SupabaseApiService {
           page_size: params.page_size || 25,
           total: 0,
           has_next: false,
-          has_previous: false
+          has_previous: false,
         },
-        error: apiError.message
+        error: apiError.message,
       };
     }
   }
@@ -169,13 +174,15 @@ export class SupabaseApiServiceImpl implements SupabaseApiService {
    * @param params - The request parameters containing the contact ID
    * @returns Promise<SupabaseContactResponse> - The response with contact data or null
    */
-  async fetchContact(params: SupabaseContactRequest): Promise<SupabaseContactResponse> {
+  async fetchContact(
+    params: SupabaseContactRequest
+  ): Promise<SupabaseContactResponse> {
     try {
       if (!supabaseClient) {
         throw new ApiError({
           type: 'server',
           message: 'Supabase client not initialized',
-          retryable: false
+          retryable: false,
         });
       }
 
@@ -186,7 +193,7 @@ export class SupabaseApiServiceImpl implements SupabaseApiService {
         throw new ApiError({
           type: 'validation',
           message: 'Invalid contact ID provided',
-          retryable: false
+          retryable: false,
         });
       }
 
@@ -202,7 +209,7 @@ export class SupabaseApiServiceImpl implements SupabaseApiService {
           // No rows returned
           return {
             success: true,
-            data: null
+            data: null,
           };
         }
 
@@ -210,47 +217,48 @@ export class SupabaseApiServiceImpl implements SupabaseApiService {
           type: 'server',
           message: `Database query failed: ${error.message}`,
           details: error,
-          retryable: true
+          retryable: true,
         });
       }
 
       // Transform data to match our interface
       const contact: SupabaseContact = {
         id: data.id,
-        name: `${data.firstname || ''} ${data.lastname || ''}`.trim() || 'Unknown',
+        name:
+          `${data.firstname || ''} ${data.lastname || ''}`.trim() || 'Unknown',
         email: data.email || '',
         email_verification_status: data.email_verification_status,
         hs_object_id: data.hs_object_id || '',
         created_at: data.created_at || data.createdate || '',
-        updated_at: data.updated_at || data.lastmodifieddate || ''
+        updated_at: data.updated_at || data.lastmodifieddate || '',
       };
 
       return {
         success: true,
-        data: contact
+        data: contact,
       };
-
     } catch (error) {
       if (error instanceof ApiError) {
         return {
           success: false,
           data: null,
-          error: error.message
+          error: error.message,
         };
       }
 
       // Handle unexpected errors
       const apiError = new ApiError({
         type: 'server',
-        message: error instanceof Error ? error.message : 'Unknown error occurred',
+        message:
+          error instanceof Error ? error.message : 'Unknown error occurred',
         details: error,
-        retryable: true
+        retryable: true,
       });
 
       return {
         success: false,
         data: null,
-        error: apiError.message
+        error: apiError.message,
       };
     }
   }

@@ -10,9 +10,7 @@ import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
-import {
-  ComparisonRowProps
-} from '../../../../specs/005-show-data-from/contracts/component-contracts';
+import { ComparisonRowProps } from '../../../../specs/005-show-data-from/contracts/component-contracts';
 
 const mockComparison = {
   id: 'comparison-1',
@@ -23,7 +21,7 @@ const mockComparison = {
     email_verification_status: 'verified',
     hs_object_id: '12345',
     created_at: '2025-01-15T10:30:00Z',
-    updated_at: '2025-01-15T10:30:00Z'
+    updated_at: '2025-01-15T10:30:00Z',
   },
   hubspot: {
     id: '12345',
@@ -32,26 +30,30 @@ const mockComparison = {
       lastname: 'Doe',
       email: 'john.doe@example.com',
       email_verification_status: 'verified',
-      hs_object_id: '12345'
+      hs_object_id: '12345',
     },
     createdAt: '2025-01-15T10:30:00Z',
-    updatedAt: '2025-01-15T10:30:00Z'
+    updatedAt: '2025-01-15T10:30:00Z',
   },
   match_status: 'matched' as const,
   differences: [],
-  last_sync: '2025-01-15T10:30:00Z'
+  last_sync: '2025-01-15T10:30:00Z',
 };
 
 const mockComparisonRow = (props: ComparisonRowProps) => {
-  return React.createElement('div', {
-    'data-testid': 'comparison-row',
-    ...props
-  }, 'Mock Comparison Row');
+  return React.createElement(
+    'div',
+    {
+      'data-testid': 'comparison-row',
+      ...props,
+    },
+    'Mock Comparison Row'
+  );
 };
 
 describe('ComparisonRow Component Contract', () => {
   const defaultProps: ComparisonRowProps = {
-    comparison: mockComparison
+    comparison: mockComparison,
   };
 
   it('should accept required comparison prop', () => {
@@ -66,7 +68,7 @@ describe('ComparisonRow Component Contract', () => {
       selectable: true,
       showDifferences: true,
       highlightMismatches: true,
-      className: 'custom-row'
+      className: 'custom-row',
     };
 
     expect(() => {
@@ -81,7 +83,7 @@ describe('ComparisonRow Component Contract', () => {
     const props: ComparisonRowProps = {
       ...defaultProps,
       onSelect: mockOnSelect,
-      onClick: mockOnClick
+      onClick: mockOnClick,
     };
 
     expect(() => {
@@ -103,7 +105,7 @@ describe('ComparisonRow Component Contract', () => {
     const props: ComparisonRowProps = {
       ...defaultProps,
       selectable: true,
-      onSelect: mockOnSelect
+      onSelect: mockOnSelect,
     };
 
     render(mockComparisonRow(props));

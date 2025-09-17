@@ -12,24 +12,28 @@ import userEvent from '@testing-library/user-event';
 import React from 'react';
 import {
   FilterControlsProps,
-  TableFilters
+  TableFilters,
 } from '../../../../specs/005-show-data-from/contracts/component-contracts';
 
 const mockFilterControls = (props: FilterControlsProps) => {
-  return React.createElement('div', {
-    'data-testid': 'filter-controls',
-    ...props
-  }, 'Mock Filter Controls');
+  return React.createElement(
+    'div',
+    {
+      'data-testid': 'filter-controls',
+      ...props,
+    },
+    'Mock Filter Controls'
+  );
 };
 
 describe('FilterControls Component Contract', () => {
   const defaultProps: FilterControlsProps = {
     filters: {
       search: '',
-      status: 'all'
+      status: 'all',
     },
     onFiltersChange: vi.fn(),
-    onReset: vi.fn()
+    onReset: vi.fn(),
   };
 
   it('should accept required props', () => {
@@ -44,7 +48,7 @@ describe('FilterControls Component Contract', () => {
       showSearch: true,
       showStatusFilter: true,
       showDateFilter: true,
-      className: 'custom-filters'
+      className: 'custom-filters',
     };
 
     expect(() => {
@@ -58,7 +62,7 @@ describe('FilterControls Component Contract', () => {
 
     const props: FilterControlsProps = {
       ...defaultProps,
-      onFiltersChange: mockOnFiltersChange
+      onFiltersChange: mockOnFiltersChange,
     };
 
     render(mockFilterControls(props));
@@ -77,16 +81,16 @@ describe('FilterControls Component Contract', () => {
       status: 'matched',
       dateRange: {
         start: new Date('2025-01-01'),
-        end: new Date('2025-01-31')
+        end: new Date('2025-01-31'),
       },
       sortBy: 'name',
-      sortOrder: 'asc'
+      sortOrder: 'asc',
     };
 
     const props: FilterControlsProps = {
       filters,
       onFiltersChange: vi.fn(),
-      onReset: vi.fn()
+      onReset: vi.fn(),
     };
 
     expect(() => {
@@ -100,7 +104,7 @@ describe('FilterControls Component Contract', () => {
 
     const props: FilterControlsProps = {
       ...defaultProps,
-      onReset: mockOnReset
+      onReset: mockOnReset,
     };
 
     render(mockFilterControls(props));

@@ -68,9 +68,11 @@ describe('ContactsTable', () => {
   });
 
   it('displays error state', () => {
-    render(<ContactsTable contacts={[]} error="Failed to load contacts" />);
+    render(<ContactsTable contacts={[]} error='Failed to load contacts' />);
 
-    expect(screen.getByText('Error loading contacts: Failed to load contacts')).toBeInTheDocument();
+    expect(
+      screen.getByText('Error loading contacts: Failed to load contacts')
+    ).toBeInTheDocument();
   });
 
   it('displays empty state when no contacts', () => {

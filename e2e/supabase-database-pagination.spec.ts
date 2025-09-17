@@ -8,7 +8,9 @@ test.describe('Supabase Database Page - Pagination', () => {
     });
   });
 
-  test('should load Supabase database page with pagination controls', async ({ page }) => {
+  test('should load Supabase database page with pagination controls', async ({
+    page,
+  }) => {
     await page.goto('/supabase-database');
 
     // Check page loads successfully
@@ -22,7 +24,9 @@ test.describe('Supabase Database Page - Pagination', () => {
     await expect(nextButton).toBeVisible();
   });
 
-  test('should display contacts in table with pagination info', async ({ page }) => {
+  test('should display contacts in table with pagination info', async ({
+    page,
+  }) => {
     await page.goto('/supabase-database');
 
     // Wait for data to load
@@ -37,14 +41,18 @@ test.describe('Supabase Database Page - Pagination', () => {
     await expect(paginationInfo).toBeVisible();
   });
 
-  test('should navigate to next page when Next button is clicked', async ({ page }) => {
+  test('should navigate to next page when Next button is clicked', async ({
+    page,
+  }) => {
     await page.goto('/supabase-database');
 
     // Wait for initial data load
     await page.waitForTimeout(1000);
 
     // Get initial pagination info
-    const initialInfo = await page.locator('text=/Showing \\d+ of \\d+ contacts/').textContent();
+    const initialInfo = await page
+      .locator('text=/Showing \\d+ of \\d+ contacts/')
+      .textContent();
 
     // Click next button (should be enabled if there are more pages)
     const nextButton = page.locator('button').filter({ hasText: 'Next' });
@@ -57,7 +65,9 @@ test.describe('Supabase Database Page - Pagination', () => {
       await page.waitForTimeout(1000);
 
       // Check that pagination info changed
-      const newInfo = await page.locator('text=/Showing \\d+ of \\d+ contacts/').textContent();
+      const newInfo = await page
+        .locator('text=/Showing \\d+ of \\d+ contacts/')
+        .textContent();
       expect(newInfo).not.toBe(initialInfo);
     } else {
       // If next is disabled, we're already on the last page
@@ -65,7 +75,9 @@ test.describe('Supabase Database Page - Pagination', () => {
     }
   });
 
-  test('should navigate to previous page when Previous button is clicked', async ({ page }) => {
+  test('should navigate to previous page when Previous button is clicked', async ({
+    page,
+  }) => {
     await page.goto('/supabase-database');
 
     // First navigate to second page if possible
@@ -82,7 +94,9 @@ test.describe('Supabase Database Page - Pagination', () => {
       await page.waitForTimeout(1000);
 
       // Should be back to first page
-      const paginationInfo = await page.locator('text=/Showing \\d+ of \\d+ contacts/').textContent();
+      const paginationInfo = await page
+        .locator('text=/Showing \\d+ of \\d+ contacts/')
+        .textContent();
       expect(paginationInfo).toContain('Showing');
     }
   });
@@ -99,7 +113,9 @@ test.describe('Supabase Database Page - Pagination', () => {
       await nextButton.click();
 
       // Check for loading indicators (this will fail initially)
-      const loadingIndicator = page.locator('text=Loading').or(page.locator('[aria-label="Loading"]'));
+      const loadingIndicator = page
+        .locator('text=Loading')
+        .or(page.locator('[aria-label="Loading"]'));
       // Note: This test will fail until loading states are implemented
       await expect(loadingIndicator).toBeVisible();
     }
@@ -112,7 +128,10 @@ test.describe('Supabase Database Page - Pagination', () => {
     await page.waitForTimeout(1000);
 
     // Click on a sortable column header (if available)
-    const sortableHeader = page.locator('th').filter({ hasText: 'Email' }).first();
+    const sortableHeader = page
+      .locator('th')
+      .filter({ hasText: 'Email' })
+      .first();
     if (await sortableHeader.isVisible()) {
       await sortableHeader.click();
       await page.waitForTimeout(500);

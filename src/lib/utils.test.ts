@@ -10,11 +10,9 @@ describe('cn utility function', () => {
     const isActive = true;
     const isDisabled = false;
 
-    expect(cn(
-      'base-class',
-      isActive && 'active',
-      isDisabled && 'disabled'
-    )).toBe('base-class active');
+    expect(
+      cn('base-class', isActive && 'active', isDisabled && 'disabled')
+    ).toBe('base-class active');
   });
 
   it('should merge Tailwind classes correctly', () => {
@@ -30,7 +28,7 @@ describe('cn utility function', () => {
   });
 
   it('should handle object inputs', () => {
-    expect(cn({ 'class1': true, 'class2': false }, 'class3')).toBe('class1 class3');
+    expect(cn({ class1: true, class2: false }, 'class3')).toBe('class1 class3');
   });
 
   it('should return empty string for no inputs', () => {

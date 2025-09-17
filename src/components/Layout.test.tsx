@@ -102,7 +102,11 @@ describe('Layout Component', () => {
     const main = screen.getByRole('main');
 
     // Sidebar should have transition classes
-    expect(sidebar).toHaveClass('transition-all', 'duration-300', 'ease-in-out');
+    expect(sidebar).toHaveClass(
+      'transition-all',
+      'duration-300',
+      'ease-in-out'
+    );
 
     // Main content should be flexible
     expect(main).toHaveClass('flex-1', 'overflow-y-auto');

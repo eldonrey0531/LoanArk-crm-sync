@@ -311,7 +311,7 @@ export const Breakpoints = {
   mobile: 640,
   tablet: 768,
   desktop: 1024,
-  wide: 1280
+  wide: 1280,
 } as const;
 
 // Default Props
@@ -320,46 +320,46 @@ export const DefaultProps = {
     initialPageSize: 50,
     showFilters: true,
     showSummary: true,
-    theme: 'auto' as const
+    theme: 'auto' as const,
   },
   ComparisonTable: {
     selectable: false,
     compact: false,
     showDifferences: true,
-    highlightMismatches: true
+    highlightMismatches: true,
   },
   ComparisonRow: {
     selectable: false,
     showDifferences: true,
-    highlightMismatches: true
+    highlightMismatches: true,
   },
   FilterControls: {
     showSearch: true,
     showStatusFilter: true,
-    showDateFilter: false
+    showDateFilter: false,
   },
   SummaryStats: {
     showPercentages: true,
-    compact: false
+    compact: false,
   },
   StatusIndicator: {
     size: 'md' as const,
     showLabel: true,
-    showIcon: true
+    showIcon: true,
   },
   DataCell: {
     truncate: true,
     maxLength: 50,
-    format: 'text' as const
+    format: 'text' as const,
   },
   PaginationControls: {
     showPageSizeSelector: true,
-    pageSizeOptions: [25, 50, 100, 200]
+    pageSizeOptions: [25, 50, 100, 200],
   },
   SearchInput: {
     placeholder: 'Search contacts...',
-    debounceMs: 300
-  }
+    debounceMs: 300,
+  },
 } as const;
 
 // Validation Rules for Props
@@ -367,13 +367,13 @@ export const PropValidation = {
   pageSize: {
     min: 10,
     max: 200,
-    default: 50
+    default: 50,
   },
   searchQuery: {
     maxLength: 100,
-    pattern: /^[a-zA-Z0-9\s@._-]*$/
+    pattern: /^[a-zA-Z0-9\s@._-]*$/,
   },
   selectedIds: {
-    maxItems: 1000
-  }
+    maxItems: 1000,
+  },
 } as const;

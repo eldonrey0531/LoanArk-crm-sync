@@ -44,7 +44,9 @@ describe('ContactsTable - Current Pagination Behavior', () => {
     render(<ContactsTable contacts={mockContacts} />);
 
     // Should have pagination buttons
-    expect(screen.getByRole('button', { name: /previous/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: /previous/i })
+    ).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /next/i })).toBeInTheDocument();
   });
 
@@ -75,9 +77,11 @@ describe('ContactsTable - Current Pagination Behavior', () => {
   });
 
   it('should handle error state', () => {
-    render(<ContactsTable contacts={[]} error="Failed to load contacts" />);
+    render(<ContactsTable contacts={[]} error='Failed to load contacts' />);
 
-    expect(screen.getByText('Error loading contacts: Failed to load contacts')).toBeInTheDocument();
+    expect(
+      screen.getByText('Error loading contacts: Failed to load contacts')
+    ).toBeInTheDocument();
   });
 
   it('should support column sorting', () => {
@@ -170,7 +174,9 @@ describe('ContactsTable - Manual Pagination Props (Future Implementation)', () =
     );
 
     // Should show current page and total pages
-    expect(screen.getByText('Page 2 of 10 (250 total contacts)')).toBeInTheDocument();
+    expect(
+      screen.getByText('Page 2 of 10 (250 total contacts)')
+    ).toBeInTheDocument();
   });
 
   it('should call onPageChange when next button is clicked', () => {
@@ -274,7 +280,9 @@ describe('ContactsTable - Manual Pagination Props (Future Implementation)', () =
     );
 
     expect(screen.getByText('No contacts found')).toBeInTheDocument();
-    expect(screen.getByText('Page 1 of 1 (0 total contacts)')).toBeInTheDocument();
+    expect(
+      screen.getByText('Page 1 of 1 (0 total contacts)')
+    ).toBeInTheDocument();
   });
 
   it('should maintain sorting functionality with manual pagination', () => {
@@ -324,7 +332,7 @@ describe('ContactsTable - Manual Pagination Props (Future Implementation)', () =
     render(
       <ContactsTable
         contacts={[]}
-        error="Failed to load contacts"
+        error='Failed to load contacts'
         manualPagination={{
           currentPage: 1,
           totalPages: 1,
@@ -335,6 +343,8 @@ describe('ContactsTable - Manual Pagination Props (Future Implementation)', () =
       />
     );
 
-    expect(screen.getByText('Error loading contacts: Failed to load contacts')).toBeInTheDocument();
+    expect(
+      screen.getByText('Error loading contacts: Failed to load contacts')
+    ).toBeInTheDocument();
   });
 });

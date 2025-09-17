@@ -133,7 +133,12 @@ export interface HubSpotContactResponse {
 export interface ComparisonRequest {
   page?: number;
   page_size?: number;
-  filter_status?: 'all' | 'matched' | 'supabase_only' | 'hubspot_only' | 'mismatch';
+  filter_status?:
+    | 'all'
+    | 'matched'
+    | 'supabase_only'
+    | 'hubspot_only'
+    | 'mismatch';
   search?: string;
   has_hubspot_match?: boolean;
 }
@@ -409,7 +414,15 @@ export interface HubSpotFilterGroup {
 
 export interface HubSpotFilter {
   propertyName: string;
-  operator: 'EQ' | 'NEQ' | 'LT' | 'GT' | 'LTE' | 'GTE' | 'HAS_PROPERTY' | 'NOT_HAS_PROPERTY';
+  operator:
+    | 'EQ'
+    | 'NEQ'
+    | 'LT'
+    | 'GT'
+    | 'LTE'
+    | 'GTE'
+    | 'HAS_PROPERTY'
+    | 'NOT_HAS_PROPERTY';
   value?: any;
 }
 
@@ -421,7 +434,12 @@ export interface HubSpotFilter {
  * ApiError class for creating error instances
  */
 export class ApiError extends Error {
-  public readonly type: 'network' | 'auth' | 'validation' | 'server' | 'rate_limit';
+  public readonly type:
+    | 'network'
+    | 'auth'
+    | 'validation'
+    | 'server'
+    | 'rate_limit';
   public readonly details?: any;
   public readonly retryable: boolean;
   public readonly retry_after?: number;
@@ -456,12 +474,18 @@ export type ApiErrorType = {
 // =============================================================================
 
 export interface SupabaseApiService {
-  fetchContacts(params?: SupabaseContactsRequest): Promise<SupabaseContactsResponse>;
-  fetchContact(params: SupabaseContactRequest): Promise<SupabaseContactResponse>;
+  fetchContacts(
+    params?: SupabaseContactsRequest
+  ): Promise<SupabaseContactsResponse>;
+  fetchContact(
+    params: SupabaseContactRequest
+  ): Promise<SupabaseContactResponse>;
 }
 
 export interface HubSpotApiService {
-  fetchContacts(params?: HubSpotContactsRequest): Promise<HubSpotContactsResponse>;
+  fetchContacts(
+    params?: HubSpotContactsRequest
+  ): Promise<HubSpotContactsResponse>;
   fetchContact(params: HubSpotContactRequest): Promise<HubSpotContactResponse>;
 }
 
@@ -557,17 +581,29 @@ export const DefaultSummary = {
 // =============================================================================
 
 export const isSupabaseContact = (contact: any): contact is SupabaseContact => {
-  return contact && typeof contact.id === 'number' && typeof contact.hs_object_id === 'string';
+  return (
+    contact &&
+    typeof contact.id === 'number' &&
+    typeof contact.hs_object_id === 'string'
+  );
 };
 
 export const isHubSpotContact = (contact: any): contact is HubSpotContact => {
   return contact && typeof contact.id === 'string' && contact.properties;
 };
 
-export const isContactComparison = (comparison: any): comparison is ContactComparison => {
-  return comparison && typeof comparison.id === 'string' && typeof comparison.match_status === 'string';
+export const isContactComparison = (
+  comparison: any
+): comparison is ContactComparison => {
+  return (
+    comparison &&
+    typeof comparison.id === 'string' &&
+    typeof comparison.match_status === 'string'
+  );
 };
 
 export const isApiError = (error: any): error is ApiError => {
-  return error && typeof error.type === 'string' && typeof error.message === 'string';
+  return (
+    error && typeof error.type === 'string' && typeof error.message === 'string'
+  );
 };

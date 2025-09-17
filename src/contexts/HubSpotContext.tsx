@@ -137,7 +137,9 @@ export const HubSpotProvider: React.FC<HubSpotProviderProps> = ({
       const authUrl = authService.generateAuthUrl();
       window.location.href = authUrl;
     } catch (error) {
-      setAuthError(error instanceof Error ? error.message : 'Failed to initiate login');
+      setAuthError(
+        error instanceof Error ? error.message : 'Failed to initiate login'
+      );
     }
   };
 

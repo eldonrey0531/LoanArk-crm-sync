@@ -9,15 +9,17 @@
 import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import React from 'react';
-import {
-  SummaryStatsProps
-} from '../../../../specs/005-show-data-from/contracts/component-contracts';
+import { SummaryStatsProps } from '../../../../specs/005-show-data-from/contracts/component-contracts';
 
 const mockSummaryStats = (props: SummaryStatsProps) => {
-  return React.createElement('div', {
-    'data-testid': 'summary-stats',
-    ...props
-  }, 'Mock Summary Stats');
+  return React.createElement(
+    'div',
+    {
+      'data-testid': 'summary-stats',
+      ...props,
+    },
+    'Mock Summary Stats'
+  );
 };
 
 describe('SummaryStats Component Contract', () => {
@@ -25,12 +27,12 @@ describe('SummaryStats Component Contract', () => {
     total_matched: 75,
     total_supabase_only: 15,
     total_hubspot_only: 8,
-    total_mismatches: 2
+    total_mismatches: 2,
   };
 
   const defaultProps: SummaryStatsProps = {
     summary: mockSummary,
-    totalRecords: 100
+    totalRecords: 100,
   };
 
   it('should accept required props', () => {
@@ -44,7 +46,7 @@ describe('SummaryStats Component Contract', () => {
       ...defaultProps,
       showPercentages: true,
       compact: true,
-      className: 'custom-summary'
+      className: 'custom-summary',
     };
 
     expect(() => {
@@ -63,12 +65,12 @@ describe('SummaryStats Component Contract', () => {
       total_matched: 30,
       total_supabase_only: 10,
       total_hubspot_only: 5,
-      total_mismatches: 5
+      total_mismatches: 5,
     };
 
     const props: SummaryStatsProps = {
       summary: differentSummary,
-      totalRecords: 50
+      totalRecords: 50,
     };
 
     expect(() => {
@@ -81,12 +83,12 @@ describe('SummaryStats Component Contract', () => {
       total_matched: 0,
       total_supabase_only: 0,
       total_hubspot_only: 0,
-      total_mismatches: 0
+      total_mismatches: 0,
     };
 
     const props: SummaryStatsProps = {
       summary: zeroSummary,
-      totalRecords: 0
+      totalRecords: 0,
     };
 
     expect(() => {

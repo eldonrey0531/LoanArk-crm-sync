@@ -220,7 +220,7 @@ class HubSpotService {
         headers: {
           ...fetchOptions.headers,
           ...(authHeader && authHeader),
-        }
+        },
       };
 
       if (controller && controller.signal) {

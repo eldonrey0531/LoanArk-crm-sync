@@ -7,7 +7,10 @@
 import { useState, useCallback, useMemo } from 'react';
 
 // Import types
-import { TableFilters, ComparisonResponse } from '@/types/emailVerificationDataDisplay';
+import {
+  TableFilters,
+  ComparisonResponse,
+} from '@/types/emailVerificationDataDisplay';
 
 export interface UseComparisonFiltersOptions {
   initialFilters?: Partial<TableFilters>;
@@ -41,13 +44,13 @@ export const useComparisonFilters = ({
   initialPageSize = 25,
   onFiltersChange,
   onPageChange,
-  onPageSizeChange
+  onPageSizeChange,
 }: UseComparisonFiltersOptions = {}): UseComparisonFiltersReturn => {
   // Initialize filters
   const [filters, setFiltersState] = useState<TableFilters>({
     search: '',
     status: 'all',
-    ...initialFilters
+    ...initialFilters,
   });
 
   // Initialize pagination
@@ -55,43 +58,55 @@ export const useComparisonFilters = ({
   const [pageSize, setPageSizeState] = useState(initialPageSize);
 
   // Set filters with callback
-  const setFilters = useCallback((newFilters: TableFilters) => {
-    setFiltersState(newFilters);
-    onFiltersChange?.(newFilters);
-    // Reset to first page when filters change
-    setPageState(1);
-    onPageChange?.(1);
-  }, [onFiltersChange, onPageChange]);
+  const setFilters = useCallback(
+    (newFilters: TableFilters) => {
+      setFiltersState(newFilters);
+      onFiltersChange?.(newFilters);
+      // Reset to first page when filters change
+      setPageState(1);
+      onPageChange?.(1);
+    },
+    [onFiltersChange, onPageChange]
+  );
 
   // Update filters partially
-  const updateFilters = useCallback((updates: Partial<TableFilters>) => {
-    const newFilters = { ...filters, ...updates };
-    setFilters(newFilters);
-  }, [filters, setFilters]);
+  const updateFilters = useCallback(
+    (updates: Partial<TableFilters>) => {
+      const newFilters = { ...filters, ...updates };
+      setFilters(newFilters);
+    },
+    [filters, setFilters]
+  );
 
   // Reset filters to default
   const resetFilters = useCallback(() => {
     const defaultFilters: TableFilters = {
       search: '',
-      status: 'all'
+      status: 'all',
     };
     setFilters(defaultFilters);
   }, [setFilters]);
 
   // Set page with callback
-  const setPage = useCallback((newPage: number) => {
-    setPageState(newPage);
-    onPageChange?.(newPage);
-  }, [onPageChange]);
+  const setPage = useCallback(
+    (newPage: number) => {
+      setPageState(newPage);
+      onPageChange?.(newPage);
+    },
+    [onPageChange]
+  );
 
   // Set page size with callback
-  const setPageSize = useCallback((newPageSize: number) => {
-    setPageSizeState(newPageSize);
-    onPageSizeChange?.(newPageSize);
-    // Reset to first page when page size changes
-    setPageState(1);
-    onPageChange?.(1);
-  }, [onPageSizeChange, onPageChange]);
+  const setPageSize = useCallback(
+    (newPageSize: number) => {
+      setPageSizeState(newPageSize);
+      onPageSizeChange?.(newPageSize);
+      // Reset to first page when page size changes
+      setPageState(1);
+      onPageChange?.(1);
+    },
+    [onPageSizeChange, onPageChange]
+  );
 
   // Reset pagination
   const resetPagination = useCallback(() => {
@@ -132,7 +147,7 @@ export const useComparisonFilters = ({
     setPageSize,
     resetPagination,
     hasActiveFilters,
-    filterCount
+    filterCount,
   };
 };
 
@@ -159,53 +174,72 @@ export interface UseComparisonSelectionReturn {
 
 export const useComparisonSelection = ({
   initialSelectedIds = [],
-  onSelectionChange
+  onSelectionChange,
 }: UseComparisonSelectionOptions = {}): UseComparisonSelectionReturn => {
-  const [selectedIds, setSelectedIdsState] = useState<string[]>(initialSelectedIds);
+  const [selectedIds, setSelectedIdsState] =
+    useState<string[]>(initialSelectedIds);
 
-  const setSelectedIds = useCallback((ids: string[]) => {
-    setSelectedIdsState(ids);
-    onSelectionChange?.(ids);
-  }, [onSelectionChange]);
+  const setSelectedIds = useCallback(
+    (ids: string[]) => {
+      setSelectedIdsState(ids);
+      onSelectionChange?.(ids);
+    },
+    [onSelectionChange]
+  );
 
-  const selectItem = useCallback((id: string) => {
-    setSelectedIdsState(prev => {
-      if (prev.includes(id)) return prev;
-      const newIds = [...prev, id];
-      onSelectionChange?.(newIds);
-      return newIds;
-    });
-  }, [onSelectionChange]);
+  const selectItem = useCallback(
+    (id: string) => {
+      setSelectedIdsState(prev => {
+        if (prev.includes(id)) return prev;
+        const newIds = [...prev, id];
+        onSelectionChange?.(newIds);
+        return newIds;
+      });
+    },
+    [onSelectionChange]
+  );
 
-  const deselectItem = useCallback((id: string) => {
-    setSelectedIdsState(prev => {
-      const newIds = prev.filter(selectedId => selectedId !== id);
-      onSelectionChange?.(newIds);
-      return newIds;
-    });
-  }, [onSelectionChange]);
+  const deselectItem = useCallback(
+    (id: string) => {
+      setSelectedIdsState(prev => {
+        const newIds = prev.filter(selectedId => selectedId !== id);
+        onSelectionChange?.(newIds);
+        return newIds;
+      });
+    },
+    [onSelectionChange]
+  );
 
-  const toggleItem = useCallback((id: string) => {
-    setSelectedIdsState(prev => {
-      const newIds = prev.includes(id)
-        ? prev.filter(selectedId => selectedId !== id)
-        : [...prev, id];
-      onSelectionChange?.(newIds);
-      return newIds;
-    });
-  }, [onSelectionChange]);
+  const toggleItem = useCallback(
+    (id: string) => {
+      setSelectedIdsState(prev => {
+        const newIds = prev.includes(id)
+          ? prev.filter(selectedId => selectedId !== id)
+          : [...prev, id];
+        onSelectionChange?.(newIds);
+        return newIds;
+      });
+    },
+    [onSelectionChange]
+  );
 
-  const selectAll = useCallback((allIds: string[]) => {
-    setSelectedIds(allIds);
-  }, [setSelectedIds]);
+  const selectAll = useCallback(
+    (allIds: string[]) => {
+      setSelectedIds(allIds);
+    },
+    [setSelectedIds]
+  );
 
   const deselectAll = useCallback(() => {
     setSelectedIds([]);
   }, [setSelectedIds]);
 
-  const isSelected = useCallback((id: string) => {
-    return selectedIds.includes(id);
-  }, [selectedIds]);
+  const isSelected = useCallback(
+    (id: string) => {
+      return selectedIds.includes(id);
+    },
+    [selectedIds]
+  );
 
   const hasSelection = selectedIds.length > 0;
   const selectionCount = selectedIds.length;
@@ -220,6 +254,6 @@ export const useComparisonSelection = ({
     deselectAll,
     isSelected,
     hasSelection,
-    selectionCount
+    selectionCount,
   };
 };

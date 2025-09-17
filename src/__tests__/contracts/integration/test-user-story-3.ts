@@ -18,16 +18,18 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
-import {
-  SummaryStatsProps
-} from '../../../../specs/005-show-data-from/contracts/component-contracts';
+import { SummaryStatsProps } from '../../../../specs/005-show-data-from/contracts/component-contracts';
 
 // Mock the summary stats component (this will fail until implemented)
 const MockSummaryStats = (props: SummaryStatsProps) => {
-  return React.createElement('div', {
-    'data-testid': 'summary-stats',
-    ...props
-  }, 'Mock Summary Stats');
+  return React.createElement(
+    'div',
+    {
+      'data-testid': 'summary-stats',
+      ...props,
+    },
+    'Mock Summary Stats'
+  );
 };
 
 describe('User Story 3: View Summary Statistics', () => {
@@ -35,12 +37,12 @@ describe('User Story 3: View Summary Statistics', () => {
     total_matched: 75,
     total_supabase_only: 15,
     total_hubspot_only: 8,
-    total_mismatches: 2
+    total_mismatches: 2,
   };
 
   const defaultProps: SummaryStatsProps = {
     summary: mockSummary,
-    totalRecords: 100
+    totalRecords: 100,
   };
 
   beforeEach(() => {
@@ -64,12 +66,12 @@ describe('User Story 3: View Summary Statistics', () => {
       total_matched: 50,
       total_supabase_only: 25,
       total_hubspot_only: 15,
-      total_mismatches: 10
+      total_mismatches: 10,
     };
 
     const props: SummaryStatsProps = {
       summary: variedSummary,
-      totalRecords: 100
+      totalRecords: 100,
     };
 
     expect(() => {
@@ -82,12 +84,12 @@ describe('User Story 3: View Summary Statistics', () => {
       total_matched: 0,
       total_supabase_only: 0,
       total_hubspot_only: 0,
-      total_mismatches: 0
+      total_mismatches: 0,
     };
 
     const props: SummaryStatsProps = {
       summary: zeroSummary,
-      totalRecords: 0
+      totalRecords: 0,
     };
 
     expect(() => {
@@ -100,12 +102,12 @@ describe('User Story 3: View Summary Statistics', () => {
       total_matched: 10000,
       total_supabase_only: 2500,
       total_hubspot_only: 1500,
-      total_mismatches: 500
+      total_mismatches: 500,
     };
 
     const props: SummaryStatsProps = {
       summary: largeSummary,
-      totalRecords: 15000
+      totalRecords: 15000,
     };
 
     expect(() => {
@@ -116,7 +118,7 @@ describe('User Story 3: View Summary Statistics', () => {
   it('should support percentage display option', () => {
     const props: SummaryStatsProps = {
       ...defaultProps,
-      showPercentages: true
+      showPercentages: true,
     };
 
     expect(() => {
@@ -127,7 +129,7 @@ describe('User Story 3: View Summary Statistics', () => {
   it('should support compact display option', () => {
     const props: SummaryStatsProps = {
       ...defaultProps,
-      compact: true
+      compact: true,
     };
 
     expect(() => {
@@ -138,7 +140,7 @@ describe('User Story 3: View Summary Statistics', () => {
   it('should support custom styling', () => {
     const props: SummaryStatsProps = {
       ...defaultProps,
-      className: 'custom-summary-stats'
+      className: 'custom-summary-stats',
     };
 
     expect(() => {
@@ -149,7 +151,7 @@ describe('User Story 3: View Summary Statistics', () => {
   it('should handle total records count', () => {
     const props: SummaryStatsProps = {
       ...defaultProps,
-      totalRecords: 200
+      totalRecords: 200,
     };
 
     expect(() => {
@@ -161,13 +163,13 @@ describe('User Story 3: View Summary Statistics', () => {
     // Test with incomplete summary (should fail in real implementation)
     const incompleteSummary = {
       total_matched: 75,
-      total_supabase_only: 15
+      total_supabase_only: 15,
       // Missing total_hubspot_only and total_mismatches
     };
 
     const props: SummaryStatsProps = {
       summary: incompleteSummary as any,
-      totalRecords: 100
+      totalRecords: 100,
     };
 
     // This should fail when the real component is implemented

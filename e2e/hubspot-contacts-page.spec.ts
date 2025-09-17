@@ -15,19 +15,31 @@ test.describe('HubSpot Contacts Page', () => {
     await page.goto('/hubspot-contacts');
 
     // Check page title or heading
-    await expect(page.locator('h1, h2').filter({ hasText: /contacts|live/i })).toBeVisible();
+    await expect(
+      page.locator('h1, h2').filter({ hasText: /contacts|live/i })
+    ).toBeVisible();
 
     // Check that table is present
     const table = page.locator('table');
     await expect(table).toBeVisible();
 
     // Check table headers
-    await expect(page.locator('th').filter({ hasText: 'hs_object_id' })).toBeVisible();
+    await expect(
+      page.locator('th').filter({ hasText: 'hs_object_id' })
+    ).toBeVisible();
     await expect(page.locator('th').filter({ hasText: 'email' })).toBeVisible();
-    await expect(page.locator('th').filter({ hasText: 'firstname' })).toBeVisible();
-    await expect(page.locator('th').filter({ hasText: 'lastname' })).toBeVisible();
-    await expect(page.locator('th').filter({ hasText: 'createdate' })).toBeVisible();
-    await expect(page.locator('th').filter({ hasText: 'lastmodifieddate' })).toBeVisible();
+    await expect(
+      page.locator('th').filter({ hasText: 'firstname' })
+    ).toBeVisible();
+    await expect(
+      page.locator('th').filter({ hasText: 'lastname' })
+    ).toBeVisible();
+    await expect(
+      page.locator('th').filter({ hasText: 'createdate' })
+    ).toBeVisible();
+    await expect(
+      page.locator('th').filter({ hasText: 'lastmodifieddate' })
+    ).toBeVisible();
   });
 
   test('should display live contacts data in table', async ({ page }) => {
@@ -44,7 +56,10 @@ test.describe('HubSpot Contacts Page', () => {
       // Check first row has required data
       const firstRow = rows.first();
       await expect(firstRow.locator('td').nth(0)).not.toBeEmpty(); // hs_object_id
-      await expect(firstRow.locator('td').nth(1)).toHaveAttribute('type', 'email'); // email
+      await expect(firstRow.locator('td').nth(1)).toHaveAttribute(
+        'type',
+        'email'
+      ); // email
     } else {
       // No data message
       await expect(page.locator('text=No contacts found')).toBeVisible();
@@ -55,7 +70,9 @@ test.describe('HubSpot Contacts Page', () => {
     await page.goto('/hubspot-contacts');
 
     // Check for loading indicator initially
-    const loadingIndicator = page.locator('text=Loading').or(page.locator('[aria-label="Loading"]'));
+    const loadingIndicator = page
+      .locator('text=Loading')
+      .or(page.locator('[aria-label="Loading"]'));
     await expect(loadingIndicator).toBeVisible();
 
     // Wait for loading to complete
@@ -69,7 +86,9 @@ test.describe('HubSpot Contacts Page', () => {
     await page.goto('/hubspot-contacts');
 
     // Should show error message
-    await expect(page.locator('text=error|Error|failed|Failed|network|Network')).toBeVisible();
+    await expect(
+      page.locator('text=error|Error|failed|Failed|network|Network')
+    ).toBeVisible();
   });
 
   test('should handle authentication errors', async ({ page }) => {
@@ -81,7 +100,9 @@ test.describe('HubSpot Contacts Page', () => {
     await page.goto('/hubspot-contacts');
 
     // Should show authentication error
-    await expect(page.locator('text=authentication|auth|login|connect')).toBeVisible();
+    await expect(
+      page.locator('text=authentication|auth|login|connect')
+    ).toBeVisible();
   });
 
   test('should be accessible', async ({ page }) => {
@@ -100,6 +121,8 @@ test.describe('HubSpot Contacts Page', () => {
     await page.goto('/hubspot-contacts');
 
     // Should have some indication that this is live data vs cached
-    await expect(page.locator('text=live|Live|real-time|Real-time')).toBeVisible();
+    await expect(
+      page.locator('text=live|Live|real-time|Real-time')
+    ).toBeVisible();
   });
 });

@@ -16,9 +16,8 @@ const createWrapper = () => {
       },
     },
   });
-  return ({ children }: { children: React.ReactNode }) => (
-    React.createElement(QueryClientProvider, { client: queryClient }, children)
-  );
+  return ({ children }: { children: React.ReactNode }) =>
+    React.createElement(QueryClientProvider, { client: queryClient }, children);
 };
 
 describe('useHubSpotContacts - Pagination Parameters', () => {
@@ -29,10 +28,10 @@ describe('useHubSpotContacts - Pagination Parameters', () => {
   it('should accept pagination parameters', () => {
     const mockData = {
       contacts: [
-        { hs_object_id: '1', email: 'test@example.com', firstname: 'Test' }
+        { hs_object_id: '1', email: 'test@example.com', firstname: 'Test' },
       ],
       total: 100,
-      hasMore: true
+      hasMore: true,
     };
 
     (global.fetch as any).mockResolvedValueOnce({
@@ -41,11 +40,12 @@ describe('useHubSpotContacts - Pagination Parameters', () => {
     });
 
     const { result } = renderHook(
-      () => useHubSpotContacts({
-        type: 'sync',
-        limit: 25,
-        offset: 50
-      }),
+      () =>
+        useHubSpotContacts({
+          type: 'sync',
+          limit: 25,
+          offset: 50,
+        }),
       { wrapper: createWrapper() }
     );
 
@@ -57,7 +57,7 @@ describe('useHubSpotContacts - Pagination Parameters', () => {
     const mockData = {
       contacts: [],
       total: 0,
-      hasMore: false
+      hasMore: false,
     };
 
     (global.fetch as any).mockResolvedValueOnce({
@@ -66,11 +66,12 @@ describe('useHubSpotContacts - Pagination Parameters', () => {
     });
 
     renderHook(
-      () => useHubSpotContacts({
-        type: 'sync',
-        limit: 10,
-        offset: 20
-      }),
+      () =>
+        useHubSpotContacts({
+          type: 'sync',
+          limit: 10,
+          offset: 20,
+        }),
       { wrapper: createWrapper() }
     );
 
@@ -86,7 +87,7 @@ describe('useHubSpotContacts - Pagination Parameters', () => {
     const mockData = {
       contacts: [],
       total: 0,
-      hasMore: false
+      hasMore: false,
     };
 
     (global.fetch as any).mockResolvedValue(mockData);
@@ -96,11 +97,11 @@ describe('useHubSpotContacts - Pagination Parameters', () => {
         useHubSpotContacts({
           type: 'sync',
           limit,
-          offset
+          offset,
         }),
       {
         wrapper: createWrapper(),
-        initialProps: { limit: 10, offset: 0 }
+        initialProps: { limit: 10, offset: 0 },
       }
     );
 
@@ -113,16 +114,14 @@ describe('useHubSpotContacts - Pagination Parameters', () => {
 
   it('should handle pagination metadata in response', async () => {
     const mockData = {
-      contacts: [
-        { hs_object_id: '1', email: 'test@example.com' }
-      ],
+      contacts: [{ hs_object_id: '1', email: 'test@example.com' }],
       total: 150,
       hasMore: true,
       pagination: {
         pageIndex: 1,
         pageSize: 25,
-        totalPages: 6
-      }
+        totalPages: 6,
+      },
     };
 
     (global.fetch as any).mockResolvedValueOnce({
@@ -131,11 +130,12 @@ describe('useHubSpotContacts - Pagination Parameters', () => {
     });
 
     const { result } = renderHook(
-      () => useHubSpotContacts({
-        type: 'sync',
-        limit: 25,
-        offset: 25
-      }),
+      () =>
+        useHubSpotContacts({
+          type: 'sync',
+          limit: 25,
+          offset: 25,
+        }),
       { wrapper: createWrapper() }
     );
 
@@ -151,13 +151,13 @@ describe('useHubSpotContacts - Pagination Parameters', () => {
     const mockData1 = {
       contacts: [{ hs_object_id: '1', email: 'test1@example.com' }],
       total: 50,
-      hasMore: true
+      hasMore: true,
     };
 
     const mockData2 = {
       contacts: [{ hs_object_id: '2', email: 'test2@example.com' }],
       total: 50,
-      hasMore: false
+      hasMore: false,
     };
 
     (global.fetch as any)
@@ -175,11 +175,11 @@ describe('useHubSpotContacts - Pagination Parameters', () => {
         useHubSpotContacts({
           type: 'sync',
           limit: 1,
-          offset
+          offset,
         }),
       {
         wrapper: createWrapper(),
-        initialProps: { offset: 0 }
+        initialProps: { offset: 0 },
       }
     );
 
@@ -203,11 +203,12 @@ describe('useHubSpotContacts - Pagination Parameters', () => {
     });
 
     const { result } = renderHook(
-      () => useHubSpotContacts({
-        type: 'sync',
-        limit: 10,
-        offset: 0
-      }),
+      () =>
+        useHubSpotContacts({
+          type: 'sync',
+          limit: 10,
+          offset: 0,
+        }),
       { wrapper: createWrapper() }
     );
 
@@ -222,7 +223,7 @@ describe('useHubSpotContacts - Pagination Parameters', () => {
     const mockData = {
       contacts: [],
       total: 0,
-      hasMore: false
+      hasMore: false,
     };
 
     (global.fetch as any).mockResolvedValue({
@@ -232,11 +233,12 @@ describe('useHubSpotContacts - Pagination Parameters', () => {
 
     // Test sync type
     const { result: syncResult, rerender: syncRerender } = renderHook(
-      () => useHubSpotContacts({
-        type: 'sync',
-        limit: 10,
-        offset: 0
-      }),
+      () =>
+        useHubSpotContacts({
+          type: 'sync',
+          limit: 10,
+          offset: 0,
+        }),
       { wrapper: createWrapper() }
     );
 
@@ -246,11 +248,12 @@ describe('useHubSpotContacts - Pagination Parameters', () => {
 
     // Test live type
     const { result: liveResult } = renderHook(
-      () => useHubSpotContacts({
-        type: 'live',
-        limit: 10,
-        offset: 0
-      }),
+      () =>
+        useHubSpotContacts({
+          type: 'live',
+          limit: 10,
+          offset: 0,
+        }),
       { wrapper: createWrapper() }
     );
 

@@ -12,7 +12,7 @@ import {
   ContactComparison,
   TableFilters,
   ComparisonResponse,
-  ComparisonRequest
+  ComparisonRequest,
 } from '@/types/emailVerificationDataDisplay';
 
 // Import services
@@ -47,7 +47,7 @@ export const useComparisonData = ({
   pageSize = 25,
   enabled = true,
   refetchOnWindowFocus = false,
-  staleTime = 5 * 60 * 1000 // 5 minutes
+  staleTime = 5 * 60 * 1000, // 5 minutes
 }: UseComparisonDataOptions): UseComparisonDataReturn => {
   // Create query key based on filters and pagination
   const queryKey = useMemo(() => {
@@ -58,8 +58,8 @@ export const useComparisonData = ({
         pageSize,
         filter_status: filters.status,
         search: filters.search,
-        dateRange: filters.dateRange
-      }
+        dateRange: filters.dateRange,
+      },
     ];
   }, [page, pageSize, filters]);
 
@@ -69,7 +69,7 @@ export const useComparisonData = ({
     isError,
     error,
     refetch,
-    isRefetching
+    isRefetching,
   } = useQuery({
     queryKey,
     queryFn: async (): Promise<ComparisonResponse> => {
@@ -77,7 +77,7 @@ export const useComparisonData = ({
         page,
         page_size: pageSize,
         filter_status: filters.status !== 'all' ? filters.status : undefined,
-        search: filters.search || undefined
+        search: filters.search || undefined,
       };
 
       const result = await comparisonApiService.fetchComparison(request);
@@ -99,7 +99,7 @@ export const useComparisonData = ({
       // Retry up to 3 times for other errors
       return failureCount < 3;
     },
-    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000)
+    retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 30000),
   });
 
   return {
@@ -110,7 +110,7 @@ export const useComparisonData = ({
     isError,
     error: error as Error | null,
     refetch,
-    isRefetching
+    isRefetching,
   };
 };
 
@@ -122,7 +122,7 @@ export const useComparisonDataMutation = () => {
 
   const invalidateComparisonData = useCallback(() => {
     queryClient.invalidateQueries({
-      queryKey: ['comparison-data']
+      queryKey: ['comparison-data'],
     });
   }, [queryClient]);
 
@@ -135,8 +135,8 @@ export const useComparisonDataMutation = () => {
           pageSize,
           filter_status: filters.status,
           search: filters.search,
-          dateRange: filters.dateRange
-        }
+          dateRange: filters.dateRange,
+        },
       ];
 
       queryClient.prefetchQuery({
@@ -145,8 +145,9 @@ export const useComparisonDataMutation = () => {
           const request: ComparisonRequest = {
             page,
             page_size: pageSize,
-            filter_status: filters.status !== 'all' ? filters.status : undefined,
-            search: filters.search || undefined
+            filter_status:
+              filters.status !== 'all' ? filters.status : undefined,
+            search: filters.search || undefined,
           };
 
           const result = await comparisonApiService.fetchComparison(request);
@@ -157,7 +158,7 @@ export const useComparisonDataMutation = () => {
 
           return result;
         },
-        staleTime: 5 * 60 * 1000
+        staleTime: 5 * 60 * 1000,
       });
     },
     [queryClient]
@@ -165,7 +166,7 @@ export const useComparisonDataMutation = () => {
 
   return {
     invalidateComparisonData,
-    prefetchComparisonData
+    prefetchComparisonData,
   };
 };
 
@@ -176,11 +177,12 @@ export const useComparisonDataCache = () => {
   const queryClient = useQueryClient();
 
   const updateComparisonData = useCallback(
-    (updater: (oldData: ComparisonResponse | undefined) => ComparisonResponse | undefined) => {
-      queryClient.setQueriesData(
-        { queryKey: ['comparison-data'] },
-        updater
-      );
+    (
+      updater: (
+        oldData: ComparisonResponse | undefined
+      ) => ComparisonResponse | undefined
+    ) => {
+      queryClient.setQueriesData({ queryKey: ['comparison-data'] }, updater);
     },
     [queryClient]
   );
@@ -194,8 +196,8 @@ export const useComparisonDataCache = () => {
           pageSize,
           filter_status: filters.status,
           search: filters.search,
-          dateRange: filters.dateRange
-        }
+          dateRange: filters.dateRange,
+        },
       ];
 
       return queryClient.getQueryData<ComparisonResponse>(queryKey);
@@ -205,6 +207,6 @@ export const useComparisonDataCache = () => {
 
   return {
     updateComparisonData,
-    getComparisonData
+    getComparisonData,
   };
 };

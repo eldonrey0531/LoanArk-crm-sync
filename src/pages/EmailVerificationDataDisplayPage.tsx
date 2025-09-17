@@ -15,7 +15,7 @@ import {
   Database,
   ArrowRightLeft,
   Loader2,
-  Settings
+  Settings,
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
@@ -25,7 +25,7 @@ import { EmailVerificationDataDisplay } from '@/components/EmailVerificationData
 // Import types
 import {
   ContactComparison,
-  TableFilters
+  TableFilters,
 } from '@/types/emailVerificationDataDisplay';
 
 export default function EmailVerificationDataDisplayPage() {
@@ -44,9 +44,9 @@ export default function EmailVerificationDataDisplayPage() {
    */
   const handleError = (errorMessage: string) => {
     toast({
-      title: "Error",
+      title: 'Error',
       description: errorMessage,
-      variant: "destructive"
+      variant: 'destructive',
     });
   };
 
@@ -55,31 +55,30 @@ export default function EmailVerificationDataDisplayPage() {
    */
   const handleRecordSelect = (comparison: ContactComparison) => {
     toast({
-      title: "Record Selected",
+      title: 'Record Selected',
       description: `Selected record: ${comparison.supabase?.name || comparison.hubspot?.properties?.firstname || 'Unknown'}`,
     });
   };
 
   return (
-    <div className="container mx-auto py-6 space-y-6">
+    <div className='container mx-auto py-6 space-y-6'>
       {/* Page Header */}
-      <div className="flex items-center justify-between">
+      <div className='flex items-center justify-between'>
         <div>
-          <h1 className="text-3xl font-bold">Email Verification Data Display</h1>
-          <p className="text-muted-foreground">
-            Compare email verification status between Supabase and HubSpot contacts
+          <h1 className='text-3xl font-bold'>
+            Email Verification Data Display
+          </h1>
+          <p className='text-muted-foreground'>
+            Compare email verification status between Supabase and HubSpot
+            contacts
           </p>
         </div>
-        <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            disabled={isLoading}
-          >
+        <div className='flex items-center gap-2'>
+          <Button variant='outline' size='sm' disabled={isLoading}>
             {isLoading ? (
-              <Loader2 className="h-4 w-4 animate-spin mr-2" />
+              <Loader2 className='h-4 w-4 animate-spin mr-2' />
             ) : (
-              <Settings className="h-4 w-4 mr-2" />
+              <Settings className='h-4 w-4 mr-2' />
             )}
             Settings
           </Button>
@@ -87,12 +86,12 @@ export default function EmailVerificationDataDisplayPage() {
       </div>
 
       {/* Main Content */}
-      <div className="grid gap-6">
+      <div className='grid gap-6'>
         {/* Data Display Component */}
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <ArrowRightLeft className="h-5 w-5" />
+            <CardTitle className='flex items-center gap-2'>
+              <ArrowRightLeft className='h-5 w-5' />
               Contact Comparison
             </CardTitle>
           </CardHeader>
@@ -104,7 +103,7 @@ export default function EmailVerificationDataDisplayPage() {
               onRecordSelect={handleRecordSelect}
               onError={handleError}
               onLoadingChange={handleLoadingChange}
-              theme="light"
+              theme='light'
             />
           </CardContent>
         </Card>
@@ -112,29 +111,32 @@ export default function EmailVerificationDataDisplayPage() {
         {/* Additional Information */}
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Database className="h-5 w-5" />
+            <CardTitle className='flex items-center gap-2'>
+              <Database className='h-5 w-5' />
               Data Sources
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <h4 className="font-semibold text-sm">Supabase Database</h4>
-                <p className="text-sm text-muted-foreground">
-                  Contact records with email verification status from the primary database.
+            <div className='grid md:grid-cols-2 gap-4'>
+              <div className='space-y-2'>
+                <h4 className='font-semibold text-sm'>Supabase Database</h4>
+                <p className='text-sm text-muted-foreground'>
+                  Contact records with email verification status from the
+                  primary database.
                 </p>
-                <div className="text-xs text-muted-foreground">
-                  <strong>Columns:</strong> name, email, email_verification_status, hs_object_id
+                <div className='text-xs text-muted-foreground'>
+                  <strong>Columns:</strong> name, email,
+                  email_verification_status, hs_object_id
                 </div>
               </div>
-              <div className="space-y-2">
-                <h4 className="font-semibold text-sm">HubSpot CRM</h4>
-                <p className="text-sm text-muted-foreground">
+              <div className='space-y-2'>
+                <h4 className='font-semibold text-sm'>HubSpot CRM</h4>
+                <p className='text-sm text-muted-foreground'>
                   Matching contact records from HubSpot CRM system.
                 </p>
-                <div className="text-xs text-muted-foreground">
-                  <strong>Columns:</strong> firstname, lastname, email, email_verification_status
+                <div className='text-xs text-muted-foreground'>
+                  <strong>Columns:</strong> firstname, lastname, email,
+                  email_verification_status
                 </div>
               </div>
             </div>

@@ -158,8 +158,9 @@ describe('HubSpotAuthService', () => {
       sessionStorage.setItem('hubspot_oauth_state', testState);
 
       const service = authService as any;
-      await expect(service.exchangeCodeForToken('invalid-code', testState))
-        .rejects.toThrow('Invalid authorization code');
+      await expect(
+        service.exchangeCodeForToken('invalid-code', testState)
+      ).rejects.toThrow('Invalid authorization code');
     });
   });
 
@@ -193,8 +194,9 @@ describe('HubSpotAuthService', () => {
         ok: false,
       });
 
-      await expect(authService.refreshToken('invalid-refresh-token'))
-        .rejects.toThrow('Failed to refresh token');
+      await expect(
+        authService.refreshToken('invalid-refresh-token')
+      ).rejects.toThrow('Failed to refresh token');
     });
   });
 

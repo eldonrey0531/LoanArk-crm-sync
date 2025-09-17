@@ -15,34 +15,35 @@ import {
   ContactDifference,
   SupabaseContact,
   HubSpotContact,
-  ApiError
+  ApiError,
 } from '../types/emailVerificationDataDisplay';
 
 /**
  * Comparison API Service implementation
  */
 export class ComparisonApiServiceImpl implements ComparisonApiService {
-
   /**
    * Fetch side-by-side comparison data using the combined sync display endpoint
    *
    * @param params - The request parameters
    * @returns Promise<ComparisonResponse> - The response with comparison data and summary
    */
-  async fetchComparison(params: ComparisonRequest = {}): Promise<ComparisonResponse> {
+  async fetchComparison(
+    params: ComparisonRequest = {}
+  ): Promise<ComparisonResponse> {
     try {
       const {
         page = 1,
         page_size = 25,
         filter_status,
         search,
-        has_hubspot_match
+        has_hubspot_match,
       } = params;
 
       // Build query parameters for the combined endpoint
       const queryParams = new URLSearchParams({
         page: page.toString(),
-        limit: page_size.toString()
+        limit: page_size.toString(),
       });
 
       if (filter_status && filter_status !== 'all') {
@@ -58,16 +59,22 @@ export class ComparisonApiServiceImpl implements ComparisonApiService {
       }
 
       // Fetch from the combined sync display endpoint
-      const response = await fetch(`/.netlify/functions/email-verification-sync-display?${queryParams}`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json'
+      const response = await fetch(
+        `/.netlify/functions/email-verification-sync-display?${queryParams}`,
+        {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
         }
-      });
+      );
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error?.message || `HTTP ${response.status}: ${response.statusText}`);
+        throw new Error(
+          errorData.error?.message ||
+            `HTTP ${response.status}: ${response.statusText}`
+        );
       }
 
       const data = await response.json();
@@ -87,22 +94,22 @@ export class ComparisonApiServiceImpl implements ComparisonApiService {
           page_size: data.data.pagination.limit,
           total: data.data.pagination.total,
           has_next: data.data.pagination.hasNextPage,
-          has_previous: data.data.pagination.hasPreviousPage
+          has_previous: data.data.pagination.hasPreviousPage,
         },
         summary: {
           total_matched: data.data.matchedRecords.length,
           total_supabase_only: data.data.unmatchedRecords.supabaseOnly.length,
           total_hubspot_only: data.data.unmatchedRecords.hubspotOnly.length,
-          total_mismatches: 0 // We'll calculate this from the data
-        }
+          total_mismatches: 0, // We'll calculate this from the data
+        },
       };
-
     } catch (error) {
       const apiError = new ApiError({
         type: 'server',
-        message: error instanceof Error ? error.message : 'Unknown error occurred',
+        message:
+          error instanceof Error ? error.message : 'Unknown error occurred',
         details: error,
-        retryable: true
+        retryable: true,
       });
 
       return {
@@ -113,15 +120,15 @@ export class ComparisonApiServiceImpl implements ComparisonApiService {
           page_size: params.page_size || 25,
           total: 0,
           has_next: false,
-          has_previous: false
+          has_previous: false,
         },
         summary: {
           total_matched: 0,
           total_supabase_only: 0,
           total_hubspot_only: 0,
-          total_mismatches: 0
+          total_mismatches: 0,
         },
-        error: apiError.message
+        error: apiError.message,
       };
     }
   }
@@ -138,12 +145,15 @@ export class ComparisonApiServiceImpl implements ComparisonApiService {
         id: matched.supabaseContact.id.toString(),
         supabase: {
           id: matched.supabaseContact.id,
-          name: `${matched.supabaseContact.firstname || ''} ${matched.supabaseContact.lastname || ''}`.trim() || 'Unknown',
+          name:
+            `${matched.supabaseContact.firstname || ''} ${matched.supabaseContact.lastname || ''}`.trim() ||
+            'Unknown',
           email: matched.supabaseContact.email || '',
-          email_verification_status: matched.supabaseContact.email_verification_status,
+          email_verification_status:
+            matched.supabaseContact.email_verification_status,
           hs_object_id: matched.supabaseContact.hs_object_id,
           created_at: matched.supabaseContact.created_at,
-          updated_at: matched.supabaseContact.updated_at
+          updated_at: matched.supabaseContact.updated_at,
         },
         hubspot: {
           id: matched.hubspotContact.id,
@@ -151,15 +161,16 @@ export class ComparisonApiServiceImpl implements ComparisonApiService {
             firstname: matched.hubspotContact.properties?.firstname || '',
             lastname: matched.hubspotContact.properties?.lastname || '',
             email: matched.hubspotContact.properties?.email || '',
-            email_verification_status: matched.hubspotContact.properties?.email_verification_status,
-            hs_object_id: matched.hubspotContact.id
+            email_verification_status:
+              matched.hubspotContact.properties?.email_verification_status,
+            hs_object_id: matched.hubspotContact.id,
           },
           createdAt: matched.hubspotContact.createdAt,
-          updatedAt: matched.hubspotContact.updatedAt
+          updatedAt: matched.hubspotContact.updatedAt,
         },
         match_status: 'matched',
         differences: [],
-        last_sync: matched.matchedAt
+        last_sync: matched.matchedAt,
       });
     });
 
@@ -169,17 +180,19 @@ export class ComparisonApiServiceImpl implements ComparisonApiService {
         id: record.id.toString(),
         supabase: {
           id: record.id,
-          name: `${record.firstname || ''} ${record.lastname || ''}`.trim() || 'Unknown',
+          name:
+            `${record.firstname || ''} ${record.lastname || ''}`.trim() ||
+            'Unknown',
           email: record.email || '',
           email_verification_status: record.email_verification_status,
           hs_object_id: record.hs_object_id,
           created_at: record.created_at,
-          updated_at: record.updated_at
+          updated_at: record.updated_at,
         },
         hubspot: null,
         match_status: 'supabase_only',
         differences: [],
-        last_sync: null
+        last_sync: null,
       });
     });
 
@@ -194,15 +207,16 @@ export class ComparisonApiServiceImpl implements ComparisonApiService {
             firstname: record.properties?.firstname || '',
             lastname: record.properties?.lastname || '',
             email: record.properties?.email || '',
-            email_verification_status: record.properties?.email_verification_status,
-            hs_object_id: record.id
+            email_verification_status:
+              record.properties?.email_verification_status,
+            hs_object_id: record.id,
           },
           createdAt: record.createdAt,
-          updatedAt: record.updatedAt
+          updatedAt: record.updatedAt,
         },
         match_status: 'hubspot_only',
         differences: [],
-        last_sync: null
+        last_sync: null,
       });
     });
 

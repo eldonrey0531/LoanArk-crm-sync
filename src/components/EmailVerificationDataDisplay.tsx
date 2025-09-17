@@ -24,14 +24,22 @@ import {
   EmailVerificationDataDisplayProps,
   ContactComparison,
   TableFilters,
-  ComparisonResponse
+  ComparisonResponse,
 } from '@/types/emailVerificationDataDisplay';
 
 // Import custom hooks
-import { useComparisonData, useComparisonDataMutation } from '@/hooks/useComparisonData';
-import { useComparisonFilters, useComparisonSelection } from '@/hooks/useComparisonFilters';
+import {
+  useComparisonData,
+  useComparisonDataMutation,
+} from '@/hooks/useComparisonData';
+import {
+  useComparisonFilters,
+  useComparisonSelection,
+} from '@/hooks/useComparisonFilters';
 
-export const EmailVerificationDataDisplay: React.FC<EmailVerificationDataDisplayProps> = ({
+export const EmailVerificationDataDisplay: React.FC<
+  EmailVerificationDataDisplayProps
+> = ({
   initialPageSize = 25,
   showFilters = true,
   showSummary = true,
@@ -39,7 +47,7 @@ export const EmailVerificationDataDisplay: React.FC<EmailVerificationDataDisplay
   onRecordSelect,
   onError,
   onLoadingChange,
-  theme = 'light'
+  theme = 'light',
 }) => {
   // Use custom hooks for state management
   const {
@@ -51,18 +59,18 @@ export const EmailVerificationDataDisplay: React.FC<EmailVerificationDataDisplay
     resetFilters,
     setPage,
     setPageSize,
-    hasActiveFilters
+    hasActiveFilters,
   } = useComparisonFilters({
     initialPageSize,
-    onFiltersChange: (newFilters) => {
+    onFiltersChange: newFilters => {
       // Filters changed, data will be refetched automatically
     },
-    onPageChange: (newPage) => {
+    onPageChange: newPage => {
       // Page changed, data will be refetched automatically
     },
-    onPageSizeChange: (newPageSize) => {
+    onPageSizeChange: newPageSize => {
       // Page size changed, data will be refetched automatically
-    }
+    },
   });
 
   const {
@@ -74,11 +82,11 @@ export const EmailVerificationDataDisplay: React.FC<EmailVerificationDataDisplay
     selectAll,
     deselectAll,
     hasSelection,
-    selectionCount
+    selectionCount,
   } = useComparisonSelection({
-    onSelectionChange: (selectedIds) => {
+    onSelectionChange: selectedIds => {
       // Selection changed
-    }
+    },
   });
 
   // Use React Query for data fetching
@@ -90,14 +98,14 @@ export const EmailVerificationDataDisplay: React.FC<EmailVerificationDataDisplay
     isError,
     error,
     refetch,
-    isRefetching
+    isRefetching,
   } = useComparisonData({
     filters,
     page,
     pageSize,
     enabled: true,
     refetchOnWindowFocus: false,
-    staleTime: 5 * 60 * 1000 // 5 minutes
+    staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
   const { invalidateComparisonData } = useComparisonDataMutation();
@@ -176,8 +184,8 @@ export const EmailVerificationDataDisplay: React.FC<EmailVerificationDataDisplay
   if (isLoading && (!data || data.length === 0)) {
     return (
       <LoadingState
-        type="table"
-        message="Loading contact comparison data..."
+        type='table'
+        message='Loading contact comparison data...'
         className={className}
       />
     );
@@ -188,7 +196,7 @@ export const EmailVerificationDataDisplay: React.FC<EmailVerificationDataDisplay
     return (
       <ErrorDisplay
         error={error?.message || 'Failed to load data'}
-        type="network"
+        type='network'
         onRetry={handleRetry}
         className={className}
       />
@@ -224,13 +232,15 @@ export const EmailVerificationDataDisplay: React.FC<EmailVerificationDataDisplay
         data={data || []}
         loading={isLoading || isRefetching}
         error={isError ? error?.message || 'An error occurred' : null}
-        pagination={pagination || {
-          page: 1,
-          page_size: pageSize,
-          total: 0,
-          has_next: false,
-          has_previous: false
-        }}
+        pagination={
+          pagination || {
+            page: 1,
+            page_size: pageSize,
+            total: 0,
+            has_next: false,
+            has_previous: false,
+          }
+        }
         onPageChange={handlePageChange}
         onRetry={handleRetry}
         onRefresh={handleRefresh}
@@ -244,20 +254,26 @@ export const EmailVerificationDataDisplay: React.FC<EmailVerificationDataDisplay
       />
 
       {/* Action Bar */}
-      <div className="flex items-center justify-between">
-        <div className="text-sm text-muted-foreground">
+      <div className='flex items-center justify-between'>
+        <div className='text-sm text-muted-foreground'>
           {hasSelection && (
-            <span>{selectionCount} record{selectionCount !== 1 ? 's' : ''} selected</span>
+            <span>
+              {selectionCount} record{selectionCount !== 1 ? 's' : ''} selected
+            </span>
           )}
         </div>
-        <div className="flex items-center gap-2">
+        <div className='flex items-center gap-2'>
           <Button
-            variant="outline"
-            size="sm"
+            variant='outline'
+            size='sm'
             onClick={handleRefresh}
             disabled={isLoading || isRefetching}
           >
-            {(isLoading || isRefetching) ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
+            {isLoading || isRefetching ? (
+              <Loader2 className='h-4 w-4 animate-spin' />
+            ) : (
+              <RefreshCw className='h-4 w-4' />
+            )}
             Refresh
           </Button>
         </div>

@@ -21,35 +21,43 @@ import userEvent from '@testing-library/user-event';
 import React from 'react';
 import {
   LoadingStateProps,
-  ErrorDisplayProps
+  ErrorDisplayProps,
 } from '../../../../specs/005-show-data-from/contracts/component-contracts';
 
 // Mock the loading state component (this will fail until implemented)
 const MockLoadingState = (props: LoadingStateProps) => {
-  return React.createElement('div', {
-    'data-testid': 'loading-state',
-    ...props
-  }, 'Mock Loading State');
+  return React.createElement(
+    'div',
+    {
+      'data-testid': 'loading-state',
+      ...props,
+    },
+    'Mock Loading State'
+  );
 };
 
 // Mock the error display component (this will fail until implemented)
 const MockErrorDisplay = (props: ErrorDisplayProps) => {
-  return React.createElement('div', {
-    'data-testid': 'error-display',
-    ...props
-  }, 'Mock Error Display');
+  return React.createElement(
+    'div',
+    {
+      'data-testid': 'error-display',
+      ...props,
+    },
+    'Mock Error Display'
+  );
 };
 
 describe('User Story 6: Handle Loading and Error States', () => {
   const defaultLoadingProps: LoadingStateProps = {
     type: 'table',
-    message: 'Loading data...'
+    message: 'Loading data...',
   };
 
   const defaultErrorProps: ErrorDisplayProps = {
     error: 'Failed to load data',
     type: 'network',
-    onRetry: vi.fn()
+    onRetry: vi.fn(),
   };
 
   beforeEach(() => {
@@ -66,7 +74,7 @@ describe('User Story 6: Handle Loading and Error States', () => {
     it('should handle table loading type', () => {
       const props: LoadingStateProps = {
         ...defaultLoadingProps,
-        type: 'table'
+        type: 'table',
       };
 
       expect(() => {
@@ -77,7 +85,7 @@ describe('User Story 6: Handle Loading and Error States', () => {
     it('should handle card loading type', () => {
       const props: LoadingStateProps = {
         ...defaultLoadingProps,
-        type: 'card'
+        type: 'card',
       };
 
       expect(() => {
@@ -88,7 +96,7 @@ describe('User Story 6: Handle Loading and Error States', () => {
     it('should handle inline loading type', () => {
       const props: LoadingStateProps = {
         ...defaultLoadingProps,
-        type: 'inline'
+        type: 'inline',
       };
 
       expect(() => {
@@ -99,7 +107,7 @@ describe('User Story 6: Handle Loading and Error States', () => {
     it('should handle custom loading message', () => {
       const props: LoadingStateProps = {
         ...defaultLoadingProps,
-        message: 'Fetching contact data...'
+        message: 'Fetching contact data...',
       };
 
       expect(() => {
@@ -109,7 +117,7 @@ describe('User Story 6: Handle Loading and Error States', () => {
 
     it('should handle loading without message', () => {
       const props: LoadingStateProps = {
-        type: 'table'
+        type: 'table',
       };
 
       expect(() => {
@@ -120,7 +128,7 @@ describe('User Story 6: Handle Loading and Error States', () => {
     it('should support custom styling for loading', () => {
       const props: LoadingStateProps = {
         ...defaultLoadingProps,
-        className: 'custom-loading'
+        className: 'custom-loading',
       };
 
       expect(() => {
@@ -139,7 +147,7 @@ describe('User Story 6: Handle Loading and Error States', () => {
     it('should handle network error type', () => {
       const props: ErrorDisplayProps = {
         ...defaultErrorProps,
-        type: 'network'
+        type: 'network',
       };
 
       expect(() => {
@@ -150,7 +158,7 @@ describe('User Story 6: Handle Loading and Error States', () => {
     it('should handle auth error type', () => {
       const props: ErrorDisplayProps = {
         ...defaultErrorProps,
-        type: 'auth'
+        type: 'auth',
       };
 
       expect(() => {
@@ -161,7 +169,7 @@ describe('User Story 6: Handle Loading and Error States', () => {
     it('should handle validation error type', () => {
       const props: ErrorDisplayProps = {
         ...defaultErrorProps,
-        type: 'validation'
+        type: 'validation',
       };
 
       expect(() => {
@@ -172,7 +180,7 @@ describe('User Story 6: Handle Loading and Error States', () => {
     it('should handle server error type', () => {
       const props: ErrorDisplayProps = {
         ...defaultErrorProps,
-        type: 'server'
+        type: 'server',
       };
 
       expect(() => {
@@ -183,7 +191,7 @@ describe('User Story 6: Handle Loading and Error States', () => {
     it('should handle custom error messages', () => {
       const props: ErrorDisplayProps = {
         ...defaultErrorProps,
-        error: 'Connection timeout - please try again'
+        error: 'Connection timeout - please try again',
       };
 
       expect(() => {
@@ -196,7 +204,7 @@ describe('User Story 6: Handle Loading and Error States', () => {
 
       const props: ErrorDisplayProps = {
         ...defaultErrorProps,
-        onRetry: mockOnRetry
+        onRetry: mockOnRetry,
       };
 
       render(MockErrorDisplay(props));
@@ -210,7 +218,7 @@ describe('User Story 6: Handle Loading and Error States', () => {
 
       const props: ErrorDisplayProps = {
         ...defaultErrorProps,
-        onDismiss: mockOnDismiss
+        onDismiss: mockOnDismiss,
       };
 
       render(MockErrorDisplay(props));
@@ -223,7 +231,7 @@ describe('User Story 6: Handle Loading and Error States', () => {
       const props: ErrorDisplayProps = {
         ...defaultErrorProps,
         showDetails: true,
-        details: { statusCode: 500, timestamp: new Date() }
+        details: { statusCode: 500, timestamp: new Date() },
       };
 
       expect(() => {
@@ -234,7 +242,7 @@ describe('User Story 6: Handle Loading and Error States', () => {
     it('should support custom styling for errors', () => {
       const props: ErrorDisplayProps = {
         ...defaultErrorProps,
-        className: 'custom-error'
+        className: 'custom-error',
       };
 
       expect(() => {

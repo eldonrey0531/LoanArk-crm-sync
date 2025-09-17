@@ -11,7 +11,7 @@ import {
   SupabaseContact,
   SupabaseEmailVerificationService as ISupabaseEmailVerificationService,
   GetEmailVerificationRecordsParams,
-  PaginationInfo
+  PaginationInfo,
 } from '../types/emailVerification';
 
 // Mock Supabase client - in production, this would be the actual Supabase client
@@ -27,8 +27,9 @@ export function initializeSupabaseEmailVerificationService(client: any) {
 /**
  * Supabase Email Verification Service implementation
  */
-export class SupabaseEmailVerificationService implements ISupabaseEmailVerificationService {
-
+export class SupabaseEmailVerificationService
+  implements ISupabaseEmailVerificationService
+{
   /**
    * Get contacts with email verification status
    *
@@ -80,14 +81,13 @@ export class SupabaseEmailVerificationService implements ISupabaseEmailVerificat
         total: totalCount || 0,
         totalPages: Math.ceil((totalCount || 0) / limit),
         hasNext: page * limit < (totalCount || 0),
-        hasPrev: page > 1
+        hasPrev: page > 1,
       };
 
       return {
         records: data || [],
-        pagination
+        pagination,
       };
-
     } catch (error) {
       console.error('Error fetching contacts with email verification:', error);
       throw error;
@@ -120,7 +120,6 @@ export class SupabaseEmailVerificationService implements ISupabaseEmailVerificat
       }
 
       return data as SupabaseContact;
-
     } catch (error) {
       console.error(`Error fetching contact ${contactId}:`, error);
       throw error;
@@ -147,7 +146,6 @@ export class SupabaseEmailVerificationService implements ISupabaseEmailVerificat
         contact.hs_object_id &&
         contact.email
       );
-
     } catch (error) {
       console.error(`Error validating contact ${contactId} for sync:`, error);
       return false;
@@ -160,7 +158,9 @@ export class SupabaseEmailVerificationService implements ISupabaseEmailVerificat
    * @param limit - Maximum number of contacts to return
    * @returns Promise<SupabaseContact[]> - Array of contacts needing sync
    */
-  async getContactsNeedingSync(limit: number = 100): Promise<SupabaseContact[]> {
+  async getContactsNeedingSync(
+    limit: number = 100
+  ): Promise<SupabaseContact[]> {
     try {
       if (!supabaseClient) {
         throw new Error('Supabase client not initialized');
@@ -180,7 +180,6 @@ export class SupabaseEmailVerificationService implements ISupabaseEmailVerificat
       }
 
       return data || [];
-
     } catch (error) {
       console.error('Error fetching contacts needing sync:', error);
       throw error;
@@ -194,7 +193,10 @@ export class SupabaseEmailVerificationService implements ISupabaseEmailVerificat
    * @param syncTimestamp - The timestamp of the sync operation
    * @returns Promise<void>
    */
-  async updateLastSyncTimestamp(contactId: number, syncTimestamp: Date): Promise<void> {
+  async updateLastSyncTimestamp(
+    contactId: number,
+    syncTimestamp: Date
+  ): Promise<void> {
     try {
       if (!supabaseClient) {
         throw new Error('Supabase client not initialized');
@@ -204,16 +206,18 @@ export class SupabaseEmailVerificationService implements ISupabaseEmailVerificat
         .from('contacts')
         .update({
           last_sync_at: syncTimestamp.toISOString(),
-          updated_at: new Date().toISOString()
+          updated_at: new Date().toISOString(),
         })
         .eq('id', contactId);
 
       if (error) {
         throw new Error(`Supabase update error: ${error.message}`);
       }
-
     } catch (error) {
-      console.error(`Error updating sync timestamp for contact ${contactId}:`, error);
+      console.error(
+        `Error updating sync timestamp for contact ${contactId}:`,
+        error
+      );
       throw error;
     }
   }
@@ -254,15 +258,17 @@ export class SupabaseEmailVerificationService implements ISupabaseEmailVerificat
       const stats = {
         verified: 0,
         unverified: 0,
-        pending: 0
+        pending: 0,
       };
 
-      statusCounts?.forEach((contact: { email_verification_status: string }) => {
-        const status = contact.email_verification_status.toLowerCase();
-        if (status === 'verified') stats.verified++;
-        else if (status === 'unverified') stats.unverified++;
-        else if (status === 'pending') stats.pending++;
-      });
+      statusCounts?.forEach(
+        (contact: { email_verification_status: string }) => {
+          const status = contact.email_verification_status.toLowerCase();
+          if (status === 'verified') stats.verified++;
+          else if (status === 'unverified') stats.unverified++;
+          else if (status === 'pending') stats.pending++;
+        }
+      );
 
       // Get last sync date
       const { data: lastSyncData } = await supabaseClient
@@ -278,9 +284,8 @@ export class SupabaseEmailVerificationService implements ISupabaseEmailVerificat
         verifiedContacts: stats.verified,
         unverifiedContacts: stats.unverified,
         pendingContacts: stats.pending,
-        lastSyncDate: lastSyncData?.last_sync_at
+        lastSyncDate: lastSyncData?.last_sync_at,
       };
-
     } catch (error) {
       console.error('Error fetching sync statistics:', error);
       throw error;
@@ -289,7 +294,8 @@ export class SupabaseEmailVerificationService implements ISupabaseEmailVerificat
 }
 
 // Export singleton instance
-export const supabaseEmailVerificationService = new SupabaseEmailVerificationService();
+export const supabaseEmailVerificationService =
+  new SupabaseEmailVerificationService();
 
 // Export the service class and instance
 export default SupabaseEmailVerificationService;

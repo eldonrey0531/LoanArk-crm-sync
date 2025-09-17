@@ -13,7 +13,7 @@ import {
   GetEmailVerificationRecordsParams,
   GetEmailVerificationRecordsResponse,
   SupabaseContact,
-  PaginationInfo
+  PaginationInfo,
 } from '../../types/emailVerification';
 
 // Mock the Netlify function endpoint
@@ -31,7 +31,7 @@ const mockSupabaseContacts: SupabaseContact[] = [
     created_at: '2025-01-15T10:30:00Z',
     updated_at: '2025-01-15T10:30:00Z',
     createdate: '2025-01-15T10:30:00Z',
-    lastmodifieddate: '2025-01-15T10:30:00Z'
+    lastmodifieddate: '2025-01-15T10:30:00Z',
   },
   {
     id: 2,
@@ -43,8 +43,8 @@ const mockSupabaseContacts: SupabaseContact[] = [
     created_at: '2025-01-14T09:15:00Z',
     updated_at: '2025-01-14T09:15:00Z',
     createdate: '2025-01-14T09:15:00Z',
-    lastmodifieddate: '2025-01-14T09:15:00Z'
-  }
+    lastmodifieddate: '2025-01-14T09:15:00Z',
+  },
 ];
 
 const mockPaginationInfo: PaginationInfo = {
@@ -53,7 +53,7 @@ const mockPaginationInfo: PaginationInfo = {
   total: 2,
   totalPages: 1,
   hasNext: false,
-  hasPrev: false
+  hasPrev: false,
 };
 
 describe('GET /api/email-verification-records Contract', () => {
@@ -69,7 +69,9 @@ describe('GET /api/email-verification-records Contract', () => {
   describe('Request Structure', () => {
     it('should accept GET requests', async () => {
       // This test will fail until the endpoint is implemented
-      const response = await fetch(`${API_BASE_URL}/email-verification-records`);
+      const response = await fetch(
+        `${API_BASE_URL}/email-verification-records`
+      );
       expect(response.status).not.toBe(404); // Should not be "Not Found"
     });
 
@@ -78,14 +80,14 @@ describe('GET /api/email-verification-records Contract', () => {
         page: 1,
         limit: 10,
         sortBy: 'created_at',
-        sortOrder: 'desc'
+        sortOrder: 'desc',
       };
 
       const queryString = new URLSearchParams({
         page: params.page!.toString(),
         limit: params.limit!.toString(),
         sortBy: params.sortBy!,
-        sortOrder: params.sortOrder!
+        sortOrder: params.sortOrder!,
       });
 
       const response = await fetch(
@@ -98,11 +100,11 @@ describe('GET /api/email-verification-records Contract', () => {
 
     it('should accept search parameter for filtering', async () => {
       const params: GetEmailVerificationRecordsParams = {
-        search: 'john'
+        search: 'john',
       };
 
       const queryString = new URLSearchParams({
-        search: params.search!
+        search: params.search!,
       });
 
       const response = await fetch(
@@ -116,14 +118,18 @@ describe('GET /api/email-verification-records Contract', () => {
 
   describe('Response Structure', () => {
     it('should return JSON response', async () => {
-      const response = await fetch(`${API_BASE_URL}/email-verification-records`);
+      const response = await fetch(
+        `${API_BASE_URL}/email-verification-records`
+      );
       const contentType = response.headers.get('content-type');
 
       expect(contentType).toContain('application/json');
     });
 
     it('should return success response with proper structure', async () => {
-      const response = await fetch(`${API_BASE_URL}/email-verification-records`);
+      const response = await fetch(
+        `${API_BASE_URL}/email-verification-records`
+      );
       const data = await response.json();
 
       // Check if response matches expected contract structure
@@ -138,9 +144,9 @@ describe('GET /api/email-verification-records Contract', () => {
               total: 0,
               totalPages: 0,
               hasNext: false,
-              hasPrev: false
-            }
-          }
+              hasPrev: false,
+            },
+          },
         };
 
         expect(data).toHaveProperty('success');
@@ -149,7 +155,9 @@ describe('GET /api/email-verification-records Contract', () => {
     });
 
     it('should return records array when successful', async () => {
-      const response = await fetch(`${API_BASE_URL}/email-verification-records`);
+      const response = await fetch(
+        `${API_BASE_URL}/email-verification-records`
+      );
       const data = await response.json();
 
       if (response.status === 200 && data.success) {
@@ -170,7 +178,9 @@ describe('GET /api/email-verification-records Contract', () => {
     });
 
     it('should return pagination information', async () => {
-      const response = await fetch(`${API_BASE_URL}/email-verification-records`);
+      const response = await fetch(
+        `${API_BASE_URL}/email-verification-records`
+      );
       const data = await response.json();
 
       if (response.status === 200 && data.success) {
@@ -188,7 +198,9 @@ describe('GET /api/email-verification-records Contract', () => {
   describe('Success Scenarios', () => {
     it('should return records with email verification status', async () => {
       // This test assumes some test data exists
-      const response = await fetch(`${API_BASE_URL}/email-verification-records`);
+      const response = await fetch(
+        `${API_BASE_URL}/email-verification-records`
+      );
       const data = await response.json();
 
       if (response.status === 200 && data.success) {
@@ -220,7 +232,11 @@ describe('GET /api/email-verification-records Contract', () => {
       );
       const data = await response.json();
 
-      if (response.status === 200 && data.success && data.data.records.length > 1) {
+      if (
+        response.status === 200 &&
+        data.success &&
+        data.data.records.length > 1
+      ) {
         // Check if records are sorted by created_at descending
         for (let i = 1; i < data.data.records.length; i++) {
           const prevDate = new Date(data.data.records[i - 1].created_at || '');
@@ -251,7 +267,9 @@ describe('GET /api/email-verification-records Contract', () => {
     it('should handle database connection errors', async () => {
       // This test may need to be implemented differently based on
       // how database errors are handled in the actual implementation
-      const response = await fetch(`${API_BASE_URL}/email-verification-records`);
+      const response = await fetch(
+        `${API_BASE_URL}/email-verification-records`
+      );
       const data = await response.json();
 
       // Should handle database errors gracefully
@@ -266,7 +284,9 @@ describe('GET /api/email-verification-records Contract', () => {
 
     it('should handle missing authentication', async () => {
       // If authentication is required, test without auth headers
-      const response = await fetch(`${API_BASE_URL}/email-verification-records`);
+      const response = await fetch(
+        `${API_BASE_URL}/email-verification-records`
+      );
 
       // Should return 401 or handle gracefully
       expect([200, 401]).toContain(response.status);
@@ -282,7 +302,9 @@ describe('GET /api/email-verification-records Contract', () => {
   describe('Performance and Load', () => {
     it('should respond within reasonable time', async () => {
       const startTime = Date.now();
-      const response = await fetch(`${API_BASE_URL}/email-verification-records`);
+      const response = await fetch(
+        `${API_BASE_URL}/email-verification-records`
+      );
       const endTime = Date.now();
 
       const responseTime = endTime - startTime;
@@ -290,7 +312,9 @@ describe('GET /api/email-verification-records Contract', () => {
     });
 
     it('should handle empty result set', async () => {
-      const response = await fetch(`${API_BASE_URL}/email-verification-records`);
+      const response = await fetch(
+        `${API_BASE_URL}/email-verification-records`
+      );
       const data = await response.json();
 
       if (response.status === 200 && data.success) {
@@ -303,10 +327,16 @@ describe('GET /api/email-verification-records Contract', () => {
 
   describe('Data Validation', () => {
     it('should only return records with non-null email_verification_status', async () => {
-      const response = await fetch(`${API_BASE_URL}/email-verification-records`);
+      const response = await fetch(
+        `${API_BASE_URL}/email-verification-records`
+      );
       const data = await response.json();
 
-      if (response.status === 200 && data.success && data.data.records.length > 0) {
+      if (
+        response.status === 200 &&
+        data.success &&
+        data.data.records.length > 0
+      ) {
         data.data.records.forEach((record: SupabaseContact) => {
           expect(record.email_verification_status).not.toBeNull();
           expect(record.email_verification_status).toBeDefined();
@@ -315,10 +345,16 @@ describe('GET /api/email-verification-records Contract', () => {
     });
 
     it('should include required fields for each record', async () => {
-      const response = await fetch(`${API_BASE_URL}/email-verification-records`);
+      const response = await fetch(
+        `${API_BASE_URL}/email-verification-records`
+      );
       const data = await response.json();
 
-      if (response.status === 200 && data.success && data.data.records.length > 0) {
+      if (
+        response.status === 200 &&
+        data.success &&
+        data.data.records.length > 0
+      ) {
         data.data.records.forEach((record: SupabaseContact) => {
           expect(record).toHaveProperty('id');
           expect(typeof record.id).toBe('number');

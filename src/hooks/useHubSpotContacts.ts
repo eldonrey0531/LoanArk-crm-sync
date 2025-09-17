@@ -16,7 +16,10 @@ export const useHubSpotContacts = ({
   properties,
   enabled = true,
 }: UseHubSpotContactsOptions) => {
-  const endpoint = type === 'sync' ? '/.netlify/functions/hubspot-contacts-sync' : '/.netlify/functions/hubspot-contacts-live';
+  const endpoint =
+    type === 'sync'
+      ? '/.netlify/functions/hubspot-contacts-sync'
+      : '/.netlify/functions/hubspot-contacts-live';
 
   const queryKey = ['hubspot-contacts', type, limit, offset, properties];
 
@@ -43,7 +46,9 @@ export const useHubSpotContacts = ({
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error || `Failed to fetch contacts: ${response.status}`);
+        throw new Error(
+          errorData.error || `Failed to fetch contacts: ${response.status}`
+        );
       }
 
       return response.json();
@@ -53,7 +58,10 @@ export const useHubSpotContacts = ({
     gcTime: 10 * 60 * 1000, // 10 minutes
     retry: (failureCount, error) => {
       // Don't retry on auth errors
-      if (error.message.includes('authentication') || error.message.includes('401')) {
+      if (
+        error.message.includes('authentication') ||
+        error.message.includes('401')
+      ) {
         return false;
       }
       return failureCount < 3;
@@ -61,7 +69,10 @@ export const useHubSpotContacts = ({
   });
 };
 
-export const useHubSpotContact = (contactId: string, type: 'sync' | 'live' = 'sync') => {
+export const useHubSpotContact = (
+  contactId: string,
+  type: 'sync' | 'live' = 'sync'
+) => {
   const { data, ...query } = useHubSpotContacts({
     type,
     limit: 1,

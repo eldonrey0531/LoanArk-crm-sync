@@ -14,9 +14,8 @@ const createWrapper = () => {
       },
     },
   });
-  return ({ children }: { children: React.ReactNode }) => (
-    React.createElement(QueryClientProvider, { client: queryClient }, children)
-  );
+  return ({ children }: { children: React.ReactNode }) =>
+    React.createElement(QueryClientProvider, { client: queryClient }, children);
 };
 
 // Mock the auth service
@@ -41,13 +40,12 @@ describe('useSyncStatus', () => {
   it('should return initial state correctly for all operations', () => {
     (mockAuthService.isAuthenticated as Mock).mockReturnValue(true);
     (mockAuthService.getAuthHeader as Mock).mockResolvedValue({
-      Authorization: 'Bearer test-token'
+      Authorization: 'Bearer test-token',
     });
 
-    const { result } = renderHook(
-      () => useSyncStatus(),
-      { wrapper: createWrapper() }
-    );
+    const { result } = renderHook(() => useSyncStatus(), {
+      wrapper: createWrapper(),
+    });
 
     expect(result.current.operations).toBeUndefined();
     expect(result.current.operation).toBeUndefined();
@@ -60,13 +58,12 @@ describe('useSyncStatus', () => {
   it('should return initial state correctly for specific operation', () => {
     (mockAuthService.isAuthenticated as Mock).mockReturnValue(true);
     (mockAuthService.getAuthHeader as Mock).mockResolvedValue({
-      Authorization: 'Bearer test-token'
+      Authorization: 'Bearer test-token',
     });
 
-    const { result } = renderHook(
-      () => useSyncStatus('sync_123'),
-      { wrapper: createWrapper() }
-    );
+    const { result } = renderHook(() => useSyncStatus('sync_123'), {
+      wrapper: createWrapper(),
+    });
 
     expect(result.current.operations).toBeUndefined();
     expect(result.current.operation).toBeUndefined();
@@ -78,10 +75,9 @@ describe('useSyncStatus', () => {
   it('should handle unauthenticated state', async () => {
     (mockAuthService.isAuthenticated as Mock).mockReturnValue(false);
 
-    const { result } = renderHook(
-      () => useSyncStatus(),
-      { wrapper: createWrapper() }
-    );
+    const { result } = renderHook(() => useSyncStatus(), {
+      wrapper: createWrapper(),
+    });
 
     await waitFor(() => {
       expect(result.current.isLoading).toBe(false);
@@ -94,22 +90,23 @@ describe('useSyncStatus', () => {
     (mockAuthService.isAuthenticated as Mock).mockReturnValue(true);
     (mockAuthService.getAuthHeader as Mock).mockResolvedValue(null);
 
-    const { result } = renderHook(
-      () => useSyncStatus(),
-      { wrapper: createWrapper() }
-    );
+    const { result } = renderHook(() => useSyncStatus(), {
+      wrapper: createWrapper(),
+    });
 
     await waitFor(() => {
       expect(result.current.isLoading).toBe(false);
     });
 
-    expect(result.current.error?.message).toContain('Failed to get authentication token');
+    expect(result.current.error?.message).toContain(
+      'Failed to get authentication token'
+    );
   });
 
   it('should fetch all operations successfully', async () => {
     (mockAuthService.isAuthenticated as Mock).mockReturnValue(true);
     (mockAuthService.getAuthHeader as Mock).mockResolvedValue({
-      Authorization: 'Bearer test-token'
+      Authorization: 'Bearer test-token',
     });
 
     const mockOperations = [
@@ -123,7 +120,7 @@ describe('useSyncStatus', () => {
         sourceValue: 'verified',
         targetValue: 'verified',
         initiatedBy: 'system',
-        retryCount: 0
+        retryCount: 0,
       },
       {
         id: 'sync_002',
@@ -133,8 +130,8 @@ describe('useSyncStatus', () => {
         startedAt: new Date(Date.now() - 300000),
         sourceValue: 'unverified',
         initiatedBy: 'user',
-        retryCount: 0
-      }
+        retryCount: 0,
+      },
     ];
 
     const mockResponse = {
@@ -147,20 +144,19 @@ describe('useSyncStatus', () => {
           completed: 1,
           inProgress: 1,
           failed: 0,
-          pending: 0
-        }
-      }
+          pending: 0,
+        },
+      },
     };
 
     mockFetch.mockResolvedValueOnce({
       ok: true,
-      json: () => Promise.resolve(mockResponse)
+      json: () => Promise.resolve(mockResponse),
     });
 
-    const { result } = renderHook(
-      () => useSyncStatus(),
-      { wrapper: createWrapper() }
-    );
+    const { result } = renderHook(() => useSyncStatus(), {
+      wrapper: createWrapper(),
+    });
 
     await waitFor(() => {
       expect(result.current.isLoading).toBe(false);
@@ -172,7 +168,7 @@ describe('useSyncStatus', () => {
       completed: 1,
       inProgress: 1,
       failed: 0,
-      pending: 0
+      pending: 0,
     });
     expect(result.current.error).toBeNull();
   });
@@ -180,7 +176,7 @@ describe('useSyncStatus', () => {
   it('should fetch specific operation successfully', async () => {
     (mockAuthService.isAuthenticated as Mock).mockReturnValue(true);
     (mockAuthService.getAuthHeader as Mock).mockResolvedValue({
-      Authorization: 'Bearer test-token'
+      Authorization: 'Bearer test-token',
     });
 
     const mockOperation = {
@@ -193,25 +189,24 @@ describe('useSyncStatus', () => {
       sourceValue: 'verified',
       targetValue: 'verified',
       initiatedBy: 'system',
-      retryCount: 0
+      retryCount: 0,
     };
 
     const mockResponse = {
       success: true,
       data: {
-        operation: mockOperation
-      }
+        operation: mockOperation,
+      },
     };
 
     mockFetch.mockResolvedValueOnce({
       ok: true,
-      json: () => Promise.resolve(mockResponse)
+      json: () => Promise.resolve(mockResponse),
     });
 
-    const { result } = renderHook(
-      () => useSyncStatus('sync_123'),
-      { wrapper: createWrapper() }
-    );
+    const { result } = renderHook(() => useSyncStatus('sync_123'), {
+      wrapper: createWrapper(),
+    });
 
     await waitFor(() => {
       expect(result.current.isLoading).toBe(false);
@@ -226,96 +221,96 @@ describe('useSyncStatus', () => {
   it('should handle operation not found', async () => {
     (mockAuthService.isAuthenticated as Mock).mockReturnValue(true);
     (mockAuthService.getAuthHeader as Mock).mockResolvedValue({
-      Authorization: 'Bearer test-token'
+      Authorization: 'Bearer test-token',
     });
 
     mockFetch.mockResolvedValueOnce({
       ok: false,
       status: 404,
-      statusText: 'Not Found'
+      statusText: 'Not Found',
     });
 
-    const { result } = renderHook(
-      () => useSyncStatus('nonexistent'),
-      { wrapper: createWrapper() }
-    );
+    const { result } = renderHook(() => useSyncStatus('nonexistent'), {
+      wrapper: createWrapper(),
+    });
 
     await waitFor(() => {
       expect(result.current.isLoading).toBe(false);
     });
 
-    expect(result.current.error?.message).toContain('Operation with ID nonexistent not found');
+    expect(result.current.error?.message).toContain(
+      'Operation with ID nonexistent not found'
+    );
   });
 
   it('should handle API errors', async () => {
     (mockAuthService.isAuthenticated as Mock).mockReturnValue(true);
     (mockAuthService.getAuthHeader as Mock).mockResolvedValue({
-      Authorization: 'Bearer test-token'
+      Authorization: 'Bearer test-token',
     });
 
     mockFetch.mockResolvedValueOnce({
       ok: false,
       status: 500,
-      statusText: 'Internal Server Error'
+      statusText: 'Internal Server Error',
     });
 
-    const { result } = renderHook(
-      () => useSyncStatus(),
-      { wrapper: createWrapper() }
-    );
+    const { result } = renderHook(() => useSyncStatus(), {
+      wrapper: createWrapper(),
+    });
 
     await waitFor(() => {
       expect(result.current.isLoading).toBe(false);
     });
 
-    expect(result.current.error?.message).toContain('Failed to fetch sync status');
+    expect(result.current.error?.message).toContain(
+      'Failed to fetch sync status'
+    );
   });
 
   it('should handle API response errors', async () => {
     (mockAuthService.isAuthenticated as Mock).mockReturnValue(true);
     (mockAuthService.getAuthHeader as Mock).mockResolvedValue({
-      Authorization: 'Bearer test-token'
+      Authorization: 'Bearer test-token',
     });
 
     const mockResponse = {
       success: false,
       error: {
-        message: 'Database connection failed'
-      }
+        message: 'Database connection failed',
+      },
     };
 
     mockFetch.mockResolvedValueOnce({
       ok: true,
-      json: () => Promise.resolve(mockResponse)
+      json: () => Promise.resolve(mockResponse),
     });
 
-    const { result } = renderHook(
-      () => useSyncStatus(),
-      { wrapper: createWrapper() }
-    );
+    const { result } = renderHook(() => useSyncStatus(), {
+      wrapper: createWrapper(),
+    });
 
     await waitFor(() => {
       expect(result.current.isLoading).toBe(false);
     });
 
-    expect(result.current.error?.message).toContain('Database connection failed');
+    expect(result.current.error?.message).toContain(
+      'Database connection failed'
+    );
   });
 
   it('should make correct API call for all operations', async () => {
     (mockAuthService.isAuthenticated as Mock).mockReturnValue(true);
     (mockAuthService.getAuthHeader as Mock).mockResolvedValue({
-      Authorization: 'Bearer test-token'
+      Authorization: 'Bearer test-token',
     });
 
     mockFetch.mockResolvedValueOnce({
       ok: true,
-      json: () => Promise.resolve({ success: true, data: { operations: [] } })
+      json: () => Promise.resolve({ success: true, data: { operations: [] } }),
     });
 
-    renderHook(
-      () => useSyncStatus(),
-      { wrapper: createWrapper() }
-    );
+    renderHook(() => useSyncStatus(), { wrapper: createWrapper() });
 
     await waitFor(() => {
       expect(mockFetch).toHaveBeenCalledWith(
@@ -324,8 +319,8 @@ describe('useSyncStatus', () => {
           method: 'GET',
           headers: expect.objectContaining({
             'Content-Type': 'application/json',
-            Authorization: 'Bearer test-token'
-          })
+            Authorization: 'Bearer test-token',
+          }),
         })
       );
     });
@@ -334,18 +329,15 @@ describe('useSyncStatus', () => {
   it('should make correct API call for specific operation', async () => {
     (mockAuthService.isAuthenticated as Mock).mockReturnValue(true);
     (mockAuthService.getAuthHeader as Mock).mockResolvedValue({
-      Authorization: 'Bearer test-token'
+      Authorization: 'Bearer test-token',
     });
 
     mockFetch.mockResolvedValueOnce({
       ok: true,
-      json: () => Promise.resolve({ success: true, data: { operation: {} } })
+      json: () => Promise.resolve({ success: true, data: { operation: {} } }),
     });
 
-    renderHook(
-      () => useSyncStatus('sync_123'),
-      { wrapper: createWrapper() }
-    );
+    renderHook(() => useSyncStatus('sync_123'), { wrapper: createWrapper() });
 
     await waitFor(() => {
       expect(mockFetch).toHaveBeenCalledWith(
@@ -354,8 +346,8 @@ describe('useSyncStatus', () => {
           method: 'GET',
           headers: expect.objectContaining({
             'Content-Type': 'application/json',
-            Authorization: 'Bearer test-token'
-          })
+            Authorization: 'Bearer test-token',
+          }),
         })
       );
     });
@@ -364,25 +356,25 @@ describe('useSyncStatus', () => {
   it('should handle timeout', async () => {
     (mockAuthService.isAuthenticated as Mock).mockReturnValue(true);
     (mockAuthService.getAuthHeader as Mock).mockResolvedValue({
-      Authorization: 'Bearer test-token'
+      Authorization: 'Bearer test-token',
     });
 
     // Mock a slow response that exceeds timeout
     mockFetch.mockImplementation(
-      () => new Promise(resolve => {
-        setTimeout(() => {
-          resolve({
-            ok: true,
-            json: () => Promise.resolve({ success: true, data: {} })
-          });
-        }, 15000); // 15 seconds, exceeds 10 second timeout
-      })
+      () =>
+        new Promise(resolve => {
+          setTimeout(() => {
+            resolve({
+              ok: true,
+              json: () => Promise.resolve({ success: true, data: {} }),
+            });
+          }, 15000); // 15 seconds, exceeds 10 second timeout
+        })
     );
 
-    const { result } = renderHook(
-      () => useSyncStatus(),
-      { wrapper: createWrapper() }
-    );
+    const { result } = renderHook(() => useSyncStatus(), {
+      wrapper: createWrapper(),
+    });
 
     await waitFor(() => {
       expect(result.current.isLoading).toBe(false);

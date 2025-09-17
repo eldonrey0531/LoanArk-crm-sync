@@ -1,4 +1,13 @@
-import { describe, it, expect, beforeEach, vi, afterEach, beforeAll, afterAll } from 'vitest';
+import {
+  describe,
+  it,
+  expect,
+  beforeEach,
+  vi,
+  afterEach,
+  beforeAll,
+  afterAll,
+} from 'vitest';
 import hubspotService from '../hubspot';
 import StorageManager from '../../utils/storage';
 
@@ -44,67 +53,74 @@ const mockFetch = vi.fn();
 vi.stubGlobal('fetch', mockFetch);
 
 // Set up mock responses immediately
-mockFetch.mockImplementation(async (url: string | URL | Request, options: any) => {
-  const urlString = typeof url === 'string' ? url : url instanceof URL ? url.href : url.url;
+mockFetch.mockImplementation(
+  async (url: string | URL | Request, options: any) => {
+    const urlString =
+      typeof url === 'string' ? url : url instanceof URL ? url.href : url.url;
 
-  // Handle Netlify function calls - check for both absolute and relative URLs
-  if (urlString.includes('/.netlify/functions/hubspot-test') ||
-      urlString.endsWith('/.netlify/functions/hubspot-test')) {
-    return {
-      ok: true,
-      json: async () => ({
-        connected: true,
-        total: 150,
-        message: 'HubSpot connection successful',
-      }),
-    };
-  }
+    // Handle Netlify function calls - check for both absolute and relative URLs
+    if (
+      urlString.includes('/.netlify/functions/hubspot-test') ||
+      urlString.endsWith('/.netlify/functions/hubspot-test')
+    ) {
+      return {
+        ok: true,
+        json: async () => ({
+          connected: true,
+          total: 150,
+          message: 'HubSpot connection successful',
+        }),
+      };
+    }
 
-  if (urlString.includes('/.netlify/functions/hubspot-contacts') ||
-      urlString.endsWith('/.netlify/functions/hubspot-contacts')) {
-    return {
-      ok: true,
-      json: async () => ({
-        results: [
-          {
-            id: 'hubspot-contact-1',
-            properties: {
-              email: 'contact1@example.com',
-              firstname: 'Alice',
-              lastname: 'Johnson',
-              phone: '+1234567890',
-              company: 'Tech Corp',
+    if (
+      urlString.includes('/.netlify/functions/hubspot-contacts') ||
+      urlString.endsWith('/.netlify/functions/hubspot-contacts')
+    ) {
+      return {
+        ok: true,
+        json: async () => ({
+          results: [
+            {
+              id: 'hubspot-contact-1',
+              properties: {
+                email: 'contact1@example.com',
+                firstname: 'Alice',
+                lastname: 'Johnson',
+                phone: '+1234567890',
+                company: 'Tech Corp',
+              },
+              createdAt: new Date().toISOString(),
+              updatedAt: new Date().toISOString(),
             },
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
-          },
-          {
-            id: 'hubspot-contact-2',
-            properties: {
-              email: 'contact2@example.com',
-              firstname: 'Bob',
-              lastname: 'Smith',
-              phone: '+1987654321',
-              company: 'Design Studio',
+            {
+              id: 'hubspot-contact-2',
+              properties: {
+                email: 'contact2@example.com',
+                firstname: 'Bob',
+                lastname: 'Smith',
+                phone: '+1987654321',
+                company: 'Design Studio',
+              },
+              createdAt: new Date().toISOString(),
+              updatedAt: new Date().toISOString(),
             },
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
+          ],
+          total: 2,
+          paging: {
+            next: {
+              after: '2',
+              link: '?after=2',
+            },
           },
-        ],
-        total: 2,
-        paging: {
-          next: {
-            after: '2',
-            link: '?after=2',
-          },
-        },
-      }),
-    };
-  }
+        }),
+      };
+    }
 
-  // Default fallback - throw an error for unhandled URLs
-  throw new Error(`Unhandled URL in mock: ${urlString}`);
-});
+    // Default fallback - throw an error for unhandled URLs
+    throw new Error(`Unhandled URL in mock: ${urlString}`);
+  }
+);
 
 // Mock StorageManager static methods
 vi.mock('../../utils/storage', () => ({
@@ -168,7 +184,9 @@ describe('HubSpotService', () => {
         total: 100,
         isDemo: false,
       });
-      expect(mockedStorage.getCachedApiResponse).toHaveBeenCalledWith('hubspot-test');
+      expect(mockedStorage.getCachedApiResponse).toHaveBeenCalledWith(
+        'hubspot-test'
+      );
     });
 
     it('should cache successful results', async () => {
@@ -264,7 +282,9 @@ describe('HubSpotService', () => {
         throw new Error('Network error');
       });
 
-      await expect(hubspotService.fetchContacts(testParams)).rejects.toThrow('Network error');
+      await expect(hubspotService.fetchContacts(testParams)).rejects.toThrow(
+        'Network error'
+      );
     });
   });
 

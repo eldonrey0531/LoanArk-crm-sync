@@ -9,7 +9,7 @@
 
 import {
   HubSpotContact,
-  HubSpotEmailVerificationService as IHubSpotEmailVerificationService
+  HubSpotEmailVerificationService as IHubSpotEmailVerificationService,
 } from '../types/emailVerification';
 
 // Mock HubSpot client - in production, this would be the actual HubSpot API client
@@ -25,8 +25,9 @@ export function initializeHubSpotEmailVerificationService(client: any) {
 /**
  * HubSpot Email Verification Service implementation
  */
-export class HubSpotEmailVerificationService implements IHubSpotEmailVerificationService {
-
+export class HubSpotEmailVerificationService
+  implements IHubSpotEmailVerificationService
+{
   /**
    * Update a contact's email verification status in HubSpot
    *
@@ -51,8 +52,8 @@ export class HubSpotEmailVerificationService implements IHubSpotEmailVerificatio
       // Prepare the update payload
       const updatePayload = {
         properties: {
-          email_verification_status: status
-        }
+          email_verification_status: status,
+        },
       };
 
       // Make the API call to update the contact
@@ -65,11 +66,10 @@ export class HubSpotEmailVerificationService implements IHubSpotEmailVerificatio
         id: contactId,
         updatedAt: new Date().toISOString(),
         properties: {
-          email_verification_status: status
+          email_verification_status: status,
         },
-        ...response
+        ...response,
       };
-
     } catch (error: any) {
       console.error(`Error updating HubSpot contact ${contactId}:`, error);
 
@@ -111,21 +111,22 @@ export class HubSpotEmailVerificationService implements IHubSpotEmailVerificatio
           'email',
           'email_verification_status',
           'createdate',
-          'lastmodifieddate'
+          'lastmodifieddate',
         ]
       );
 
       return {
         id: contactId,
-        properties: response.properties
+        properties: response.properties,
       } as HubSpotContact;
-
     } catch (error: any) {
       if (error.response?.status === 404) {
         return null;
       }
 
-      throw new Error(`Failed to get HubSpot contact: ${error.message || 'Unknown error'}`);
+      throw new Error(
+        `Failed to get HubSpot contact: ${error.message || 'Unknown error'}`
+      );
     }
   }
 
@@ -148,14 +149,15 @@ export class HubSpotEmailVerificationService implements IHubSpotEmailVerificatio
       );
 
       return true;
-
     } catch (error: any) {
       if (error.response?.status === 404) {
         return false;
       }
 
       // For other errors, re-throw
-      throw new Error(`HubSpot contact validation failed: ${error.message || 'Unknown error'}`);
+      throw new Error(
+        `HubSpot contact validation failed: ${error.message || 'Unknown error'}`
+      );
     }
   }
 
@@ -176,7 +178,9 @@ export class HubSpotEmailVerificationService implements IHubSpotEmailVerificatio
       // Validate all statuses first
       for (const update of updates) {
         if (!this.validateStatus(update.status)) {
-          throw new Error(`Invalid email verification status: ${update.status}`);
+          throw new Error(
+            `Invalid email verification status: ${update.status}`
+          );
         }
       }
 
@@ -184,13 +188,13 @@ export class HubSpotEmailVerificationService implements IHubSpotEmailVerificatio
       const batchInputs = updates.map(update => ({
         id: update.contactId,
         properties: {
-          email_verification_status: update.status
-        }
+          email_verification_status: update.status,
+        },
       }));
 
       // Execute batch update
       const response = await hubspotClient.crm.contacts.batchApi.update({
-        inputs: batchInputs
+        inputs: batchInputs,
       });
 
       // Return results with additional metadata
@@ -198,12 +202,13 @@ export class HubSpotEmailVerificationService implements IHubSpotEmailVerificatio
         contactId: updates[index].contactId,
         status: updates[index].status,
         updatedAt: new Date().toISOString(),
-        ...result
+        ...result,
       }));
-
     } catch (error: any) {
       console.error('Error in batch update:', error);
-      throw new Error(`HubSpot batch update failed: ${error.message || 'Unknown error'}`);
+      throw new Error(
+        `HubSpot batch update failed: ${error.message || 'Unknown error'}`
+      );
     }
   }
 
@@ -220,38 +225,47 @@ export class HubSpotEmailVerificationService implements IHubSpotEmailVerificatio
       }
 
       const searchRequest = {
-        filterGroups: [{
-          filters: [{
-            propertyName: 'email',
-            operator: 'EQ',
-            value: email
-          }]
-        }],
+        filterGroups: [
+          {
+            filters: [
+              {
+                propertyName: 'email',
+                operator: 'EQ',
+                value: email,
+              },
+            ],
+          },
+        ],
         properties: [
           'firstname',
           'lastname',
           'email',
           'email_verification_status',
           'createdate',
-          'lastmodifieddate'
-        ]
+          'lastmodifieddate',
+        ],
       };
 
-      const response = await hubspotClient.crm.contacts.searchApi.doSearch(searchRequest);
+      const response =
+        await hubspotClient.crm.contacts.searchApi.doSearch(searchRequest);
 
       if (response.results && response.results.length > 0) {
         const contact = response.results[0];
         return {
           id: contact.id,
-          properties: contact.properties
+          properties: contact.properties,
         } as HubSpotContact;
       }
 
       return null;
-
     } catch (error: any) {
-      console.error(`Error searching HubSpot contact by email ${email}:`, error);
-      throw new Error(`HubSpot search failed: ${error.message || 'Unknown error'}`);
+      console.error(
+        `Error searching HubSpot contact by email ${email}:`,
+        error
+      );
+      throw new Error(
+        `HubSpot search failed: ${error.message || 'Unknown error'}`
+      );
     }
   }
 
@@ -284,25 +298,32 @@ export class HubSpotEmailVerificationService implements IHubSpotEmailVerificatio
             'firstname',
             'lastname',
             'email',
-            'email_verification_status'
-          ]
+            'email_verification_status',
+          ],
         };
 
-        const response = await hubspotClient.crm.contacts.batchApi.read(batchRequest);
+        const response =
+          await hubspotClient.crm.contacts.batchApi.read(batchRequest);
 
         if (response.results) {
-          results.push(...response.results.map((result: any) => ({
-            id: result.id,
-            properties: result.properties
-          } as HubSpotContact)));
+          results.push(
+            ...response.results.map(
+              (result: any) =>
+                ({
+                  id: result.id,
+                  properties: result.properties,
+                }) as HubSpotContact
+            )
+          );
         }
       }
 
       return results;
-
     } catch (error: any) {
       console.error('Error fetching contacts by IDs:', error);
-      throw new Error(`HubSpot batch read failed: ${error.message || 'Unknown error'}`);
+      throw new Error(
+        `HubSpot batch read failed: ${error.message || 'Unknown error'}`
+      );
     }
   }
 
@@ -318,7 +339,7 @@ export class HubSpotEmailVerificationService implements IHubSpotEmailVerificatio
       'unverified',
       'pending',
       'bounced',
-      'complained'
+      'complained',
     ];
 
     return validStatuses.includes(status.toLowerCase());
@@ -338,11 +359,10 @@ export class HubSpotEmailVerificationService implements IHubSpotEmailVerificatio
       // Simple API call to check connectivity
       await hubspotClient.crm.contacts.basicApi.getPage({
         limit: 1,
-        properties: ['email']
+        properties: ['email'],
       });
 
       return true;
-
     } catch (error) {
       console.error('HubSpot API connectivity check failed:', error);
       return false;
@@ -365,9 +385,8 @@ export class HubSpotEmailVerificationService implements IHubSpotEmailVerificatio
       return {
         remaining: 100, // Mock remaining calls
         limit: 120, // Mock limit per minute
-        resetTime: new Date(Date.now() + 60000) // Mock reset in 1 minute
+        resetTime: new Date(Date.now() + 60000), // Mock reset in 1 minute
       };
-
     } catch (error) {
       console.error('Error getting rate limit status:', error);
       throw error;
@@ -376,7 +395,8 @@ export class HubSpotEmailVerificationService implements IHubSpotEmailVerificatio
 }
 
 // Export singleton instance
-export const hubspotEmailVerificationService = new HubSpotEmailVerificationService();
+export const hubspotEmailVerificationService =
+  new HubSpotEmailVerificationService();
 
 // Export the service class and instance
 export default HubSpotEmailVerificationService;

@@ -39,7 +39,7 @@ export const ReactQueryDevTools: React.FC<ReactQueryDevToolsProps> = ({
   show = process.env.NODE_ENV === 'development',
   position = 'bottom-right',
   initialIsOpen = false,
-  panelProps
+  panelProps,
 }) => {
   // Don't render anything in production or if show is false
   if (!show) {

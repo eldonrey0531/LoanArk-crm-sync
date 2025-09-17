@@ -55,7 +55,7 @@ export interface SupabaseContact {
  */
 export interface HubSpotContact {
   // HubSpot identifiers
-  id: string;  // This matches Supabase hs_object_id
+  id: string; // This matches Supabase hs_object_id
   properties: {
     // Core contact properties
     firstname?: string;
@@ -78,7 +78,7 @@ export interface HubSpotContact {
  */
 export interface SyncOperation {
   // Operation identifiers
-  id: string;  // Unique operation ID
+  id: string; // Unique operation ID
   supabaseContactId: number;
   hubspotContactId: string;
 
@@ -88,7 +88,7 @@ export interface SyncOperation {
   completedAt?: Date;
 
   // Operation data
-  sourceValue: string;  // email_verification_status from Supabase
+  sourceValue: string; // email_verification_status from Supabase
   targetValue?: string; // email_verification_status sent to HubSpot
 
   // Result data (for completed operations)
@@ -102,7 +102,7 @@ export interface SyncOperation {
   error?: SyncError;
 
   // Metadata
-  initiatedBy: string;  // User or system identifier
+  initiatedBy: string; // User or system identifier
   retryCount: number;
 }
 
@@ -160,24 +160,25 @@ export interface ApiResponse<T = any> {
  */
 export interface GetEmailVerificationRecordsParams {
   // Pagination
-  page?: number;        // Default: 1
-  limit?: number;       // Default: 25, Max: 100
+  page?: number; // Default: 1
+  limit?: number; // Default: 25, Max: 100
 
   // Sorting
   sortBy?: 'created_at' | 'updated_at' | 'firstname' | 'lastname';
-  sortOrder?: 'asc' | 'desc';  // Default: 'desc'
+  sortOrder?: 'asc' | 'desc'; // Default: 'desc'
 
   // Filtering (future enhancement)
-  search?: string;      // Search by name or email
+  search?: string; // Search by name or email
 }
 
 /**
  * Response for email verification records API
  */
-export interface GetEmailVerificationRecordsResponse extends ApiResponse<{
-  records: SupabaseContact[];
-  pagination: PaginationInfo;
-}> {}
+export interface GetEmailVerificationRecordsResponse
+  extends ApiResponse<{
+    records: SupabaseContact[];
+    pagination: PaginationInfo;
+  }> {}
 
 /**
  * Request body for sync email verification operation
@@ -195,77 +196,28 @@ export interface SyncEmailVerificationRequest {
   // Optional metadata
   options?: {
     // Whether to validate HubSpot contact exists before sync
-    validateContact?: boolean;  // Default: true
+    validateContact?: boolean; // Default: true
 
     // Whether to retry on failure
-    retryOnFailure?: boolean;   // Default: false
+    retryOnFailure?: boolean; // Default: false
 
     // Custom retry delay in milliseconds
-    retryDelay?: number;        // Default: 1000
+    retryDelay?: number; // Default: 1000
   };
 }
 
 /**
  * Response for sync email verification operation
  */
-export interface SyncEmailVerificationResponse extends ApiResponse<{
-  operationId: string;
-  supabaseContactId: number;
-  hubspotContactId: string;
-  status: 'completed';
-  syncedAt: string;  // ISO 8601 timestamp
-  previousValue?: string;  // Previous email_verification_status in HubSpot
-  newValue: string;        // New email_verification_status set in HubSpot
-  hubspotResponse: {
-    id: string;
-    updatedAt: string;
-    properties: {
-      email_verification_status: string;
-    };
-  };
-}> {}
-
-/**
- * Processing response for async sync operations
- */
-export interface SyncEmailVerificationProcessingResponse extends ApiResponse<{
-  operationId: string;
-  supabaseContactId: number;
-  hubspotContactId: string;
-  status: 'processing';
-  message: string;  // Human-readable status message
-  estimatedCompletion: string;  // ISO 8601 timestamp
-}> {}
-
-/**
- * Request parameters for sync status check
- */
-export interface GetSyncStatusPathParams {
-  operationId: string;  // UUID or unique identifier for the sync operation
-}
-
-/**
- * Query parameters for sync status check
- */
-export interface GetSyncStatusQueryParams {
-  // Optional: Include detailed error information
-  includeDetails?: boolean;  // Default: false
-}
-
-/**
- * Completed sync status response
- */
-export interface GetSyncStatusCompletedResponse extends ApiResponse<{
-  operationId: string;
-  status: 'completed';
-  supabaseContactId: number;
-  hubspotContactId: string;
-  startedAt: string;   // ISO 8601 timestamp
-  completedAt: string; // ISO 8601 timestamp
-  duration: number;    // Duration in milliseconds
-  result: {
-    previousValue?: string;
-    newValue: string;
+export interface SyncEmailVerificationResponse
+  extends ApiResponse<{
+    operationId: string;
+    supabaseContactId: number;
+    hubspotContactId: string;
+    status: 'completed';
+    syncedAt: string; // ISO 8601 timestamp
+    previousValue?: string; // Previous email_verification_status in HubSpot
+    newValue: string; // New email_verification_status set in HubSpot
     hubspotResponse: {
       id: string;
       updatedAt: string;
@@ -273,45 +225,99 @@ export interface GetSyncStatusCompletedResponse extends ApiResponse<{
         email_verification_status: string;
       };
     };
-  };
-}> {}
+  }> {}
+
+/**
+ * Processing response for async sync operations
+ */
+export interface SyncEmailVerificationProcessingResponse
+  extends ApiResponse<{
+    operationId: string;
+    supabaseContactId: number;
+    hubspotContactId: string;
+    status: 'processing';
+    message: string; // Human-readable status message
+    estimatedCompletion: string; // ISO 8601 timestamp
+  }> {}
+
+/**
+ * Request parameters for sync status check
+ */
+export interface GetSyncStatusPathParams {
+  operationId: string; // UUID or unique identifier for the sync operation
+}
+
+/**
+ * Query parameters for sync status check
+ */
+export interface GetSyncStatusQueryParams {
+  // Optional: Include detailed error information
+  includeDetails?: boolean; // Default: false
+}
+
+/**
+ * Completed sync status response
+ */
+export interface GetSyncStatusCompletedResponse
+  extends ApiResponse<{
+    operationId: string;
+    status: 'completed';
+    supabaseContactId: number;
+    hubspotContactId: string;
+    startedAt: string; // ISO 8601 timestamp
+    completedAt: string; // ISO 8601 timestamp
+    duration: number; // Duration in milliseconds
+    result: {
+      previousValue?: string;
+      newValue: string;
+      hubspotResponse: {
+        id: string;
+        updatedAt: string;
+        properties: {
+          email_verification_status: string;
+        };
+      };
+    };
+  }> {}
 
 /**
  * Failed sync status response
  */
-export interface GetSyncStatusFailedResponse extends ApiResponse<{
-  operationId: string;
-  status: 'failed';
-  supabaseContactId: number;
-  hubspotContactId: string;
-  startedAt: string;
-  completedAt: string;
-  duration: number;
-  error: {
-    code: string;
-    message: string;
-    details?: any;  // Only included if includeDetails=true
-    retryCount: number;
-    canRetry: boolean;
-  };
-}> {}
+export interface GetSyncStatusFailedResponse
+  extends ApiResponse<{
+    operationId: string;
+    status: 'failed';
+    supabaseContactId: number;
+    hubspotContactId: string;
+    startedAt: string;
+    completedAt: string;
+    duration: number;
+    error: {
+      code: string;
+      message: string;
+      details?: any; // Only included if includeDetails=true
+      retryCount: number;
+      canRetry: boolean;
+    };
+  }> {}
 
 /**
  * Processing sync status response
  */
-export interface GetSyncStatusProcessingResponse extends ApiResponse<{
-  operationId: string;
-  status: 'processing' | 'pending';
-  supabaseContactId: number;
-  hubspotContactId: string;
-  startedAt: string;
-  message: string;  // Human-readable status message
-  progress?: {
-    current: number;
-    total: number;
-    percentage: number;
-  };
-}> {}
+export interface GetSyncStatusProcessingResponse
+  extends ApiResponse<{
+    operationId: string;
+    status: 'processing' | 'pending';
+    supabaseContactId: number;
+    hubspotContactId: string;
+    startedAt: string;
+    message: string; // Human-readable status message
+    progress?: {
+      current: number;
+      total: number;
+      percentage: number;
+    };
+  }> {}
 
 // =============================================================================
 // SERVICE INTERFACES

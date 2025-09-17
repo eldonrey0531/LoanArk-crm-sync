@@ -21,21 +21,25 @@ import userEvent from '@testing-library/user-event';
 import React from 'react';
 import {
   FilterControlsProps,
-  TableFilters
+  TableFilters,
 } from '../../../../specs/005-show-data-from/contracts/component-contracts';
 
 // Mock the filter controls component (this will fail until implemented)
 const MockFilterControls = (props: FilterControlsProps) => {
-  return React.createElement('div', {
-    'data-testid': 'filter-controls',
-    ...props
-  }, 'Mock Filter Controls');
+  return React.createElement(
+    'div',
+    {
+      'data-testid': 'filter-controls',
+      ...props,
+    },
+    'Mock Filter Controls'
+  );
 };
 
 describe('User Story 2: Filter and Search Data', () => {
   const defaultFilters: TableFilters = {
     search: '',
-    status: 'all'
+    status: 'all',
   };
 
   const defaultProps: FilterControlsProps = {
@@ -44,7 +48,7 @@ describe('User Story 2: Filter and Search Data', () => {
     onReset: vi.fn(),
     showSearch: true,
     showStatusFilter: true,
-    showDateFilter: true
+    showDateFilter: true,
   };
 
   beforeEach(() => {
@@ -63,15 +67,15 @@ describe('User Story 2: Filter and Search Data', () => {
       status: 'matched',
       dateRange: {
         start: new Date('2025-01-01'),
-        end: new Date('2025-01-31')
+        end: new Date('2025-01-31'),
       },
       sortBy: 'name',
-      sortOrder: 'asc'
+      sortOrder: 'asc',
     };
 
     const props: FilterControlsProps = {
       ...defaultProps,
-      filters: comprehensiveFilters
+      filters: comprehensiveFilters,
     };
 
     expect(() => {
@@ -82,12 +86,12 @@ describe('User Story 2: Filter and Search Data', () => {
   it('should handle search filter', () => {
     const searchFilters: TableFilters = {
       ...defaultFilters,
-      search: 'test@example.com'
+      search: 'test@example.com',
     };
 
     const props: FilterControlsProps = {
       ...defaultProps,
-      filters: searchFilters
+      filters: searchFilters,
     };
 
     expect(() => {
@@ -101,18 +105,18 @@ describe('User Story 2: Filter and Search Data', () => {
       'matched',
       'supabase_only',
       'hubspot_only',
-      'mismatch'
+      'mismatch',
     ];
 
     statusOptions.forEach(status => {
       const statusFilters: TableFilters = {
         ...defaultFilters,
-        status
+        status,
       };
 
       const props: FilterControlsProps = {
         ...defaultProps,
-        filters: statusFilters
+        filters: statusFilters,
       };
 
       expect(() => {
@@ -126,13 +130,13 @@ describe('User Story 2: Filter and Search Data', () => {
       ...defaultFilters,
       dateRange: {
         start: new Date('2025-01-01'),
-        end: new Date('2025-01-31')
-      }
+        end: new Date('2025-01-31'),
+      },
     };
 
     const props: FilterControlsProps = {
       ...defaultProps,
-      filters: dateRangeFilters
+      filters: dateRangeFilters,
     };
 
     expect(() => {
@@ -144,12 +148,12 @@ describe('User Story 2: Filter and Search Data', () => {
     const sortFilters: TableFilters = {
       ...defaultFilters,
       sortBy: 'email',
-      sortOrder: 'desc'
+      sortOrder: 'desc',
     };
 
     const props: FilterControlsProps = {
       ...defaultProps,
-      filters: sortFilters
+      filters: sortFilters,
     };
 
     expect(() => {
@@ -162,7 +166,7 @@ describe('User Story 2: Filter and Search Data', () => {
 
     const props: FilterControlsProps = {
       ...defaultProps,
-      onReset: mockOnReset
+      onReset: mockOnReset,
     };
 
     render(MockFilterControls(props));
@@ -176,7 +180,7 @@ describe('User Story 2: Filter and Search Data', () => {
       ...defaultProps,
       showSearch: false,
       showStatusFilter: false,
-      showDateFilter: false
+      showDateFilter: false,
     };
 
     expect(() => {
@@ -189,7 +193,7 @@ describe('User Story 2: Filter and Search Data', () => {
 
     const props: FilterControlsProps = {
       ...defaultProps,
-      onFiltersChange: mockOnFiltersChange
+      onFiltersChange: mockOnFiltersChange,
     };
 
     render(MockFilterControls(props));

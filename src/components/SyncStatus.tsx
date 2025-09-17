@@ -7,7 +7,7 @@ import {
   Clock,
   Loader2,
   AlertCircle,
-  RefreshCw
+  RefreshCw,
 } from 'lucide-react';
 import { SyncStatus as SyncStatusType } from '@/types/emailVerification';
 
@@ -24,7 +24,7 @@ export function SyncStatus({
   error,
   onRetry,
   showRetry = true,
-  className = ''
+  className = '',
 }: SyncStatusProps) {
   const getStatusConfig = (status: SyncStatusType) => {
     switch (status) {
@@ -34,7 +34,7 @@ export function SyncStatus({
           variant: 'default' as const,
           text: 'Completed',
           color: 'text-green-600',
-          bgColor: 'bg-green-50'
+          bgColor: 'bg-green-50',
         };
       case 'failed':
         return {
@@ -42,7 +42,7 @@ export function SyncStatus({
           variant: 'destructive' as const,
           text: 'Failed',
           color: 'text-red-600',
-          bgColor: 'bg-red-50'
+          bgColor: 'bg-red-50',
         };
       case 'in_progress':
         return {
@@ -50,7 +50,7 @@ export function SyncStatus({
           variant: 'secondary' as const,
           text: 'In Progress',
           color: 'text-blue-600',
-          bgColor: 'bg-blue-50'
+          bgColor: 'bg-blue-50',
         };
       case 'pending':
         return {
@@ -58,7 +58,7 @@ export function SyncStatus({
           variant: 'outline' as const,
           text: 'Pending',
           color: 'text-yellow-600',
-          bgColor: 'bg-yellow-50'
+          bgColor: 'bg-yellow-50',
         };
       default:
         return {
@@ -66,7 +66,7 @@ export function SyncStatus({
           variant: 'outline' as const,
           text: 'Unknown',
           color: 'text-gray-600',
-          bgColor: 'bg-gray-50'
+          bgColor: 'bg-gray-50',
         };
     }
   };
@@ -76,19 +76,24 @@ export function SyncStatus({
 
   return (
     <div className={`flex items-center gap-2 ${className}`}>
-      <div className={`flex items-center gap-2 px-3 py-1 rounded-full ${config.bgColor}`}>
+      <div
+        className={`flex items-center gap-2 px-3 py-1 rounded-full ${config.bgColor}`}
+      >
         <Icon
           className={`h-4 w-4 ${config.color} ${status === 'in_progress' ? 'animate-spin' : ''}`}
         />
-        <Badge variant={config.variant} className="text-xs">
+        <Badge variant={config.variant} className='text-xs'>
           {config.text}
         </Badge>
       </div>
 
       {error && (
-        <div className="flex items-center gap-1 text-red-600">
-          <AlertCircle className="h-4 w-4" />
-          <span className="text-xs text-red-600 max-w-xs truncate" title={error}>
+        <div className='flex items-center gap-1 text-red-600'>
+          <AlertCircle className='h-4 w-4' />
+          <span
+            className='text-xs text-red-600 max-w-xs truncate'
+            title={error}
+          >
             {error}
           </span>
         </div>
@@ -97,11 +102,11 @@ export function SyncStatus({
       {status === 'failed' && onRetry && showRetry && (
         <Button
           onClick={onRetry}
-          size="sm"
-          variant="outline"
-          className="h-6 px-2 text-xs"
+          size='sm'
+          variant='outline'
+          className='h-6 px-2 text-xs'
         >
-          <RefreshCw className="h-3 w-3 mr-1" />
+          <RefreshCw className='h-3 w-3 mr-1' />
           Retry
         </Button>
       )}
@@ -115,19 +120,22 @@ interface SyncStatusCompactProps {
   className?: string;
 }
 
-export function SyncStatusCompact({ status, className = '' }: SyncStatusCompactProps) {
+export function SyncStatusCompact({
+  status,
+  className = '',
+}: SyncStatusCompactProps) {
   const getStatusIcon = (status: SyncStatusType) => {
     switch (status) {
       case 'completed':
-        return <CheckCircle className="h-4 w-4 text-green-500" />;
+        return <CheckCircle className='h-4 w-4 text-green-500' />;
       case 'failed':
-        return <XCircle className="h-4 w-4 text-red-500" />;
+        return <XCircle className='h-4 w-4 text-red-500' />;
       case 'in_progress':
-        return <Loader2 className="h-4 w-4 text-blue-500 animate-spin" />;
+        return <Loader2 className='h-4 w-4 text-blue-500 animate-spin' />;
       case 'pending':
-        return <Clock className="h-4 w-4 text-yellow-500" />;
+        return <Clock className='h-4 w-4 text-yellow-500' />;
       default:
-        return <AlertCircle className="h-4 w-4 text-gray-500" />;
+        return <AlertCircle className='h-4 w-4 text-gray-500' />;
     }
   };
 
@@ -144,7 +152,10 @@ interface SyncStatusTextProps {
   className?: string;
 }
 
-export function SyncStatusText({ status, className = '' }: SyncStatusTextProps) {
+export function SyncStatusText({
+  status,
+  className = '',
+}: SyncStatusTextProps) {
   const getStatusText = (status: SyncStatusType) => {
     switch (status) {
       case 'completed':
@@ -161,8 +172,6 @@ export function SyncStatusText({ status, className = '' }: SyncStatusTextProps) 
   };
 
   return (
-    <span className={`text-sm ${className}`}>
-      {getStatusText(status)}
-    </span>
+    <span className={`text-sm ${className}`}>{getStatusText(status)}</span>
   );
 }

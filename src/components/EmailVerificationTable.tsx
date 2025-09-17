@@ -1,5 +1,12 @@
 import React from 'react';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -11,7 +18,7 @@ import {
   AlertCircle,
   ArrowRight,
   Loader2,
-  Database
+  Database,
 } from 'lucide-react';
 import { SupabaseContact, SyncStatus } from '@/types/emailVerification';
 
@@ -36,21 +43,23 @@ export function EmailVerificationTable({
   onSelectAll,
   onSyncRecord,
   onSyncSelected,
-  isLoading = false
+  isLoading = false,
 }: EmailVerificationTableProps) {
-  const allSelected = records.length > 0 && records.every(record => selectedRecords.has(record.id));
+  const allSelected =
+    records.length > 0 &&
+    records.every(record => selectedRecords.has(record.id));
   const someSelected = records.some(record => selectedRecords.has(record.id));
 
   const getStatusIcon = (status: SyncStatus) => {
     switch (status) {
       case 'completed':
-        return <CheckCircle className="h-4 w-4 text-green-500" />;
+        return <CheckCircle className='h-4 w-4 text-green-500' />;
       case 'failed':
-        return <XCircle className="h-4 w-4 text-red-500" />;
+        return <XCircle className='h-4 w-4 text-red-500' />;
       case 'in_progress':
-        return <Loader2 className="h-4 w-4 text-blue-500 animate-spin" />;
+        return <Loader2 className='h-4 w-4 text-blue-500 animate-spin' />;
       case 'pending':
-        return <Clock className="h-4 w-4 text-yellow-500" />;
+        return <Clock className='h-4 w-4 text-yellow-500' />;
       default:
         return null;
     }
@@ -61,28 +70,31 @@ export function EmailVerificationTable({
       completed: 'default',
       failed: 'destructive',
       in_progress: 'secondary',
-      pending: 'outline'
+      pending: 'outline',
     } as const;
 
     return (
-      <Badge variant={variants[status] || 'outline'} className="capitalize">
+      <Badge variant={variants[status] || 'outline'} className='capitalize'>
         {status.replace('_', ' ')}
       </Badge>
     );
   };
 
   const getVerificationStatusBadge = (status: string | null) => {
-    if (!status) return <Badge variant="outline">Not Set</Badge>;
+    if (!status) return <Badge variant='outline'>Not Set</Badge>;
 
     const variants = {
       verified: 'default',
       unverified: 'secondary',
       bounced: 'destructive',
-      complained: 'destructive'
+      complained: 'destructive',
     } as const;
 
     return (
-      <Badge variant={variants[status as keyof typeof variants] || 'outline'} className="capitalize">
+      <Badge
+        variant={variants[status as keyof typeof variants] || 'outline'}
+        className='capitalize'
+      >
         {status}
       </Badge>
     );
@@ -90,62 +102,56 @@ export function EmailVerificationTable({
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center p-8">
-        <Loader2 className="h-6 w-6 animate-spin" />
-        <span className="ml-2">Loading records...</span>
+      <div className='flex items-center justify-center p-8'>
+        <Loader2 className='h-6 w-6 animate-spin' />
+        <span className='ml-2'>Loading records...</span>
       </div>
     );
   }
 
   if (records.length === 0) {
     return (
-      <div className="text-center p-8 text-muted-foreground">
-        <Database className="h-12 w-12 mx-auto mb-4 opacity-50" />
+      <div className='text-center p-8 text-muted-foreground'>
+        <Database className='h-12 w-12 mx-auto mb-4 opacity-50' />
         <p>No email verification records found</p>
       </div>
     );
   }
 
   return (
-    <div className="space-y-4">
+    <div className='space-y-4'>
       {/* Bulk Actions */}
       {selectedRecords.size > 0 && (
-        <div className="flex items-center gap-2 p-4 bg-muted rounded-lg">
-          <span className="text-sm font-medium">
-            {selectedRecords.size} record{selectedRecords.size !== 1 ? 's' : ''} selected
+        <div className='flex items-center gap-2 p-4 bg-muted rounded-lg'>
+          <span className='text-sm font-medium'>
+            {selectedRecords.size} record{selectedRecords.size !== 1 ? 's' : ''}{' '}
+            selected
           </span>
-          <Button
-            onClick={onSyncSelected}
-            size="sm"
-            className="ml-auto"
-          >
-            <ArrowRight className="h-4 w-4 mr-2" />
+          <Button onClick={onSyncSelected} size='sm' className='ml-auto'>
+            <ArrowRight className='h-4 w-4 mr-2' />
             Sync Selected
           </Button>
         </div>
       )}
 
       {/* Table */}
-      <div className="border rounded-lg">
+      <div className='border rounded-lg'>
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="w-12">
-                <Checkbox
-                  checked={allSelected}
-                  onCheckedChange={onSelectAll}
-                />
+              <TableHead className='w-12'>
+                <Checkbox checked={allSelected} onCheckedChange={onSelectAll} />
               </TableHead>
               <TableHead>Contact</TableHead>
               <TableHead>Email</TableHead>
               <TableHead>Verification Status</TableHead>
               <TableHead>Sync Status</TableHead>
               <TableHead>Last Updated</TableHead>
-              <TableHead className="w-24">Actions</TableHead>
+              <TableHead className='w-24'>Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {records.map((record) => {
+            {records.map(record => {
               const syncStatus = syncStatuses[record.id] || 'pending';
               const syncError = syncErrors[record.id];
 
@@ -154,51 +160,52 @@ export function EmailVerificationTable({
                   <TableCell>
                     <Checkbox
                       checked={selectedRecords.has(record.id)}
-                      onCheckedChange={(checked) =>
+                      onCheckedChange={checked =>
                         onRecordSelect(record.id, checked as boolean)
                       }
                     />
                   </TableCell>
                   <TableCell>
-                    <div className="font-medium">
+                    <div className='font-medium'>
                       {record.firstname} {record.lastname}
                     </div>
-                    <div className="text-sm text-muted-foreground">
+                    <div className='text-sm text-muted-foreground'>
                       ID: {record.id}
                     </div>
                   </TableCell>
                   <TableCell>{record.email}</TableCell>
                   <TableCell>
-                    {getVerificationStatusBadge(record.email_verification_status)}
+                    {getVerificationStatusBadge(
+                      record.email_verification_status
+                    )}
                   </TableCell>
                   <TableCell>
-                    <div className="flex items-center gap-2">
+                    <div className='flex items-center gap-2'>
                       {getStatusIcon(syncStatus)}
                       {getStatusBadge(syncStatus)}
                       {syncError && (
-                        <AlertCircle className="h-4 w-4 text-red-500" />
+                        <AlertCircle className='h-4 w-4 text-red-500' />
                       )}
                     </div>
                   </TableCell>
                   <TableCell>
-                    <div className="text-sm">
+                    <div className='text-sm'>
                       {record.updated_at
                         ? new Date(record.updated_at).toLocaleDateString()
-                        : 'Never'
-                      }
+                        : 'Never'}
                     </div>
                   </TableCell>
                   <TableCell>
                     <Button
                       onClick={() => onSyncRecord(record.id)}
-                      size="sm"
-                      variant="outline"
+                      size='sm'
+                      variant='outline'
                       disabled={syncStatus === 'in_progress'}
                     >
                       {syncStatus === 'in_progress' ? (
-                        <Loader2 className="h-4 w-4 animate-spin" />
+                        <Loader2 className='h-4 w-4 animate-spin' />
                       ) : (
-                        <RefreshCw className="h-4 w-4" />
+                        <RefreshCw className='h-4 w-4' />
                       )}
                     </Button>
                   </TableCell>

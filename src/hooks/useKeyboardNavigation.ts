@@ -40,7 +40,10 @@ export interface UseKeyboardNavigationOptions {
   /**
    * Callback when an arrow key is pressed
    */
-  onArrowKey?: (direction: 'up' | 'down' | 'left' | 'right', element: HTMLElement) => void;
+  onArrowKey?: (
+    direction: 'up' | 'down' | 'left' | 'right',
+    element: HTMLElement
+  ) => void;
 }
 
 export interface UseKeyboardNavigationReturn {
@@ -85,7 +88,7 @@ export const useKeyboardNavigation = ({
   onEnter,
   onSpace,
   onEscape,
-  onArrowKey
+  onArrowKey,
 }: UseKeyboardNavigationOptions = {}): UseKeyboardNavigationReturn => {
   const containerRef = useRef<HTMLElement>(null);
 
@@ -100,10 +103,12 @@ export const useKeyboardNavigation = ({
       'input:not([disabled])',
       'select:not([disabled])',
       '[tabindex]:not([tabindex="-1"])',
-      '[contenteditable="true"]'
+      '[contenteditable="true"]',
     ];
 
-    const elements = containerRef.current.querySelectorAll(focusableSelectors.join(', '));
+    const elements = containerRef.current.querySelectorAll(
+      focusableSelectors.join(', ')
+    );
     return Array.from(elements) as HTMLElement[];
   }, []);
 
@@ -160,60 +165,77 @@ export const useKeyboardNavigation = ({
   }, [getFocusableElements, loop]);
 
   // Handle keyboard events
-  const handleKeyDown = useCallback((event: KeyboardEvent) => {
-    if (!enabled) return;
+  const handleKeyDown = useCallback(
+    (event: KeyboardEvent) => {
+      if (!enabled) return;
 
-    const target = event.target as HTMLElement;
-    const isArrowKey = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(event.key);
+      const target = event.target as HTMLElement;
+      const isArrowKey = [
+        'ArrowUp',
+        'ArrowDown',
+        'ArrowLeft',
+        'ArrowRight',
+      ].includes(event.key);
 
-    // Handle arrow key navigation
-    if (isArrowKey) {
-      event.preventDefault();
+      // Handle arrow key navigation
+      if (isArrowKey) {
+        event.preventDefault();
 
+        switch (event.key) {
+          case 'ArrowUp':
+            if (direction === 'vertical' || direction === 'both') {
+              focusPrevious();
+              onArrowKey?.('up', target);
+            }
+            break;
+          case 'ArrowDown':
+            if (direction === 'vertical' || direction === 'both') {
+              focusNext();
+              onArrowKey?.('down', target);
+            }
+            break;
+          case 'ArrowLeft':
+            if (direction === 'horizontal' || direction === 'both') {
+              focusPrevious();
+              onArrowKey?.('left', target);
+            }
+            break;
+          case 'ArrowRight':
+            if (direction === 'horizontal' || direction === 'both') {
+              focusNext();
+              onArrowKey?.('right', target);
+            }
+            break;
+        }
+      }
+
+      // Handle other keys
       switch (event.key) {
-        case 'ArrowUp':
-          if (direction === 'vertical' || direction === 'both') {
-            focusPrevious();
-            onArrowKey?.('up', target);
-          }
+        case 'Enter':
+          event.preventDefault();
+          onEnter?.(target);
           break;
-        case 'ArrowDown':
-          if (direction === 'vertical' || direction === 'both') {
-            focusNext();
-            onArrowKey?.('down', target);
-          }
+        case ' ':
+          event.preventDefault();
+          onSpace?.(target);
           break;
-        case 'ArrowLeft':
-          if (direction === 'horizontal' || direction === 'both') {
-            focusPrevious();
-            onArrowKey?.('left', target);
-          }
-          break;
-        case 'ArrowRight':
-          if (direction === 'horizontal' || direction === 'both') {
-            focusNext();
-            onArrowKey?.('right', target);
-          }
+        case 'Escape':
+          event.preventDefault();
+          onEscape?.();
           break;
       }
-    }
-
-    // Handle other keys
-    switch (event.key) {
-      case 'Enter':
-        event.preventDefault();
-        onEnter?.(target);
-        break;
-      case ' ':
-        event.preventDefault();
-        onSpace?.(target);
-        break;
-      case 'Escape':
-        event.preventDefault();
-        onEscape?.();
-        break;
-    }
-  }, [enabled, direction, focusNext, focusPrevious, onEnter, onSpace, onEscape, onArrowKey]);
+    },
+    [
+      enabled,
+      direction,
+      focusNext,
+      focusPrevious,
+      onEnter,
+      onSpace,
+      onEscape,
+      onArrowKey,
+    ]
+  );
 
   // Set up keyboard event listeners
   useEffect(() => {
@@ -232,7 +254,7 @@ export const useKeyboardNavigation = ({
     focusLast,
     focusNext,
     focusPrevious,
-    getFocusableElements
+    getFocusableElements,
   };
 };
 
@@ -269,32 +291,37 @@ export interface UseFocusTrapReturn {
 export const useFocusTrap = ({
   enabled = true,
   restoreFocus = true,
-  initialFocus = 'first'
+  initialFocus = 'first',
 }: UseFocusTrapOptions = {}): UseFocusTrapReturn => {
   const containerRef = useRef<HTMLElement>(null);
   const previouslyFocusedElement = useRef<Element | null>(null);
 
   // Handle focus trapping
-  const handleFocusTrap = useCallback((event: FocusEvent) => {
-    if (!enabled || !containerRef.current) return;
+  const handleFocusTrap = useCallback(
+    (event: FocusEvent) => {
+      if (!enabled || !containerRef.current) return;
 
-    const focusableElements = containerRef.current.querySelectorAll(
-      'a[href], button:not([disabled]), textarea:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])'
-    );
+      const focusableElements = containerRef.current.querySelectorAll(
+        'a[href], button:not([disabled]), textarea:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])'
+      );
 
-    const firstElement = focusableElements[0] as HTMLElement;
-    const lastElement = focusableElements[focusableElements.length - 1] as HTMLElement;
+      const firstElement = focusableElements[0] as HTMLElement;
+      const lastElement = focusableElements[
+        focusableElements.length - 1
+      ] as HTMLElement;
 
-    if (event.target === lastElement) {
-      // Focus moved to last element, wrap to first
-      firstElement?.focus();
-      event.preventDefault();
-    } else if (event.target === firstElement) {
-      // Focus moved to first element, wrap to last
-      lastElement?.focus();
-      event.preventDefault();
-    }
-  }, [enabled]);
+      if (event.target === lastElement) {
+        // Focus moved to last element, wrap to first
+        firstElement?.focus();
+        event.preventDefault();
+      } else if (event.target === firstElement) {
+        // Focus moved to first element, wrap to last
+        lastElement?.focus();
+        event.preventDefault();
+      }
+    },
+    [enabled]
+  );
 
   // Set up focus trap
   useEffect(() => {
@@ -325,13 +352,16 @@ export const useFocusTrap = ({
       document.removeEventListener('focusin', handleFocusTrap);
 
       // Restore focus to previously focused element
-      if (restoreFocus && previouslyFocusedElement.current instanceof HTMLElement) {
+      if (
+        restoreFocus &&
+        previouslyFocusedElement.current instanceof HTMLElement
+      ) {
         previouslyFocusedElement.current.focus();
       }
     };
   }, [handleFocusTrap, enabled, restoreFocus, initialFocus]);
 
   return {
-    containerRef
+    containerRef,
   };
 };

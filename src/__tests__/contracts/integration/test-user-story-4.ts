@@ -19,16 +19,18 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
-import {
-  PaginationControlsProps
-} from '../../../../specs/005-show-data-from/contracts/component-contracts';
+import { PaginationControlsProps } from '../../../../specs/005-show-data-from/contracts/component-contracts';
 
 // Mock the pagination controls component (this will fail until implemented)
 const MockPaginationControls = (props: PaginationControlsProps) => {
-  return React.createElement('div', {
-    'data-testid': 'pagination-controls',
-    ...props
-  }, 'Mock Pagination Controls');
+  return React.createElement(
+    'div',
+    {
+      'data-testid': 'pagination-controls',
+      ...props,
+    },
+    'Mock Pagination Controls'
+  );
 };
 
 describe('User Story 4: Navigate Through Data', () => {
@@ -37,7 +39,7 @@ describe('User Story 4: Navigate Through Data', () => {
     page_size: 10,
     total: 100,
     has_next: true,
-    has_previous: false
+    has_previous: false,
   };
 
   const defaultProps: PaginationControlsProps = {
@@ -45,7 +47,7 @@ describe('User Story 4: Navigate Through Data', () => {
     onPageChange: vi.fn(),
     onPageSizeChange: vi.fn(),
     showPageSizeSelector: true,
-    pageSizeOptions: [10, 25, 50, 100]
+    pageSizeOptions: [10, 25, 50, 100],
   };
 
   beforeEach(() => {
@@ -69,12 +71,12 @@ describe('User Story 4: Navigate Through Data', () => {
       ...mockPagination,
       page: 1,
       has_next: true,
-      has_previous: false
+      has_previous: false,
     };
 
     const props: PaginationControlsProps = {
       ...defaultProps,
-      pagination: firstPagePagination
+      pagination: firstPagePagination,
     };
 
     expect(() => {
@@ -87,12 +89,12 @@ describe('User Story 4: Navigate Through Data', () => {
       ...mockPagination,
       page: 5,
       has_next: true,
-      has_previous: true
+      has_previous: true,
     };
 
     const props: PaginationControlsProps = {
       ...defaultProps,
-      pagination: middlePagePagination
+      pagination: middlePagePagination,
     };
 
     expect(() => {
@@ -105,12 +107,12 @@ describe('User Story 4: Navigate Through Data', () => {
       ...mockPagination,
       page: 10,
       has_next: false,
-      has_previous: true
+      has_previous: true,
     };
 
     const props: PaginationControlsProps = {
       ...defaultProps,
-      pagination: lastPagePagination
+      pagination: lastPagePagination,
     };
 
     expect(() => {
@@ -124,12 +126,12 @@ describe('User Story 4: Navigate Through Data', () => {
       page: 1,
       total: 5,
       has_next: false,
-      has_previous: false
+      has_previous: false,
     };
 
     const props: PaginationControlsProps = {
       ...defaultProps,
-      pagination: singlePagePagination
+      pagination: singlePagePagination,
     };
 
     expect(() => {
@@ -143,12 +145,12 @@ describe('User Story 4: Navigate Through Data', () => {
     pageSizes.forEach(pageSize => {
       const paginationWithSize = {
         ...mockPagination,
-        page_size: pageSize
+        page_size: pageSize,
       };
 
       const props: PaginationControlsProps = {
         ...defaultProps,
-        pagination: paginationWithSize
+        pagination: paginationWithSize,
       };
 
       expect(() => {
@@ -161,12 +163,12 @@ describe('User Story 4: Navigate Through Data', () => {
     const largeDatasetPagination = {
       ...mockPagination,
       total: 10000,
-      page: 500
+      page: 500,
     };
 
     const props: PaginationControlsProps = {
       ...defaultProps,
-      pagination: largeDatasetPagination
+      pagination: largeDatasetPagination,
     };
 
     expect(() => {
@@ -178,7 +180,7 @@ describe('User Story 4: Navigate Through Data', () => {
     const props: PaginationControlsProps = {
       ...defaultProps,
       showPageSizeSelector: true,
-      pageSizeOptions: [10, 25, 50, 100]
+      pageSizeOptions: [10, 25, 50, 100],
     };
 
     expect(() => {
@@ -191,7 +193,7 @@ describe('User Story 4: Navigate Through Data', () => {
 
     const props: PaginationControlsProps = {
       ...defaultProps,
-      onPageChange: mockOnPageChange
+      onPageChange: mockOnPageChange,
     };
 
     render(MockPaginationControls(props));
@@ -205,7 +207,7 @@ describe('User Story 4: Navigate Through Data', () => {
 
     const props: PaginationControlsProps = {
       ...defaultProps,
-      onPageSizeChange: mockOnPageSizeChange
+      onPageSizeChange: mockOnPageSizeChange,
     };
 
     render(MockPaginationControls(props));
@@ -217,7 +219,7 @@ describe('User Story 4: Navigate Through Data', () => {
   it('should support custom styling', () => {
     const props: PaginationControlsProps = {
       ...defaultProps,
-      className: 'custom-pagination'
+      className: 'custom-pagination',
     };
 
     expect(() => {

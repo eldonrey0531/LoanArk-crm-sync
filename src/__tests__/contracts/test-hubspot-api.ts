@@ -15,7 +15,7 @@ import {
   HubSpotContactsRequest,
   HubSpotContactsResponse,
   HubSpotContactRequest,
-  HubSpotContactResponse
+  HubSpotContactResponse,
 } from '../../../specs/005-show-data-from/contracts/api-contracts';
 
 // Mock the API endpoints
@@ -29,10 +29,10 @@ const mockHubSpotContact = {
     lastname: 'Doe',
     email: 'john.doe@example.com',
     email_verification_status: 'verified',
-    hs_object_id: '12345'
+    hs_object_id: '12345',
   },
   createdAt: '2025-01-15T10:30:00Z',
-  updatedAt: '2025-01-15T10:30:00Z'
+  updatedAt: '2025-01-15T10:30:00Z',
 };
 
 const mockHubSpotContactsResponse: HubSpotContactsResponse = {
@@ -40,13 +40,13 @@ const mockHubSpotContactsResponse: HubSpotContactsResponse = {
   data: [mockHubSpotContact],
   pagination: {
     next_after: '67890',
-    has_more: false
-  }
+    has_more: false,
+  },
 };
 
 const mockHubSpotContactResponse: HubSpotContactResponse = {
   success: true,
-  data: mockHubSpotContact
+  data: mockHubSpotContact,
 };
 
 describe('HubSpot API Contracts', () => {
@@ -54,15 +54,20 @@ describe('HubSpot API Contracts', () => {
     it('should return contacts with proper response structure', async () => {
       const request: HubSpotContactsRequest = {
         limit: 50,
-        properties: ['firstname', 'lastname', 'email', 'email_verification_status']
+        properties: [
+          'firstname',
+          'lastname',
+          'email',
+          'email_verification_status',
+        ],
       };
 
       // This test should fail until the endpoint is implemented
       const response = await fetch(`${API_BASE_URL}/hubspot-contacts`, {
         method: 'GET',
         headers: {
-          'Content-Type': 'application/json'
-        }
+          'Content-Type': 'application/json',
+        },
       });
 
       expect(response.status).toBe(200);
@@ -99,7 +104,7 @@ describe('HubSpot API Contracts', () => {
       const request: HubSpotContactsRequest = {
         after: '12345',
         limit: 25,
-        properties: ['firstname', 'lastname', 'email']
+        properties: ['firstname', 'lastname', 'email'],
       };
 
       // This test should fail until the endpoint is implemented
@@ -108,8 +113,8 @@ describe('HubSpot API Contracts', () => {
         {
           method: 'GET',
           headers: {
-            'Content-Type': 'application/json'
-          }
+            'Content-Type': 'application/json',
+          },
         }
       );
 
@@ -123,7 +128,13 @@ describe('HubSpot API Contracts', () => {
 
     it('should handle properties parameter', async () => {
       const request: HubSpotContactsRequest = {
-        properties: ['firstname', 'lastname', 'email', 'email_verification_status', 'hs_object_id']
+        properties: [
+          'firstname',
+          'lastname',
+          'email',
+          'email_verification_status',
+          'hs_object_id',
+        ],
       };
 
       // This test should fail until the endpoint is implemented
@@ -132,8 +143,8 @@ describe('HubSpot API Contracts', () => {
         {
           method: 'GET',
           headers: {
-            'Content-Type': 'application/json'
-          }
+            'Content-Type': 'application/json',
+          },
         }
       );
 
@@ -160,20 +171,20 @@ describe('HubSpot API Contracts', () => {
               {
                 propertyName: 'email_verification_status',
                 operator: 'HAS_PROPERTY',
-                value: undefined
-              }
-            ]
-          }
-        ]
+                value: undefined,
+              },
+            ],
+          },
+        ],
       };
 
       // This test should fail until the endpoint is implemented
       const response = await fetch(`${API_BASE_URL}/hubspot-contacts`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
         },
-        body: JSON.stringify(request)
+        body: JSON.stringify(request),
       });
 
       expect(response.status).toBe(200);
@@ -196,8 +207,8 @@ describe('HubSpot API Contracts', () => {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': 'Bearer invalid-key'
-        }
+          Authorization: 'Bearer invalid-key',
+        },
       });
 
       const data: HubSpotContactsResponse = await response.json();
@@ -212,7 +223,12 @@ describe('HubSpot API Contracts', () => {
     it('should return individual contact with proper response structure', async () => {
       const request: HubSpotContactRequest = {
         contactId: '12345',
-        properties: ['firstname', 'lastname', 'email', 'email_verification_status']
+        properties: [
+          'firstname',
+          'lastname',
+          'email',
+          'email_verification_status',
+        ],
       };
 
       // This test should fail until the endpoint is implemented
@@ -221,8 +237,8 @@ describe('HubSpot API Contracts', () => {
         {
           method: 'GET',
           headers: {
-            'Content-Type': 'application/json'
-          }
+            'Content-Type': 'application/json',
+          },
         }
       );
 
@@ -250,16 +266,19 @@ describe('HubSpot API Contracts', () => {
 
     it('should return 404 for non-existent contact', async () => {
       const request: HubSpotContactRequest = {
-        contactId: 'non-existent-id'
+        contactId: 'non-existent-id',
       };
 
       // This test should fail until the endpoint is implemented
-      const response = await fetch(`${API_BASE_URL}/hubspot-contacts/${request.contactId}`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json'
+      const response = await fetch(
+        `${API_BASE_URL}/hubspot-contacts/${request.contactId}`,
+        {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
         }
-      });
+      );
 
       expect(response.status).toBe(404);
 
@@ -271,12 +290,15 @@ describe('HubSpot API Contracts', () => {
     });
 
     it('should handle invalid contact ID format', async () => {
-      const response = await fetch(`${API_BASE_URL}/hubspot-contacts/invalid-format`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json'
+      const response = await fetch(
+        `${API_BASE_URL}/hubspot-contacts/invalid-format`,
+        {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
         }
-      });
+      );
 
       const data: HubSpotContactResponse = await response.json();
 
@@ -287,7 +309,7 @@ describe('HubSpot API Contracts', () => {
     it('should respect properties parameter for individual contact', async () => {
       const request: HubSpotContactRequest = {
         contactId: '12345',
-        properties: ['firstname', 'email', 'email_verification_status']
+        properties: ['firstname', 'email', 'email_verification_status'],
       };
 
       // This test should fail until the endpoint is implemented
@@ -296,8 +318,8 @@ describe('HubSpot API Contracts', () => {
         {
           method: 'GET',
           headers: {
-            'Content-Type': 'application/json'
-          }
+            'Content-Type': 'application/json',
+          },
         }
       );
 
@@ -310,7 +332,9 @@ describe('HubSpot API Contracts', () => {
       if (data.data) {
         // Verify that only requested properties are included
         const returnedProps = Object.keys(data.data.properties);
-        expect(returnedProps).toEqual(expect.arrayContaining(request.properties!));
+        expect(returnedProps).toEqual(
+          expect.arrayContaining(request.properties!)
+        );
       }
     });
   });

@@ -16,7 +16,7 @@ import userEvent from '@testing-library/user-event';
 import React from 'react';
 import {
   ComparisonTableProps,
-  TableFilters
+  TableFilters,
 } from '../../../../specs/005-show-data-from/contracts/component-contracts';
 
 // Mock data for testing
@@ -29,7 +29,7 @@ const mockComparison = {
     email_verification_status: 'verified',
     hs_object_id: '12345',
     created_at: '2025-01-15T10:30:00Z',
-    updated_at: '2025-01-15T10:30:00Z'
+    updated_at: '2025-01-15T10:30:00Z',
   },
   hubspot: {
     id: '12345',
@@ -38,14 +38,14 @@ const mockComparison = {
       lastname: 'Doe',
       email: 'john.doe@example.com',
       email_verification_status: 'verified',
-      hs_object_id: '12345'
+      hs_object_id: '12345',
     },
     createdAt: '2025-01-15T10:30:00Z',
-    updatedAt: '2025-01-15T10:30:00Z'
+    updatedAt: '2025-01-15T10:30:00Z',
   },
   match_status: 'matched' as const,
   differences: [],
-  last_sync: '2025-01-15T10:30:00Z'
+  last_sync: '2025-01-15T10:30:00Z',
 };
 
 const mockPagination = {
@@ -53,15 +53,19 @@ const mockPagination = {
   page_size: 50,
   total: 100,
   has_next: true,
-  has_previous: false
+  has_previous: false,
 };
 
 // Mock the component (this will fail until the actual component exists)
 const mockComparisonTable = (props: ComparisonTableProps) => {
-  return React.createElement('div', {
-    'data-testid': 'comparison-table',
-    ...props
-  }, 'Mock Comparison Table');
+  return React.createElement(
+    'div',
+    {
+      'data-testid': 'comparison-table',
+      ...props,
+    },
+    'Mock Comparison Table'
+  );
 };
 
 describe('ComparisonTable Component Contract', () => {
@@ -72,7 +76,7 @@ describe('ComparisonTable Component Contract', () => {
     pagination: mockPagination,
     onPageChange: vi.fn(),
     onRetry: vi.fn(),
-    onRefresh: vi.fn()
+    onRefresh: vi.fn(),
   };
 
   it('should accept all required props from contract', () => {
@@ -87,7 +91,7 @@ describe('ComparisonTable Component Contract', () => {
       ...defaultProps,
       selectable: true,
       compact: true,
-      className: 'custom-table-class'
+      className: 'custom-table-class',
     };
 
     // This test should fail until the component is implemented
@@ -105,7 +109,7 @@ describe('ComparisonTable Component Contract', () => {
       ...defaultProps,
       onExport: mockOnExport,
       onSelectionChange: mockOnSelectionChange,
-      onFiltersChange: mockOnFiltersChange
+      onFiltersChange: mockOnFiltersChange,
     };
 
     // This test should fail until the component is implemented
@@ -117,7 +121,7 @@ describe('ComparisonTable Component Contract', () => {
   it('should handle loading state correctly', () => {
     const loadingProps: ComparisonTableProps = {
       ...defaultProps,
-      loading: true
+      loading: true,
     };
 
     // This test should fail until the component is implemented
@@ -131,7 +135,7 @@ describe('ComparisonTable Component Contract', () => {
     const errorMessage = 'Failed to load data';
     const errorProps: ComparisonTableProps = {
       ...defaultProps,
-      error: errorMessage
+      error: errorMessage,
     };
 
     // This test should fail until the component is implemented
@@ -155,7 +159,7 @@ describe('ComparisonTable Component Contract', () => {
   it('should handle empty data array', () => {
     const emptyProps: ComparisonTableProps = {
       ...defaultProps,
-      data: []
+      data: [],
     };
 
     // This test should fail until the component is implemented
@@ -169,7 +173,7 @@ describe('ComparisonTable Component Contract', () => {
 
     const props: ComparisonTableProps = {
       ...defaultProps,
-      onPageChange: mockOnPageChange
+      onPageChange: mockOnPageChange,
     };
 
     // This test should fail until the component is implemented
@@ -186,7 +190,7 @@ describe('ComparisonTable Component Contract', () => {
 
     const props: ComparisonTableProps = {
       ...defaultProps,
-      onPageChange: mockOnPageChange
+      onPageChange: mockOnPageChange,
     };
 
     // This test should fail until the component is implemented
@@ -206,7 +210,7 @@ describe('ComparisonTable Component Contract', () => {
     const props: ComparisonTableProps = {
       ...defaultProps,
       selectable: true,
-      onSelectionChange: mockOnSelectionChange
+      onSelectionChange: mockOnSelectionChange,
     };
 
     // This test should fail until the component is implemented
@@ -222,12 +226,12 @@ describe('ComparisonTable Component Contract', () => {
   it('should handle filters correctly', () => {
     const filters: TableFilters = {
       search: 'john',
-      status: 'matched'
+      status: 'matched',
     };
 
     const props: ComparisonTableProps = {
       ...defaultProps,
-      filters
+      filters,
     };
 
     // This test should fail until the component is implemented
@@ -245,7 +249,7 @@ describe('ComparisonTable Component Contract', () => {
     const errorProps: ComparisonTableProps = {
       ...defaultProps,
       error: 'Network error',
-      onRetry: mockOnRetry
+      onRetry: mockOnRetry,
     };
 
     // This test should fail until the component is implemented
@@ -263,7 +267,7 @@ describe('ComparisonTable Component Contract', () => {
 
     const props: ComparisonTableProps = {
       ...defaultProps,
-      onRefresh: mockOnRefresh
+      onRefresh: mockOnRefresh,
     };
 
     // This test should fail until the component is implemented
@@ -281,7 +285,7 @@ describe('ComparisonTable Component Contract', () => {
 
     const props: ComparisonTableProps = {
       ...defaultProps,
-      onExport: mockOnExport
+      onExport: mockOnExport,
     };
 
     // This test should fail until the component is implemented
@@ -300,7 +304,7 @@ describe('ComparisonTable Component Contract', () => {
   it('should apply compact styling when compact prop is true', () => {
     const compactProps: ComparisonTableProps = {
       ...defaultProps,
-      compact: true
+      compact: true,
     };
 
     // This test should fail until the component is implemented
@@ -314,7 +318,7 @@ describe('ComparisonTable Component Contract', () => {
     const customClass = 'my-custom-table';
     const props: ComparisonTableProps = {
       ...defaultProps,
-      className: customClass
+      className: customClass,
     };
 
     // This test should fail until the component is implemented
@@ -329,10 +333,15 @@ describe('ComparisonTable Component Contract', () => {
     render(mockComparisonTable(defaultProps));
 
     const table = screen.getByRole('table');
-    expect(table).toHaveAttribute('aria-label', 'Email verification data comparison');
+    expect(table).toHaveAttribute(
+      'aria-label',
+      'Email verification data comparison'
+    );
 
     // Check for proper table structure
-    expect(screen.getByRole('rowgroup', { name: /header/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole('rowgroup', { name: /header/i })
+    ).toBeInTheDocument();
     expect(screen.getByRole('rowgroup', { name: /body/i })).toBeInTheDocument();
   });
 

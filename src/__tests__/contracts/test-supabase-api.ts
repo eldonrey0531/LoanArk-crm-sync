@@ -15,7 +15,7 @@ import {
   SupabaseContactsRequest,
   SupabaseContactsResponse,
   SupabaseContactRequest,
-  SupabaseContactResponse
+  SupabaseContactResponse,
 } from '../../../specs/005-show-data-from/contracts/api-contracts';
 
 // Mock the API endpoints
@@ -29,7 +29,7 @@ const mockSupabaseContact = {
   email_verification_status: 'verified',
   hs_object_id: '12345',
   created_at: '2025-01-15T10:30:00Z',
-  updated_at: '2025-01-15T10:30:00Z'
+  updated_at: '2025-01-15T10:30:00Z',
 };
 
 const mockSupabaseContactsResponse: SupabaseContactsResponse = {
@@ -40,13 +40,13 @@ const mockSupabaseContactsResponse: SupabaseContactsResponse = {
     page_size: 50,
     total: 1,
     has_next: false,
-    has_previous: false
-  }
+    has_previous: false,
+  },
 };
 
 const mockSupabaseContactResponse: SupabaseContactResponse = {
   success: true,
-  data: mockSupabaseContact
+  data: mockSupabaseContact,
 };
 
 describe('Supabase API Contracts', () => {
@@ -55,15 +55,15 @@ describe('Supabase API Contracts', () => {
       const request: SupabaseContactsRequest = {
         page: 1,
         page_size: 50,
-        filter_verified: true
+        filter_verified: true,
       };
 
       // This test should fail until the endpoint is implemented
       const response = await fetch(`${API_BASE_URL}/supabase-contacts`, {
         method: 'GET',
         headers: {
-          'Content-Type': 'application/json'
-        }
+          'Content-Type': 'application/json',
+        },
       });
 
       expect(response.status).toBe(200);
@@ -101,7 +101,7 @@ describe('Supabase API Contracts', () => {
       const request: SupabaseContactsRequest = {
         page: 2,
         page_size: 25,
-        filter_verified: false
+        filter_verified: false,
       };
 
       // This test should fail until the endpoint is implemented
@@ -110,8 +110,8 @@ describe('Supabase API Contracts', () => {
         {
           method: 'GET',
           headers: {
-            'Content-Type': 'application/json'
-          }
+            'Content-Type': 'application/json',
+          },
         }
       );
 
@@ -126,7 +126,7 @@ describe('Supabase API Contracts', () => {
 
     it('should handle search parameter', async () => {
       const request: SupabaseContactsRequest = {
-        search: 'john.doe@example.com'
+        search: 'john.doe@example.com',
       };
 
       // This test should fail until the endpoint is implemented
@@ -135,8 +135,8 @@ describe('Supabase API Contracts', () => {
         {
           method: 'GET',
           headers: {
-            'Content-Type': 'application/json'
-          }
+            'Content-Type': 'application/json',
+          },
         }
       );
 
@@ -157,7 +157,7 @@ describe('Supabase API Contracts', () => {
     it('should handle sorting parameters', async () => {
       const request: SupabaseContactsRequest = {
         sort_by: 'name',
-        sort_order: 'asc'
+        sort_order: 'asc',
       };
 
       // This test should fail until the endpoint is implemented
@@ -166,8 +166,8 @@ describe('Supabase API Contracts', () => {
         {
           method: 'GET',
           headers: {
-            'Content-Type': 'application/json'
-          }
+            'Content-Type': 'application/json',
+          },
         }
       );
 
@@ -179,7 +179,9 @@ describe('Supabase API Contracts', () => {
       // Results should be sorted by name ascending
       if (data.data && data.data.length > 1) {
         for (let i = 1; i < data.data.length; i++) {
-          expect(data.data[i-1].name.localeCompare(data.data[i].name)).toBeLessThanOrEqual(0);
+          expect(
+            data.data[i - 1].name.localeCompare(data.data[i].name)
+          ).toBeLessThanOrEqual(0);
         }
       }
     });
@@ -191,8 +193,8 @@ describe('Supabase API Contracts', () => {
         {
           method: 'GET',
           headers: {
-            'Content-Type': 'application/json'
-          }
+            'Content-Type': 'application/json',
+          },
         }
       );
 
@@ -207,16 +209,19 @@ describe('Supabase API Contracts', () => {
   describe('GET /api/supabase/contacts/{id} - fetchContact', () => {
     it('should return individual contact with proper response structure', async () => {
       const request: SupabaseContactRequest = {
-        id: 1
+        id: 1,
       };
 
       // This test should fail until the endpoint is implemented
-      const response = await fetch(`${API_BASE_URL}/supabase-contacts/${request.id}`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json'
+      const response = await fetch(
+        `${API_BASE_URL}/supabase-contacts/${request.id}`,
+        {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
         }
-      });
+      );
 
       expect(response.status).toBe(200);
 
@@ -240,16 +245,19 @@ describe('Supabase API Contracts', () => {
 
     it('should return 404 for non-existent contact', async () => {
       const request: SupabaseContactRequest = {
-        id: 99999
+        id: 99999,
       };
 
       // This test should fail until the endpoint is implemented
-      const response = await fetch(`${API_BASE_URL}/supabase-contacts/${request.id}`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json'
+      const response = await fetch(
+        `${API_BASE_URL}/supabase-contacts/${request.id}`,
+        {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
         }
-      });
+      );
 
       expect(response.status).toBe(404);
 
@@ -261,12 +269,15 @@ describe('Supabase API Contracts', () => {
     });
 
     it('should handle invalid ID format', async () => {
-      const response = await fetch(`${API_BASE_URL}/supabase-contacts/invalid-id`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json'
+      const response = await fetch(
+        `${API_BASE_URL}/supabase-contacts/invalid-id`,
+        {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
         }
-      });
+      );
 
       const data: SupabaseContactResponse = await response.json();
 

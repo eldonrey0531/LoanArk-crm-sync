@@ -14,16 +14,20 @@ import { describe, it, expect, vi } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
-import {
-  EmailVerificationDataDisplayProps
-} from '../../../../specs/005-show-data-from/contracts/component-contracts';
+import { EmailVerificationDataDisplayProps } from '../../../../specs/005-show-data-from/contracts/component-contracts';
 
 // Mock the component (this will fail until the actual component exists)
-const mockEmailVerificationDataDisplay = (props: EmailVerificationDataDisplayProps) => {
-  return React.createElement('div', {
-    'data-testid': 'email-verification-display',
-    ...props
-  }, 'Mock Component');
+const mockEmailVerificationDataDisplay = (
+  props: EmailVerificationDataDisplayProps
+) => {
+  return React.createElement(
+    'div',
+    {
+      'data-testid': 'email-verification-display',
+      ...props,
+    },
+    'Mock Component'
+  );
 };
 
 describe('EmailVerificationDataDisplay Component Contract', () => {
@@ -31,7 +35,7 @@ describe('EmailVerificationDataDisplay Component Contract', () => {
     initialPageSize: 50,
     showFilters: true,
     showSummary: true,
-    theme: 'auto'
+    theme: 'auto',
   };
 
   it('should accept all required props from contract', () => {
@@ -48,7 +52,7 @@ describe('EmailVerificationDataDisplay Component Contract', () => {
       showFilters: false,
       showSummary: false,
       className: 'custom-class',
-      theme: 'dark'
+      theme: 'dark',
     };
 
     // This test should fail until the component is implemented
@@ -66,7 +70,7 @@ describe('EmailVerificationDataDisplay Component Contract', () => {
       ...defaultProps,
       onRecordSelect: mockOnRecordSelect,
       onError: mockOnError,
-      onLoadingChange: mockOnLoadingChange
+      onLoadingChange: mockOnLoadingChange,
     };
 
     // This test should fail until the component is implemented
@@ -92,7 +96,7 @@ describe('EmailVerificationDataDisplay Component Contract', () => {
     // Test invalid theme value
     const invalidProps = {
       ...defaultProps,
-      theme: 'invalid-theme' as any
+      theme: 'invalid-theme' as any,
     };
 
     // This should throw a TypeScript error or runtime validation error
@@ -108,7 +112,7 @@ describe('EmailVerificationDataDisplay Component Contract', () => {
     validSizes.forEach(size => {
       const props: EmailVerificationDataDisplayProps = {
         ...defaultProps,
-        initialPageSize: size
+        initialPageSize: size,
       };
 
       expect(() => {
@@ -122,7 +126,7 @@ describe('EmailVerificationDataDisplay Component Contract', () => {
     invalidSizes.forEach(size => {
       const props: EmailVerificationDataDisplayProps = {
         ...defaultProps,
-        initialPageSize: size as any
+        initialPageSize: size as any,
       };
 
       expect(() => {
@@ -148,7 +152,7 @@ describe('EmailVerificationDataDisplay Component Contract', () => {
     themes.forEach(theme => {
       const props: EmailVerificationDataDisplayProps = {
         ...defaultProps,
-        theme
+        theme,
       };
 
       // This test should fail until the component is implemented
@@ -165,7 +169,7 @@ describe('EmailVerificationDataDisplay Component Contract', () => {
     const customClass = 'my-custom-class';
     const props: EmailVerificationDataDisplayProps = {
       ...defaultProps,
-      className: customClass
+      className: customClass,
     };
 
     // This test should fail until the component is implemented
@@ -179,7 +183,7 @@ describe('EmailVerificationDataDisplay Component Contract', () => {
     const mockOnLoadingChange = vi.fn();
     const props: EmailVerificationDataDisplayProps = {
       ...defaultProps,
-      onLoadingChange: mockOnLoadingChange
+      onLoadingChange: mockOnLoadingChange,
     };
 
     // This test should fail until the component is implemented
@@ -199,7 +203,7 @@ describe('EmailVerificationDataDisplay Component Contract', () => {
     const mockOnError = vi.fn();
     const props: EmailVerificationDataDisplayProps = {
       ...defaultProps,
-      onError: mockOnError
+      onError: mockOnError,
     };
 
     // This test should fail until the component is implemented
@@ -219,7 +223,7 @@ describe('EmailVerificationDataDisplay Component Contract', () => {
 
     const props: EmailVerificationDataDisplayProps = {
       ...defaultProps,
-      onRecordSelect: mockOnRecordSelect
+      onRecordSelect: mockOnRecordSelect,
     };
 
     // This test should fail until the component is implemented

@@ -7,7 +7,7 @@ import {
   TableCell,
   TableHead,
   TableHeader,
-  TableRow
+  TableRow,
 } from '@/components/ui/table';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
@@ -34,7 +34,7 @@ export function SyncOperationTable({
   onOperationSelect,
   selectedOperations = [],
   onRetryOperation,
-  onViewOperation
+  onViewOperation,
 }: SyncOperationTableProps) {
   const handleSelectAll = (checked: boolean) => {
     if (checked) {
@@ -70,9 +70,9 @@ export function SyncOperationTable({
 
   if (loading) {
     return (
-      <div className="space-y-2">
+      <div className='space-y-2'>
         {[...Array(5)].map((_, i) => (
-          <div key={i} className="h-16 bg-gray-100 rounded animate-pulse" />
+          <div key={i} className='h-16 bg-gray-100 rounded animate-pulse' />
         ))}
       </div>
     );
@@ -80,19 +80,19 @@ export function SyncOperationTable({
 
   if (operations.length === 0) {
     return (
-      <div className="text-center py-8 text-muted-foreground">
+      <div className='text-center py-8 text-muted-foreground'>
         <p>No sync operations found</p>
       </div>
     );
   }
 
   return (
-    <div className="border rounded-lg">
+    <div className='border rounded-lg'>
       <Table>
         <TableHeader>
           <TableRow>
             {onOperationSelect && (
-              <TableHead className="w-12">
+              <TableHead className='w-12'>
                 <Checkbox
                   checked={selectedOperations.length === operations.length}
                   onCheckedChange={handleSelectAll}
@@ -108,74 +108,87 @@ export function SyncOperationTable({
           </TableRow>
         </TableHeader>
         <TableBody>
-          {operations.map((operation) => (
+          {operations.map(operation => (
             <TableRow key={operation.id}>
               {onOperationSelect && (
                 <TableCell>
                   <Checkbox
                     checked={selectedOperations.includes(operation.id)}
-                    onCheckedChange={(checked) =>
+                    onCheckedChange={checked =>
                       handleSelectOperation(operation.id, checked as boolean)
                     }
                   />
                 </TableCell>
               )}
               <TableCell>
-                <div className="flex items-center gap-2">
-                  <SyncStatusIndicator status={operation.status} size="sm" />
-                  <Badge variant={
-                    operation.status === 'completed' ? 'default' :
-                    operation.status === 'failed' ? 'destructive' :
-                    operation.status === 'in_progress' ? 'secondary' : 'outline'
-                  }>
+                <div className='flex items-center gap-2'>
+                  <SyncStatusIndicator status={operation.status} size='sm' />
+                  <Badge
+                    variant={
+                      operation.status === 'completed'
+                        ? 'default'
+                        : operation.status === 'failed'
+                          ? 'destructive'
+                          : operation.status === 'in_progress'
+                            ? 'secondary'
+                            : 'outline'
+                    }
+                  >
                     {operation.status.replace('_', ' ')}
                   </Badge>
                 </div>
               </TableCell>
               <TableCell>
-                <div className="text-sm">
+                <div className='text-sm'>
                   <div>Supabase: {operation.supabaseContactId}</div>
-                  <div className="text-muted-foreground">HubSpot: {operation.hubspotContactId}</div>
+                  <div className='text-muted-foreground'>
+                    HubSpot: {operation.hubspotContactId}
+                  </div>
                 </div>
               </TableCell>
               <TableCell>
-                <div className="flex items-center gap-2">
+                <div className='flex items-center gap-2'>
                   <span>{operation.sourceValue}</span>
-                  {operation.targetValue && operation.targetValue !== operation.sourceValue && (
-                    <span className="text-muted-foreground">→ {operation.targetValue}</span>
-                  )}
+                  {operation.targetValue &&
+                    operation.targetValue !== operation.sourceValue && (
+                      <span className='text-muted-foreground'>
+                        → {operation.targetValue}
+                      </span>
+                    )}
                 </div>
               </TableCell>
               <TableCell>
-                <div className="text-sm">
+                <div className='text-sm'>
                   {new Date(operation.startedAt).toLocaleString()}
                 </div>
               </TableCell>
               <TableCell>
-                <div className="text-sm">
+                <div className='text-sm'>
                   {formatDuration(operation.startedAt, operation.completedAt)}
                 </div>
               </TableCell>
               <TableCell>
-                <div className="flex items-center gap-1">
+                <div className='flex items-center gap-1'>
                   {onViewOperation && (
                     <Button
-                      variant="ghost"
-                      size="sm"
+                      variant='ghost'
+                      size='sm'
                       onClick={() => onViewOperation(operation)}
                     >
-                      <Eye className="w-4 h-4" />
+                      <Eye className='w-4 h-4' />
                     </Button>
                   )}
-                  {operation.status === 'failed' && operation.error?.canRetry && onRetryOperation && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => onRetryOperation(operation.id)}
-                    >
-                      <RotateCcw className="w-4 h-4" />
-                    </Button>
-                  )}
+                  {operation.status === 'failed' &&
+                    operation.error?.canRetry &&
+                    onRetryOperation && (
+                      <Button
+                        variant='ghost'
+                        size='sm'
+                        onClick={() => onRetryOperation(operation.id)}
+                      >
+                        <RotateCcw className='w-4 h-4' />
+                      </Button>
+                    )}
                 </div>
               </TableCell>
             </TableRow>

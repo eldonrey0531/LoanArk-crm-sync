@@ -1,10 +1,23 @@
 import React from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
 import { Alert, AlertDescription } from '../components/ui/alert';
 import { useHubSpot } from '../contexts/HubSpotContext';
-import { CheckCircle, XCircle, Loader2, LogIn, LogOut, ExternalLink } from 'lucide-react';
+import {
+  CheckCircle,
+  XCircle,
+  Loader2,
+  LogIn,
+  LogOut,
+  ExternalLink,
+} from 'lucide-react';
 
 const HubSpotAuth: React.FC = () => {
   const {
@@ -40,10 +53,10 @@ const HubSpotAuth: React.FC = () => {
   };
 
   return (
-    <Card className="w-full max-w-2xl">
+    <Card className='w-full max-w-2xl'>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <ExternalLink className="h-5 w-5" />
+        <CardTitle className='flex items-center gap-2'>
+          <ExternalLink className='h-5 w-5' />
           HubSpot Authentication
         </CardTitle>
         <CardDescription>
@@ -51,46 +64,46 @@ const HubSpotAuth: React.FC = () => {
         </CardDescription>
       </CardHeader>
 
-      <CardContent className="space-y-4">
+      <CardContent className='space-y-4'>
         {/* Authentication Status */}
-        <div className="flex items-center justify-between p-4 border rounded-lg">
-          <div className="flex items-center gap-3">
+        <div className='flex items-center justify-between p-4 border rounded-lg'>
+          <div className='flex items-center gap-3'>
             {isAuthenticated ? (
-              <CheckCircle className="h-5 w-5 text-green-500" />
+              <CheckCircle className='h-5 w-5 text-green-500' />
             ) : (
-              <XCircle className="h-5 w-5 text-red-500" />
+              <XCircle className='h-5 w-5 text-red-500' />
             )}
             <div>
-              <p className="font-medium">
+              <p className='font-medium'>
                 {isAuthenticated ? 'Authenticated' : 'Not Authenticated'}
               </p>
               {user && (
-                <p className="text-sm text-gray-600">
+                <p className='text-sm text-gray-600'>
                   {user.email || 'User connected'}
                 </p>
               )}
             </div>
           </div>
 
-          <div className="flex gap-2">
+          <div className='flex gap-2'>
             {!isAuthenticated ? (
               <>
                 <Button onClick={handleLogin} disabled={isLoading}>
                   {isLoading ? (
-                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                    <Loader2 className='h-4 w-4 animate-spin mr-2' />
                   ) : (
-                    <LogIn className="h-4 w-4 mr-2" />
+                    <LogIn className='h-4 w-4 mr-2' />
                   )}
                   Connect HubSpot
                 </Button>
-                <Button variant="outline" onClick={handleOpenAuthUrl}>
-                  <ExternalLink className="h-4 w-4 mr-2" />
+                <Button variant='outline' onClick={handleOpenAuthUrl}>
+                  <ExternalLink className='h-4 w-4 mr-2' />
                   Open Auth Page
                 </Button>
               </>
             ) : (
-              <Button variant="outline" onClick={handleLogout}>
-                <LogOut className="h-4 w-4 mr-2" />
+              <Button variant='outline' onClick={handleLogout}>
+                <LogOut className='h-4 w-4 mr-2' />
                 Disconnect
               </Button>
             )}
@@ -99,16 +112,16 @@ const HubSpotAuth: React.FC = () => {
 
         {/* Connection Status */}
         {isAuthenticated && (
-          <div className="p-4 border rounded-lg">
-            <div className="flex items-center justify-between mb-2">
-              <span className="font-medium">CRM Connection</span>
+          <div className='p-4 border rounded-lg'>
+            <div className='flex items-center justify-between mb-2'>
+              <span className='font-medium'>CRM Connection</span>
               <Badge variant={hubspotConnected ? 'default' : 'destructive'}>
                 {hubspotConnected ? 'Connected' : 'Disconnected'}
               </Badge>
             </div>
 
             {hubspotConnected && hubspotCount !== null && (
-              <p className="text-sm text-gray-600">
+              <p className='text-sm text-gray-600'>
                 {hubspotCount.toLocaleString()} contacts available
               </p>
             )}
@@ -117,8 +130,8 @@ const HubSpotAuth: React.FC = () => {
 
         {/* Error Messages */}
         {authError && (
-          <Alert variant="destructive">
-            <XCircle className="h-4 w-4" />
+          <Alert variant='destructive'>
+            <XCircle className='h-4 w-4' />
             <AlertDescription>
               Authentication Error: {authError}
             </AlertDescription>
@@ -126,18 +139,16 @@ const HubSpotAuth: React.FC = () => {
         )}
 
         {error && (
-          <Alert variant="destructive">
-            <XCircle className="h-4 w-4" />
-            <AlertDescription>
-              Connection Error: {error}
-            </AlertDescription>
+          <Alert variant='destructive'>
+            <XCircle className='h-4 w-4' />
+            <AlertDescription>Connection Error: {error}</AlertDescription>
           </Alert>
         )}
 
         {/* Instructions */}
         {!isAuthenticated && (
           <Alert>
-            <ExternalLink className="h-4 w-4" />
+            <ExternalLink className='h-4 w-4' />
             <AlertDescription>
               Click "Connect HubSpot" to authenticate with your HubSpot account.
               You'll be redirected to HubSpot's authorization page.
@@ -146,9 +157,9 @@ const HubSpotAuth: React.FC = () => {
         )}
 
         {/* OAuth Scopes */}
-        <div className="text-sm text-gray-600">
-          <p className="font-medium mb-2">Required Permissions:</p>
-          <ul className="list-disc list-inside space-y-1">
+        <div className='text-sm text-gray-600'>
+          <p className='font-medium mb-2'>Required Permissions:</p>
+          <ul className='list-disc list-inside space-y-1'>
             <li>Read contacts and companies</li>
             <li>Write contacts and companies</li>
             <li>Read and write deals</li>

@@ -75,7 +75,12 @@ export interface HubSpotContactRequest {
 export interface ComparisonRequest {
   page?: number;
   page_size?: number;
-  filter_status?: 'all' | 'matched' | 'supabase_only' | 'hubspot_only' | 'mismatch';
+  filter_status?:
+    | 'all'
+    | 'matched'
+    | 'supabase_only'
+    | 'hubspot_only'
+    | 'mismatch';
   search?: string;
 }
 
@@ -181,7 +186,15 @@ export interface HubSpotFilterGroup {
 
 export interface HubSpotFilter {
   propertyName: string;
-  operator: 'EQ' | 'NEQ' | 'LT' | 'GT' | 'LTE' | 'GTE' | 'HAS_PROPERTY' | 'NOT_HAS_PROPERTY';
+  operator:
+    | 'EQ'
+    | 'NEQ'
+    | 'LT'
+    | 'GT'
+    | 'LTE'
+    | 'GTE'
+    | 'HAS_PROPERTY'
+    | 'NOT_HAS_PROPERTY';
   value?: any;
 }
 
@@ -199,26 +212,26 @@ export const ValidationRules = {
   email: {
     required: true,
     pattern: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-    maxLength: 255
+    maxLength: 255,
   },
   name: {
     required: true,
     minLength: 1,
-    maxLength: 255
+    maxLength: 255,
   },
   email_verification_status: {
     allowedValues: ['verified', 'unverified', 'pending', 'failed', null],
-    nullable: true
+    nullable: true,
   },
   page: {
     min: 1,
-    max: 1000
+    max: 1000,
   },
   page_size: {
     min: 10,
     max: 200,
-    default: 50
-  }
+    default: 50,
+  },
 } as const;
 
 // HTTP Status Codes
@@ -230,44 +243,44 @@ export const HttpStatus = {
   FORBIDDEN: 403,
   NOT_FOUND: 404,
   TOO_MANY_REQUESTS: 429,
-  INTERNAL_SERVER_ERROR: 500
+  INTERNAL_SERVER_ERROR: 500,
 } as const;
 
 // API Endpoints
 export const ApiEndpoints = {
   supabase: {
     contacts: '/api/supabase/contacts',
-    contact: (id: number) => `/api/supabase/contacts/${id}`
+    contact: (id: number) => `/api/supabase/contacts/${id}`,
   },
   hubspot: {
     contacts: '/api/hubspot/contacts',
-    contact: (id: string) => `/api/hubspot/contacts/${id}`
+    contact: (id: string) => `/api/hubspot/contacts/${id}`,
   },
   comparison: {
-    data: '/api/comparison/email-verification'
-  }
+    data: '/api/comparison/email-verification',
+  },
 } as const;
 
 // Rate Limiting
 export const RateLimits = {
   supabase: {
     requests_per_minute: 60,
-    burst_limit: 10
+    burst_limit: 10,
   },
   hubspot: {
     requests_per_minute: 100,
-    burst_limit: 20
-  }
+    burst_limit: 20,
+  },
 } as const;
 
 // Cache Configuration
 export const CacheConfig = {
   comparison_data: {
     ttl: 5 * 60 * 1000, // 5 minutes
-    max_age: 10 * 60 * 1000 // 10 minutes
+    max_age: 10 * 60 * 1000, // 10 minutes
   },
   individual_contacts: {
     ttl: 15 * 60 * 1000, // 15 minutes
-    max_age: 30 * 60 * 1000 // 30 minutes
-  }
+    max_age: 30 * 60 * 1000, // 30 minutes
+  },
 } as const;

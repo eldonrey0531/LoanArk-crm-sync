@@ -34,7 +34,9 @@ class HubSpotAuthService {
     this.config = {
       clientId: import.meta.env.VITE_HUBSPOT_CLIENT_ID || '',
       clientSecret: import.meta.env.VITE_HUBSPOT_CLIENT_SECRET || '',
-      redirectUri: import.meta.env.VITE_HUBSPOT_REDIRECT_URI || `${window.location.origin}/auth/hubspot/callback`,
+      redirectUri:
+        import.meta.env.VITE_HUBSPOT_REDIRECT_URI ||
+        `${window.location.origin}/auth/hubspot/callback`,
       scopes: [
         'crm.objects.contacts.read',
         'crm.objects.contacts.write',
@@ -42,10 +44,10 @@ class HubSpotAuthService {
         'crm.objects.companies.write',
         'crm.objects.deals.read',
         'crm.objects.deals.write',
-        'oauth'
+        'oauth',
       ],
       authUrl: 'https://app.hubspot.com/oauth/authorize',
-      tokenUrl: 'https://api.hubapi.com/oauth/v1/token'
+      tokenUrl: 'https://api.hubapi.com/oauth/v1/token',
     };
 
     this.state = {
@@ -53,7 +55,7 @@ class HubSpotAuthService {
       isLoading: false,
       error: null,
       user: null,
-      token: null
+      token: null,
     };
 
     this.loadStoredToken();
@@ -71,7 +73,8 @@ class HubSpotAuthService {
    */
   private async loadStoredToken(): Promise<void> {
     try {
-      const storedToken = await StorageManager.getCachedApiResponse('hubspot-token');
+      const storedToken =
+        await StorageManager.getCachedApiResponse('hubspot-token');
       if (storedToken && this.isTokenValid(storedToken)) {
         this.state.token = storedToken;
         this.state.isAuthenticated = true;
@@ -92,7 +95,7 @@ class HubSpotAuthService {
   private isTokenValid(token: HubSpotToken): boolean {
     if (!token?.expires_at) return false;
     // Add 5 minute buffer for token expiration
-    return Date.now() < (token.expires_at - 300000);
+    return Date.now() < token.expires_at - 300000;
   }
 
   /**
@@ -104,7 +107,7 @@ class HubSpotAuthService {
       redirect_uri: this.config.redirectUri,
       scope: this.config.scopes.join(' '),
       response_type: 'code',
-      state: this.generateState()
+      state: this.generateState(),
     });
 
     return `${this.config.authUrl}?${params.toString()}`;
@@ -156,7 +159,9 @@ class HubSpotAuthService {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error_description || 'Failed to exchange code for token');
+        throw new Error(
+          errorData.error_description || 'Failed to exchange code for token'
+        );
       }
 
       const tokenData = await response.json();
@@ -216,7 +221,7 @@ class HubSpotAuthService {
       access_token: tokenData.access_token,
       refresh_token: tokenData.refresh_token || this.state.token?.refresh_token,
       expires_in: tokenData.expires_in,
-      expires_at: Date.now() + (tokenData.expires_in * 1000),
+      expires_at: Date.now() + tokenData.expires_in * 1000,
       token_type: tokenData.token_type,
     };
 
@@ -231,7 +236,10 @@ class HubSpotAuthService {
     if (!this.state.token) return;
 
     try {
-      const response = await fetch('https://api.hubapi.com/oauth/v1/access-tokens/' + this.state.token.access_token);
+      const response = await fetch(
+        'https://api.hubapi.com/oauth/v1/access-tokens/' +
+          this.state.token.access_token
+      );
 
       if (response.ok) {
         const profile = await response.json();

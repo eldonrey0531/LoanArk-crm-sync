@@ -16,7 +16,7 @@ import {
   HubSpotContact,
   EmailVerificationSyncService as IEmailVerificationSyncService,
   SupabaseEmailVerificationService,
-  HubSpotEmailVerificationService
+  HubSpotEmailVerificationService,
 } from '../types/emailVerification';
 
 // Service dependencies
@@ -48,8 +48,9 @@ export function initializeEmailVerificationSyncService(
 /**
  * Main Email Verification Sync Service implementation
  */
-export class EmailVerificationSyncService implements IEmailVerificationSyncService {
-
+export class EmailVerificationSyncService
+  implements IEmailVerificationSyncService
+{
   /**
    * Sync email verification status from Supabase to HubSpot
    *
@@ -75,7 +76,7 @@ export class EmailVerificationSyncService implements IEmailVerificationSyncServi
       startedAt: startTime,
       sourceValue: status,
       retryCount: 0,
-      initiatedBy: 'system' // Default to system-initiated
+      initiatedBy: 'system', // Default to system-initiated
     };
 
     // Store the operation
@@ -88,19 +89,25 @@ export class EmailVerificationSyncService implements IEmailVerificationSyncServi
       }
 
       // Step 2: Validate Supabase contact exists and has required data
-      const contactValid = await supabaseService.validateContactForSync(supabaseContactId);
+      const contactValid =
+        await supabaseService.validateContactForSync(supabaseContactId);
       if (!contactValid) {
-        throw new Error(`Supabase contact ${supabaseContactId} not found or invalid`);
+        throw new Error(
+          `Supabase contact ${supabaseContactId} not found or invalid`
+        );
       }
 
       // Step 3: Get the contact data for logging
       const contact = await supabaseService.getContactById(supabaseContactId);
       if (!contact) {
-        throw new Error(`Failed to retrieve Supabase contact ${supabaseContactId}`);
+        throw new Error(
+          `Failed to retrieve Supabase contact ${supabaseContactId}`
+        );
       }
 
       // Step 4: Validate HubSpot contact exists (if required)
-      const hubspotContactExists = await hubspotService.validateContactExists(hubspotContactId);
+      const hubspotContactExists =
+        await hubspotService.validateContactExists(hubspotContactId);
       if (!hubspotContactExists) {
         throw new Error(`HubSpot contact ${hubspotContactId} not found`);
       }
@@ -121,17 +128,17 @@ export class EmailVerificationSyncService implements IEmailVerificationSyncServi
         result: {
           previousValue: undefined, // Would need to be retrieved from HubSpot if needed
           newValue: status,
-          hubspotResponse: hubspotResult
-        }
+          hubspotResponse: hubspotResult,
+        },
       };
 
       operationsStore.set(operationId, completedOperation);
       return completedOperation;
-
     } catch (error) {
       // Handle sync failure
       const endTime = new Date();
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      const errorMessage =
+        error instanceof Error ? error.message : 'Unknown error occurred';
 
       const failedOperation: SyncOperation = {
         ...operation,
@@ -142,8 +149,8 @@ export class EmailVerificationSyncService implements IEmailVerificationSyncServi
           message: errorMessage,
           details: error,
           retryCount: operation.retryCount,
-          canRetry: this.canRetryError(error)
-        }
+          canRetry: this.canRetryError(error),
+        },
       };
 
       operationsStore.set(operationId, failedOperation);
@@ -173,7 +180,7 @@ export class EmailVerificationSyncService implements IEmailVerificationSyncServi
       'unverified',
       'pending',
       'bounced',
-      'complained'
+      'complained',
     ];
 
     return validStatuses.includes(status);
@@ -188,7 +195,10 @@ export class EmailVerificationSyncService implements IEmailVerificationSyncServi
     const pending: SyncOperation[] = [];
 
     for (const operation of operationsStore.values()) {
-      if (operation.status === 'pending' || operation.status === 'in_progress') {
+      if (
+        operation.status === 'pending' ||
+        operation.status === 'in_progress'
+      ) {
         pending.push(operation);
       }
     }
@@ -223,7 +233,7 @@ export class EmailVerificationSyncService implements IEmailVerificationSyncServi
       startedAt: new Date(),
       sourceValue: existingOperation.sourceValue,
       retryCount: existingOperation.retryCount + 1,
-      initiatedBy: existingOperation.initiatedBy
+      initiatedBy: existingOperation.initiatedBy,
     };
 
     operationsStore.set(newOperationId, retryOperation);
@@ -298,7 +308,7 @@ export class EmailVerificationSyncService implements IEmailVerificationSyncServi
       'RATE_LIMITED',
       'HUBSPOT_API_ERROR',
       'DATABASE_ERROR',
-      'NETWORK_ERROR'
+      'NETWORK_ERROR',
     ];
 
     const errorCode = this.categorizeError(error);

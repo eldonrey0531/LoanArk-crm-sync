@@ -19,7 +19,7 @@ export function SyncStatusIndicator({
   status,
   size = 'md',
   showText = false,
-  className
+  className,
 }: SyncStatusIndicatorProps) {
   const getStatusConfig = () => {
     switch (status) {
@@ -29,7 +29,7 @@ export function SyncStatusIndicator({
           color: 'text-green-500',
           bgColor: 'bg-green-50',
           text: 'Completed',
-          badgeVariant: 'default' as const
+          badgeVariant: 'default' as const,
         };
       case 'failed':
         return {
@@ -37,7 +37,7 @@ export function SyncStatusIndicator({
           color: 'text-red-500',
           bgColor: 'bg-red-50',
           text: 'Failed',
-          badgeVariant: 'destructive' as const
+          badgeVariant: 'destructive' as const,
         };
       case 'in_progress':
         return {
@@ -45,7 +45,7 @@ export function SyncStatusIndicator({
           color: 'text-blue-500',
           bgColor: 'bg-blue-50',
           text: 'In Progress',
-          badgeVariant: 'secondary' as const
+          badgeVariant: 'secondary' as const,
         };
       case 'pending':
         return {
@@ -53,7 +53,7 @@ export function SyncStatusIndicator({
           color: 'text-yellow-500',
           bgColor: 'bg-yellow-50',
           text: 'Pending',
-          badgeVariant: 'outline' as const
+          badgeVariant: 'outline' as const,
         };
       default:
         return {
@@ -61,7 +61,7 @@ export function SyncStatusIndicator({
           color: 'text-gray-500',
           bgColor: 'bg-gray-50',
           text: 'Unknown',
-          badgeVariant: 'outline' as const
+          badgeVariant: 'outline' as const,
         };
     }
   };
@@ -72,7 +72,7 @@ export function SyncStatusIndicator({
   const sizeClasses = {
     sm: 'w-3 h-3',
     md: 'w-4 h-4',
-    lg: 'w-5 h-5'
+    lg: 'w-5 h-5',
   };
 
   if (showText) {

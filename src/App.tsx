@@ -38,20 +38,20 @@ const queryClient = new QueryClient({
         // Retry up to 3 times for other errors
         return failureCount < 3;
       },
-      retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+      retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 30000),
       // Don't refetch on window focus by default
       refetchOnWindowFocus: false,
       // Refetch on reconnect
       refetchOnReconnect: true,
       // Refetch on mount if data is stale
-      refetchOnMount: true
+      refetchOnMount: true,
     },
     mutations: {
       // Retry mutations once on failure
       retry: 1,
-      retryDelay: 1000
-    }
-  }
+      retryDelay: 1000,
+    },
+  },
 });
 
 const App = () => {
@@ -94,16 +94,28 @@ const App = () => {
                     <Route path='sync-monitor' element={<SyncMonitor />} />
                     <Route path='logs' element={<Logs />} />
                     <Route path='settings' element={<Settings />} />
-                    <Route path='supabase-database' element={<SupabaseDatabase />} />
-                    <Route path='hubspot-contacts' element={<HubSpotContacts />} />
-                    <Route path='email-verification-sync' element={
-                      <ErrorBoundary>
-                        <EmailVerificationSyncPage />
-                      </ErrorBoundary>
-                    } />
+                    <Route
+                      path='supabase-database'
+                      element={<SupabaseDatabase />}
+                    />
+                    <Route
+                      path='hubspot-contacts'
+                      element={<HubSpotContacts />}
+                    />
+                    <Route
+                      path='email-verification-sync'
+                      element={
+                        <ErrorBoundary>
+                          <EmailVerificationSyncPage />
+                        </ErrorBoundary>
+                      }
+                    />
                     {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                   </Route>
-                  <Route path='/auth/hubspot/callback' element={<HubSpotCallback />} />
+                  <Route
+                    path='/auth/hubspot/callback'
+                    element={<HubSpotCallback />}
+                  />
                   <Route path='*' element={<NotFound />} />
                 </Routes>
               </ErrorBoundary>

@@ -18,9 +18,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
-import {
-  EmailVerificationDataDisplayProps
-} from '../../../../specs/005-show-data-from/contracts/component-contracts';
+import { EmailVerificationDataDisplayProps } from '../../../../specs/005-show-data-from/contracts/component-contracts';
 
 // Mock API responses
 const mockComparisonData = [
@@ -33,7 +31,7 @@ const mockComparisonData = [
       email_verification_status: 'verified',
       hs_object_id: '12345',
       created_at: '2025-01-15T10:30:00Z',
-      updated_at: '2025-01-15T10:30:00Z'
+      updated_at: '2025-01-15T10:30:00Z',
     },
     hubspot: {
       id: '12345',
@@ -42,15 +40,15 @@ const mockComparisonData = [
         lastname: 'Doe',
         email: 'john.doe@example.com',
         email_verification_status: 'verified',
-        hs_object_id: '12345'
+        hs_object_id: '12345',
       },
       createdAt: '2025-01-15T10:30:00Z',
-      updatedAt: '2025-01-15T10:30:00Z'
+      updatedAt: '2025-01-15T10:30:00Z',
     },
     match_status: 'matched' as const,
     differences: [],
-    last_sync: '2025-01-15T10:30:00Z'
-  }
+    last_sync: '2025-01-15T10:30:00Z',
+  },
 ];
 
 const mockPagination = {
@@ -58,29 +56,35 @@ const mockPagination = {
   page_size: 10,
   total: 1,
   has_next: false,
-  has_previous: false
+  has_previous: false,
 };
 
 const mockSummary = {
   total_matched: 1,
   total_supabase_only: 0,
   total_hubspot_only: 0,
-  total_mismatches: 0
+  total_mismatches: 0,
 };
 
 // Mock the main component (this will fail until implemented)
-const MockEmailVerificationDataDisplay = (props: EmailVerificationDataDisplayProps) => {
-  return React.createElement('div', {
-    'data-testid': 'email-verification-display',
-    ...props
-  }, 'Mock Email Verification Data Display');
+const MockEmailVerificationDataDisplay = (
+  props: EmailVerificationDataDisplayProps
+) => {
+  return React.createElement(
+    'div',
+    {
+      'data-testid': 'email-verification-display',
+      ...props,
+    },
+    'Mock Email Verification Data Display'
+  );
 };
 
 describe('User Story 1: View Email Verification Data', () => {
   const defaultProps: EmailVerificationDataDisplayProps = {
     initialPageSize: 10,
     showFilters: true,
-    showSummary: true
+    showSummary: true,
   };
 
   beforeEach(() => {
@@ -91,7 +95,9 @@ describe('User Story 1: View Email Verification Data', () => {
   it('should display the main container component', () => {
     render(MockEmailVerificationDataDisplay(defaultProps));
 
-    expect(screen.getByTestId('email-verification-display')).toBeInTheDocument();
+    expect(
+      screen.getByTestId('email-verification-display')
+    ).toBeInTheDocument();
   });
 
   it('should accept configuration props', () => {
@@ -101,7 +107,7 @@ describe('User Story 1: View Email Verification Data', () => {
       showFilters: false,
       showSummary: false,
       className: 'custom-display',
-      theme: 'dark'
+      theme: 'dark',
     };
 
     expect(() => {
@@ -118,7 +124,7 @@ describe('User Story 1: View Email Verification Data', () => {
       ...defaultProps,
       onRecordSelect: mockOnRecordSelect,
       onError: mockOnError,
-      onLoadingChange: mockOnLoadingChange
+      onLoadingChange: mockOnLoadingChange,
     };
 
     expect(() => {
@@ -129,17 +135,17 @@ describe('User Story 1: View Email Verification Data', () => {
   it('should handle theme configuration', () => {
     const lightThemeProps: EmailVerificationDataDisplayProps = {
       ...defaultProps,
-      theme: 'light'
+      theme: 'light',
     };
 
     const darkThemeProps: EmailVerificationDataDisplayProps = {
       ...defaultProps,
-      theme: 'dark'
+      theme: 'dark',
     };
 
     const autoThemeProps: EmailVerificationDataDisplayProps = {
       ...defaultProps,
-      theme: 'auto'
+      theme: 'auto',
     };
 
     expect(() => {
@@ -152,12 +158,12 @@ describe('User Story 1: View Email Verification Data', () => {
   it('should handle page size configuration', () => {
     const smallPageProps: EmailVerificationDataDisplayProps = {
       ...defaultProps,
-      initialPageSize: 5
+      initialPageSize: 5,
     };
 
     const largePageProps: EmailVerificationDataDisplayProps = {
       ...defaultProps,
-      initialPageSize: 100
+      initialPageSize: 100,
     };
 
     expect(() => {
@@ -169,12 +175,12 @@ describe('User Story 1: View Email Verification Data', () => {
   it('should handle display options', () => {
     const noFiltersProps: EmailVerificationDataDisplayProps = {
       ...defaultProps,
-      showFilters: false
+      showFilters: false,
     };
 
     const noSummaryProps: EmailVerificationDataDisplayProps = {
       ...defaultProps,
-      showSummary: false
+      showSummary: false,
     };
 
     expect(() => {

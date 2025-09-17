@@ -12,7 +12,7 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import {
   GetSyncStatusCompletedResponse,
   GetSyncStatusFailedResponse,
-  GetSyncStatusProcessingResponse
+  GetSyncStatusProcessingResponse,
 } from '../../types/emailVerification';
 
 // Mock the Netlify function endpoint
@@ -34,7 +34,9 @@ describe('GET /api/sync-status/{operationId} Contract', () => {
 
   describe('Request Structure', () => {
     it('should accept GET requests with operationId parameter', async () => {
-      const response = await fetch(`${API_BASE_URL}/sync-status/${validOperationId}`);
+      const response = await fetch(
+        `${API_BASE_URL}/sync-status/${validOperationId}`
+      );
       expect(response.status).not.toBe(404); // Should not be "Not Found"
     });
 
@@ -65,7 +67,9 @@ describe('GET /api/sync-status/{operationId} Contract', () => {
     });
 
     it('should validate operationId format', async () => {
-      const response = await fetch(`${API_BASE_URL}/sync-status/invalid-format`);
+      const response = await fetch(
+        `${API_BASE_URL}/sync-status/invalid-format`
+      );
 
       // Should handle invalid operation IDs
       expect([400, 404, 200]).toContain(response.status);
@@ -78,7 +82,9 @@ describe('GET /api/sync-status/{operationId} Contract', () => {
     });
 
     it('should handle non-existent operation IDs', async () => {
-      const response = await fetch(`${API_BASE_URL}/sync-status/${invalidOperationId}`);
+      const response = await fetch(
+        `${API_BASE_URL}/sync-status/${invalidOperationId}`
+      );
 
       expect([404, 200]).toContain(response.status);
 
@@ -93,14 +99,18 @@ describe('GET /api/sync-status/{operationId} Contract', () => {
 
   describe('Response Structure', () => {
     it('should return JSON response', async () => {
-      const response = await fetch(`${API_BASE_URL}/sync-status/${validOperationId}`);
+      const response = await fetch(
+        `${API_BASE_URL}/sync-status/${validOperationId}`
+      );
       const contentType = response.headers.get('content-type');
 
       expect(contentType).toContain('application/json');
     });
 
     it('should return proper response structure', async () => {
-      const response = await fetch(`${API_BASE_URL}/sync-status/${validOperationId}`);
+      const response = await fetch(
+        `${API_BASE_URL}/sync-status/${validOperationId}`
+      );
       const data = await response.json();
 
       // Check basic response structure
@@ -124,10 +134,16 @@ describe('GET /api/sync-status/{operationId} Contract', () => {
 
   describe('Completed Operation Response', () => {
     it('should return completed status structure', async () => {
-      const response = await fetch(`${API_BASE_URL}/sync-status/${validOperationId}`);
+      const response = await fetch(
+        `${API_BASE_URL}/sync-status/${validOperationId}`
+      );
       const data = await response.json();
 
-      if (response.status === 200 && data.success && data.data.status === 'completed') {
+      if (
+        response.status === 200 &&
+        data.success &&
+        data.data.status === 'completed'
+      ) {
         expect(data.data).toHaveProperty('completedAt');
         expect(data.data).toHaveProperty('duration');
         expect(typeof data.data.duration).toBe('number');
@@ -139,15 +155,23 @@ describe('GET /api/sync-status/{operationId} Contract', () => {
         // Validate HubSpot response structure
         expect(data.data.result.hubspotResponse).toHaveProperty('id');
         expect(data.data.result.hubspotResponse).toHaveProperty('updatedAt');
-        expect(data.data.result.hubspotResponse.properties).toHaveProperty('email_verification_status');
+        expect(data.data.result.hubspotResponse.properties).toHaveProperty(
+          'email_verification_status'
+        );
       }
     });
 
     it('should include timing information for completed operations', async () => {
-      const response = await fetch(`${API_BASE_URL}/sync-status/${validOperationId}`);
+      const response = await fetch(
+        `${API_BASE_URL}/sync-status/${validOperationId}`
+      );
       const data = await response.json();
 
-      if (response.status === 200 && data.success && data.data.status === 'completed') {
+      if (
+        response.status === 200 &&
+        data.success &&
+        data.data.status === 'completed'
+      ) {
         expect(data.data.startedAt).toBeDefined();
         expect(data.data.completedAt).toBeDefined();
 
@@ -165,10 +189,16 @@ describe('GET /api/sync-status/{operationId} Contract', () => {
 
   describe('Failed Operation Response', () => {
     it('should return failed status structure', async () => {
-      const response = await fetch(`${API_BASE_URL}/sync-status/${validOperationId}`);
+      const response = await fetch(
+        `${API_BASE_URL}/sync-status/${validOperationId}`
+      );
       const data = await response.json();
 
-      if (response.status === 200 && data.success && data.data.status === 'failed') {
+      if (
+        response.status === 200 &&
+        data.success &&
+        data.data.status === 'failed'
+      ) {
         expect(data.data).toHaveProperty('completedAt');
         expect(data.data).toHaveProperty('duration');
         expect(data.data).toHaveProperty('error');
@@ -187,7 +217,11 @@ describe('GET /api/sync-status/{operationId} Contract', () => {
       );
       const data = await response.json();
 
-      if (response.status === 200 && data.success && data.data.status === 'failed') {
+      if (
+        response.status === 200 &&
+        data.success &&
+        data.data.status === 'failed'
+      ) {
         // When includeDetails=true, error should have more details
         expect(data.data.error).toHaveProperty('details');
 
@@ -198,10 +232,16 @@ describe('GET /api/sync-status/{operationId} Contract', () => {
     });
 
     it('should not include sensitive error details by default', async () => {
-      const response = await fetch(`${API_BASE_URL}/sync-status/${validOperationId}`);
+      const response = await fetch(
+        `${API_BASE_URL}/sync-status/${validOperationId}`
+      );
       const data = await response.json();
 
-      if (response.status === 200 && data.success && data.data.status === 'failed') {
+      if (
+        response.status === 200 &&
+        data.success &&
+        data.data.status === 'failed'
+      ) {
         // By default, detailed error information should not be exposed
         if (data.data.error.details) {
           // If details are included, they should be sanitized
@@ -214,11 +254,16 @@ describe('GET /api/sync-status/{operationId} Contract', () => {
 
   describe('Processing Operation Response', () => {
     it('should return processing status structure', async () => {
-      const response = await fetch(`${API_BASE_URL}/sync-status/${validOperationId}`);
+      const response = await fetch(
+        `${API_BASE_URL}/sync-status/${validOperationId}`
+      );
       const data = await response.json();
 
-      if (response.status === 200 && data.success &&
-          (data.data.status === 'processing' || data.data.status === 'pending')) {
+      if (
+        response.status === 200 &&
+        data.success &&
+        (data.data.status === 'processing' || data.data.status === 'pending')
+      ) {
         expect(data.data).toHaveProperty('message');
         expect(typeof data.data.message).toBe('string');
         expect(data.data.message.length).toBeGreaterThan(0);
@@ -226,10 +271,16 @@ describe('GET /api/sync-status/{operationId} Contract', () => {
     });
 
     it('should include progress information for processing operations', async () => {
-      const response = await fetch(`${API_BASE_URL}/sync-status/${validOperationId}`);
+      const response = await fetch(
+        `${API_BASE_URL}/sync-status/${validOperationId}`
+      );
       const data = await response.json();
 
-      if (response.status === 200 && data.success && data.data.status === 'processing') {
+      if (
+        response.status === 200 &&
+        data.success &&
+        data.data.status === 'processing'
+      ) {
         // Progress information is optional but if present should be valid
         if (data.data.progress) {
           expect(data.data.progress).toHaveProperty('current');
@@ -240,7 +291,9 @@ describe('GET /api/sync-status/{operationId} Contract', () => {
           expect(typeof data.data.progress.total).toBe('number');
           expect(typeof data.data.progress.percentage).toBe('number');
 
-          expect(data.data.progress.current).toBeLessThanOrEqual(data.data.progress.total);
+          expect(data.data.progress.current).toBeLessThanOrEqual(
+            data.data.progress.total
+          );
           expect(data.data.progress.percentage).toBeGreaterThanOrEqual(0);
           expect(data.data.progress.percentage).toBeLessThanOrEqual(100);
         }
@@ -248,10 +301,16 @@ describe('GET /api/sync-status/{operationId} Contract', () => {
     });
 
     it('should provide estimated completion time for processing operations', async () => {
-      const response = await fetch(`${API_BASE_URL}/sync-status/${validOperationId}`);
+      const response = await fetch(
+        `${API_BASE_URL}/sync-status/${validOperationId}`
+      );
       const data = await response.json();
 
-      if (response.status === 200 && data.success && data.data.status === 'processing') {
+      if (
+        response.status === 200 &&
+        data.success &&
+        data.data.status === 'processing'
+      ) {
         expect(data.data).toHaveProperty('estimatedCompletion');
 
         // Should be a valid ISO 8601 timestamp
@@ -282,8 +341,12 @@ describe('GET /api/sync-status/{operationId} Contract', () => {
       expect([200, 404]).toContain(responseWithoutDetails.status);
 
       // If both are successful, the detailed response might include more information
-      if (responseWithDetails.status === 200 && responseWithoutDetails.status === 200 &&
-          dataWithDetails.success && dataWithoutDetails.success) {
+      if (
+        responseWithDetails.status === 200 &&
+        responseWithoutDetails.status === 200 &&
+        dataWithDetails.success &&
+        dataWithoutDetails.success
+      ) {
         // The detailed response should not have less information than the basic response
         expect(Object.keys(dataWithDetails.data)).toEqual(
           expect.arrayContaining(Object.keys(dataWithoutDetails.data))
@@ -309,7 +372,9 @@ describe('GET /api/sync-status/{operationId} Contract', () => {
 
   describe('Error Scenarios', () => {
     it('should handle database connection errors', async () => {
-      const response = await fetch(`${API_BASE_URL}/sync-status/${validOperationId}`);
+      const response = await fetch(
+        `${API_BASE_URL}/sync-status/${validOperationId}`
+      );
       const data = await response.json();
 
       if (response.status === 500) {
@@ -319,7 +384,9 @@ describe('GET /api/sync-status/{operationId} Contract', () => {
     });
 
     it('should handle missing authentication', async () => {
-      const response = await fetch(`${API_BASE_URL}/sync-status/${validOperationId}`);
+      const response = await fetch(
+        `${API_BASE_URL}/sync-status/${validOperationId}`
+      );
 
       expect([401, 200, 404]).toContain(response.status);
 
@@ -336,11 +403,13 @@ describe('GET /api/sync-status/{operationId} Contract', () => {
         '   ',
         '../../../etc/passwd',
         '<script>alert("xss")</script>',
-        'a'.repeat(1000) // Very long ID
+        'a'.repeat(1000), // Very long ID
       ];
 
       for (const malformedId of malformedIds) {
-        const response = await fetch(`${API_BASE_URL}/sync-status/${encodeURIComponent(malformedId)}`);
+        const response = await fetch(
+          `${API_BASE_URL}/sync-status/${encodeURIComponent(malformedId)}`
+        );
 
         // Should handle malformed IDs safely
         expect([400, 404, 200]).toContain(response.status);
@@ -356,7 +425,9 @@ describe('GET /api/sync-status/{operationId} Contract', () => {
   describe('Performance and Load', () => {
     it('should respond within reasonable time', async () => {
       const startTime = Date.now();
-      const response = await fetch(`${API_BASE_URL}/sync-status/${validOperationId}`);
+      const response = await fetch(
+        `${API_BASE_URL}/sync-status/${validOperationId}`
+      );
       const endTime = Date.now();
 
       const responseTime = endTime - startTime;
@@ -365,9 +436,9 @@ describe('GET /api/sync-status/{operationId} Contract', () => {
 
     it('should handle concurrent status requests', async () => {
       const concurrentRequests = 5;
-      const requests = Array(concurrentRequests).fill(null).map(() =>
-        fetch(`${API_BASE_URL}/sync-status/${validOperationId}`)
-      );
+      const requests = Array(concurrentRequests)
+        .fill(null)
+        .map(() => fetch(`${API_BASE_URL}/sync-status/${validOperationId}`));
 
       const responses = await Promise.all(requests);
 
@@ -385,7 +456,9 @@ describe('GET /api/sync-status/{operationId} Contract', () => {
       const rapidRequests = 10;
 
       for (let i = 0; i < rapidRequests; i++) {
-        const response = await fetch(`${API_BASE_URL}/sync-status/${validOperationId}`);
+        const response = await fetch(
+          `${API_BASE_URL}/sync-status/${validOperationId}`
+        );
         expect([200, 404]).toContain(response.status);
       }
     });
@@ -393,7 +466,9 @@ describe('GET /api/sync-status/{operationId} Contract', () => {
 
   describe('Security and Data Protection', () => {
     it('should not expose sensitive information', async () => {
-      const response = await fetch(`${API_BASE_URL}/sync-status/${validOperationId}`);
+      const response = await fetch(
+        `${API_BASE_URL}/sync-status/${validOperationId}`
+      );
       const data = await response.json();
 
       if (response.status === 200 && data.success) {
@@ -409,7 +484,9 @@ describe('GET /api/sync-status/{operationId} Contract', () => {
 
     it('should validate operation ID access permissions', async () => {
       // This test assumes some form of access control
-      const response = await fetch(`${API_BASE_URL}/sync-status/${validOperationId}`);
+      const response = await fetch(
+        `${API_BASE_URL}/sync-status/${validOperationId}`
+      );
 
       // Should either return the status or a proper access denied error
       expect([200, 403, 404]).toContain(response.status);

@@ -22,7 +22,11 @@ const navigation = [
   { name: 'Contacts', href: '/contacts', icon: Users },
   { name: 'Supabase Database', href: '/supabase-database', icon: Database },
   { name: 'HubSpot Contacts', href: '/hubspot-contacts', icon: Zap },
-  { name: 'Email Verification Sync', href: '/email-verification-sync', icon: RefreshCw },
+  {
+    name: 'Email Verification Sync',
+    href: '/email-verification-sync',
+    icon: RefreshCw,
+  },
   { name: 'Latest Created', href: '/latest-created', icon: FileText },
   { name: 'Latest Updated', href: '/latest-updated', icon: RefreshCw },
   { name: 'Sync Monitor', href: '/sync-monitor', icon: Activity },

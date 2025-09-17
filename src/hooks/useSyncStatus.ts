@@ -22,13 +22,15 @@ interface UseSyncStatusReturn {
   isLoading: boolean;
   error: Error | null;
   refetch: () => Promise<any>;
-  summary: {
-    total: number;
-    completed: number;
-    inProgress: number;
-    failed: number;
-    pending: number;
-  } | undefined;
+  summary:
+    | {
+        total: number;
+        completed: number;
+        inProgress: number;
+        failed: number;
+        pending: number;
+      }
+    | undefined;
 }
 
 /**
@@ -94,11 +96,12 @@ export function useSyncStatus(operationId?: string): UseSyncStatusReturn {
       // Don't retry on 4xx errors (except 429)
       if (error instanceof Error) {
         if (error.message.includes('not found')) return false;
-        if (error.message.includes('401') || error.message.includes('403')) return false;
+        if (error.message.includes('401') || error.message.includes('403'))
+          return false;
       }
       return failureCount < 3;
     },
-    refetchInterval: (query) => {
+    refetchInterval: query => {
       // Auto-refresh for operations that are still in progress
       const data = query.state.data;
       if (operationId && data?.operation) {
@@ -108,8 +111,9 @@ export function useSyncStatus(operationId?: string): UseSyncStatusReturn {
         }
       } else if (data?.operations) {
         // Check if any operations are still in progress
-        const hasInProgress = data.operations.some((op: SyncOperation) =>
-          op.status === 'in_progress' || op.status === 'pending'
+        const hasInProgress = data.operations.some(
+          (op: SyncOperation) =>
+            op.status === 'in_progress' || op.status === 'pending'
         );
         if (hasInProgress) {
           return 10000; // Refresh every 10 seconds

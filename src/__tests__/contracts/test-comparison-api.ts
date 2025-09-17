@@ -13,7 +13,7 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import {
   ComparisonRequest,
-  ComparisonResponse
+  ComparisonResponse,
 } from '../../../specs/005-show-data-from/contracts/api-contracts';
 
 // Mock the API endpoints
@@ -27,7 +27,7 @@ const mockSupabaseContact = {
   email_verification_status: 'verified',
   hs_object_id: '12345',
   created_at: '2025-01-15T10:30:00Z',
-  updated_at: '2025-01-15T10:30:00Z'
+  updated_at: '2025-01-15T10:30:00Z',
 };
 
 const mockHubSpotContact = {
@@ -37,10 +37,10 @@ const mockHubSpotContact = {
     lastname: 'Doe',
     email: 'john.doe@example.com',
     email_verification_status: 'verified',
-    hs_object_id: '12345'
+    hs_object_id: '12345',
   },
   createdAt: '2025-01-15T10:30:00Z',
-  updatedAt: '2025-01-15T10:30:00Z'
+  updatedAt: '2025-01-15T10:30:00Z',
 };
 
 const mockContactComparison = {
@@ -49,7 +49,7 @@ const mockContactComparison = {
   hubspot: mockHubSpotContact,
   match_status: 'matched' as const,
   differences: [],
-  last_sync: '2025-01-15T10:30:00Z'
+  last_sync: '2025-01-15T10:30:00Z',
 };
 
 const mockComparisonResponse: ComparisonResponse = {
@@ -60,14 +60,14 @@ const mockComparisonResponse: ComparisonResponse = {
     page_size: 50,
     total: 1,
     has_next: false,
-    has_previous: false
+    has_previous: false,
   },
   summary: {
     total_matched: 1,
     total_supabase_only: 0,
     total_hubspot_only: 0,
-    total_mismatches: 0
-  }
+    total_mismatches: 0,
+  },
 };
 
 describe('Comparison API Contracts', () => {
@@ -76,16 +76,19 @@ describe('Comparison API Contracts', () => {
       const request: ComparisonRequest = {
         page: 1,
         page_size: 50,
-        filter_status: 'all'
+        filter_status: 'all',
       };
 
       // This test should fail until the endpoint is implemented
-      const response = await fetch(`${API_BASE_URL}/email-verification-comparison`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json'
+      const response = await fetch(
+        `${API_BASE_URL}/email-verification-comparison`,
+        {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
         }
-      });
+      );
 
       expect(response.status).toBe(200);
 
@@ -109,7 +112,12 @@ describe('Comparison API Contracts', () => {
           expect(comparison).toHaveProperty('differences');
 
           // Validate match_status enum values
-          expect(['matched', 'supabase_only', 'hubspot_only', 'mismatch']).toContain(comparison.match_status);
+          expect([
+            'matched',
+            'supabase_only',
+            'hubspot_only',
+            'mismatch',
+          ]).toContain(comparison.match_status);
 
           // Validate differences array
           expect(Array.isArray(comparison.differences)).toBe(true);
@@ -137,14 +145,24 @@ describe('Comparison API Contracts', () => {
       expect(data.summary).toHaveProperty('total_mismatches');
 
       // Validate summary totals add up
-      const { total_matched, total_supabase_only, total_hubspot_only, total_mismatches } = data.summary;
-      expect(total_matched + total_supabase_only + total_hubspot_only + total_mismatches).toBe(data.pagination.total);
+      const {
+        total_matched,
+        total_supabase_only,
+        total_hubspot_only,
+        total_mismatches,
+      } = data.summary;
+      expect(
+        total_matched +
+          total_supabase_only +
+          total_hubspot_only +
+          total_mismatches
+      ).toBe(data.pagination.total);
     });
 
     it('should handle pagination parameters correctly', async () => {
       const request: ComparisonRequest = {
         page: 2,
-        page_size: 25
+        page_size: 25,
       };
 
       // This test should fail until the endpoint is implemented
@@ -153,8 +171,8 @@ describe('Comparison API Contracts', () => {
         {
           method: 'GET',
           headers: {
-            'Content-Type': 'application/json'
-          }
+            'Content-Type': 'application/json',
+          },
         }
       );
 
@@ -169,7 +187,7 @@ describe('Comparison API Contracts', () => {
 
     it('should handle status filtering correctly', async () => {
       const request: ComparisonRequest = {
-        filter_status: 'matched'
+        filter_status: 'matched',
       };
 
       // This test should fail until the endpoint is implemented
@@ -178,8 +196,8 @@ describe('Comparison API Contracts', () => {
         {
           method: 'GET',
           headers: {
-            'Content-Type': 'application/json'
-          }
+            'Content-Type': 'application/json',
+          },
         }
       );
 
@@ -199,7 +217,7 @@ describe('Comparison API Contracts', () => {
 
     it('should handle search parameter for filtering contacts', async () => {
       const request: ComparisonRequest = {
-        search: 'john.doe@example.com'
+        search: 'john.doe@example.com',
       };
 
       // This test should fail until the endpoint is implemented
@@ -208,8 +226,8 @@ describe('Comparison API Contracts', () => {
         {
           method: 'GET',
           headers: {
-            'Content-Type': 'application/json'
-          }
+            'Content-Type': 'application/json',
+          },
         }
       );
 
@@ -222,8 +240,12 @@ describe('Comparison API Contracts', () => {
       if (data.data && data.data.length > 0) {
         // At least one contact should match the search term
         const hasMatchingContact = data.data.some(comparison => {
-          const supabaseMatch = comparison.supabase?.email.toLowerCase().includes(request.search!.toLowerCase());
-          const hubspotMatch = comparison.hubspot?.properties.email.toLowerCase().includes(request.search!.toLowerCase());
+          const supabaseMatch = comparison.supabase?.email
+            .toLowerCase()
+            .includes(request.search!.toLowerCase());
+          const hubspotMatch = comparison.hubspot?.properties.email
+            .toLowerCase()
+            .includes(request.search!.toLowerCase());
           return supabaseMatch || hubspotMatch;
         });
         expect(hasMatchingContact).toBe(true);
@@ -232,9 +254,9 @@ describe('Comparison API Contracts', () => {
 
     it('should return different match statuses correctly', async () => {
       // Test each filter status
-      const statuses: Array<'matched' | 'supabase_only' | 'hubspot_only' | 'mismatch'> = [
-        'matched', 'supabase_only', 'hubspot_only', 'mismatch'
-      ];
+      const statuses: Array<
+        'matched' | 'supabase_only' | 'hubspot_only' | 'mismatch'
+      > = ['matched', 'supabase_only', 'hubspot_only', 'mismatch'];
 
       for (const status of statuses) {
         const response = await fetch(
@@ -242,8 +264,8 @@ describe('Comparison API Contracts', () => {
           {
             method: 'GET',
             headers: {
-              'Content-Type': 'application/json'
-            }
+              'Content-Type': 'application/json',
+            },
           }
         );
 
@@ -263,7 +285,7 @@ describe('Comparison API Contracts', () => {
 
     it('should handle empty results gracefully', async () => {
       const request: ComparisonRequest = {
-        search: 'non-existent-email@example.com'
+        search: 'non-existent-email@example.com',
       };
 
       // This test should fail until the endpoint is implemented
@@ -272,8 +294,8 @@ describe('Comparison API Contracts', () => {
         {
           method: 'GET',
           headers: {
-            'Content-Type': 'application/json'
-          }
+            'Content-Type': 'application/json',
+          },
         }
       );
 
@@ -297,8 +319,8 @@ describe('Comparison API Contracts', () => {
         {
           method: 'GET',
           headers: {
-            'Content-Type': 'application/json'
-          }
+            'Content-Type': 'application/json',
+          },
         }
       );
 
@@ -311,12 +333,15 @@ describe('Comparison API Contracts', () => {
 
     it('should validate response data integrity', async () => {
       // This test should fail until the endpoint is implemented
-      const response = await fetch(`${API_BASE_URL}/email-verification-comparison`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json'
+      const response = await fetch(
+        `${API_BASE_URL}/email-verification-comparison`,
+        {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
         }
-      });
+      );
 
       expect(response.status).toBe(200);
 
@@ -328,7 +353,9 @@ describe('Comparison API Contracts', () => {
         data.data.forEach(comparison => {
           // Validate that if both contacts exist, they should have matching hs_object_id
           if (comparison.supabase && comparison.hubspot) {
-            expect(comparison.supabase.hs_object_id).toBe(comparison.hubspot.properties.hs_object_id);
+            expect(comparison.supabase.hs_object_id).toBe(
+              comparison.hubspot.properties.hs_object_id
+            );
           }
 
           // Validate that match_status is consistent with data presence

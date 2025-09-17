@@ -4,7 +4,10 @@
  * Accessibility utilities for the Email Verification Data Display feature
  */
 
-import { ContactComparison, ComparisonResponse } from '@/types/emailVerificationDataDisplay';
+import {
+  ContactComparison,
+  ComparisonResponse,
+} from '@/types/emailVerificationDataDisplay';
 
 /**
  * Generate ARIA labels for table elements
@@ -13,12 +16,11 @@ export const generateTableAriaLabels = () => ({
   table: 'Email verification data comparison table',
   row: (comparison: ContactComparison) =>
     `Contact ${comparison.supabase?.name || comparison.hubspot?.properties?.firstname} ${comparison.supabase?.name || comparison.hubspot?.properties?.lastname}, status: ${comparison.match_status.replace('_', ' ')}`,
-  cell: (field: string, source: string) =>
-    `${field} from ${source}`,
+  cell: (field: string, source: string) => `${field} from ${source}`,
   pagination: 'Data table pagination controls',
   filters: 'Data filtering and search controls',
   search: 'Search contacts by name or email',
-  export: 'Export data options'
+  export: 'Export data options',
 });
 
 /**
@@ -28,7 +30,7 @@ export const generateStatusDescriptions = () => ({
   matched: 'Contact data matches between Supabase and HubSpot',
   supabase_only: 'Contact exists only in Supabase database',
   hubspot_only: 'Contact exists only in HubSpot CRM',
-  mismatch: 'Contact data differs between Supabase and HubSpot'
+  mismatch: 'Contact data differs between Supabase and HubSpot',
 });
 
 /**
@@ -38,19 +40,23 @@ export const generateLiveAnnouncements = {
   loading: (message: string) => `Loading ${message}`,
   loaded: (count: number) => `Loaded ${count} contact records`,
   error: (message: string) => `Error: ${message}`,
-  filtered: (count: number, total: number) => `Showing ${count} of ${total} filtered results`,
+  filtered: (count: number, total: number) =>
+    `Showing ${count} of ${total} filtered results`,
   selected: (count: number) => `${count} items selected`,
-  exported: (format: string) => `Data exported as ${format} file`
+  exported: (format: string) => `Data exported as ${format} file`,
 };
 
 /**
  * Generate keyboard navigation instructions
  */
 export const generateKeyboardInstructions = () => ({
-  table: 'Use arrow keys to navigate cells, Enter to select, Space to toggle selection',
-  filters: 'Use Tab to navigate between filter controls, Enter to apply filters',
+  table:
+    'Use arrow keys to navigate cells, Enter to select, Space to toggle selection',
+  filters:
+    'Use Tab to navigate between filter controls, Enter to apply filters',
   pagination: 'Use arrow keys to navigate pages, Enter to select page',
-  search: 'Type to search, use arrow keys to navigate suggestions, Enter to select'
+  search:
+    'Type to search, use arrow keys to navigate suggestions, Enter to select',
 });
 
 /**
@@ -64,7 +70,7 @@ export const createAccessibleButtonProps = (
   'aria-label': label,
   'aria-describedby': description ? `${label}-description` : undefined,
   'aria-disabled': disabled,
-  disabled
+  disabled,
 });
 
 /**
@@ -81,7 +87,7 @@ export const createAccessibleInputProps = (
   'aria-invalid': !!error,
   'aria-describedby': error ? `${label}-error` : undefined,
   placeholder,
-  required
+  required,
 });
 
 /**
@@ -95,7 +101,7 @@ export const createAccessibleTableProps = (
   'aria-label': label,
   'aria-describedby': description ? `${label}-description` : undefined,
   'aria-busy': busy,
-  role: 'table'
+  role: 'table',
 });
 
 /**
@@ -109,24 +115,24 @@ export const createAccessibleRowProps = (
   'aria-label': label,
   'aria-selected': selected,
   'aria-expanded': expanded,
-  role: 'row'
+  role: 'row',
 });
 
 /**
  * Utility to create accessible cell props
  */
-export const createAccessibleCellProps = (
-  label: string,
-  header?: boolean
-) => ({
+export const createAccessibleCellProps = (label: string, header?: boolean) => ({
   'aria-label': label,
-  role: header ? 'columnheader' : 'cell'
+  role: header ? 'columnheader' : 'cell',
 });
 
 /**
  * Utility to announce dynamic content changes to screen readers
  */
-export const announceToScreenReader = (message: string, priority: 'polite' | 'assertive' = 'polite') => {
+export const announceToScreenReader = (
+  message: string,
+  priority: 'polite' | 'assertive' = 'polite'
+) => {
   const announcement = document.createElement('div');
   announcement.setAttribute('aria-live', priority);
   announcement.setAttribute('aria-atomic', 'true');
@@ -195,7 +201,7 @@ export const focusManagement = {
     if (focusableElements.length > 0) {
       focusableElements[focusableElements.length - 1].focus();
     }
-  }
+  },
 };
 
 /**
@@ -210,7 +216,7 @@ const getFocusableElements = (container?: HTMLElement): HTMLElement[] => {
     'input:not([disabled])',
     'select:not([disabled])',
     '[tabindex]:not([tabindex="-1"])',
-    '[contenteditable="true"]'
+    '[contenteditable="true"]',
   ];
 
   const elements = target.querySelectorAll(focusableSelectors.join(', '));

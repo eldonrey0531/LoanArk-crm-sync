@@ -7,15 +7,12 @@ const SupabaseDatabase: React.FC = () => {
   const [pageSize, setPageSize] = useState(25);
   const [paginationError, setPaginationError] = useState<string | null>(null);
 
-  const offset = useMemo(() => (currentPage - 1) * pageSize, [currentPage, pageSize]);
+  const offset = useMemo(
+    () => (currentPage - 1) * pageSize,
+    [currentPage, pageSize]
+  );
 
-  const {
-    data,
-    isLoading,
-    isFetching,
-    error,
-    refetch,
-  } = useHubSpotContacts({
+  const { data, isLoading, isFetching, error, refetch } = useHubSpotContacts({
     type: 'sync',
     limit: pageSize,
     offset,
@@ -24,14 +21,17 @@ const SupabaseDatabase: React.FC = () => {
   const contacts = data?.contacts || [];
   const errorMessage = error?.message || paginationError || null;
   const totalItems = data?.total || 0;
-  const totalPages = useMemo(() => Math.ceil(totalItems / pageSize), [totalItems, pageSize]);
+  const totalPages = useMemo(
+    () => Math.ceil(totalItems / pageSize),
+    [totalItems, pageSize]
+  );
 
   const handlePageChange = (page: number) => {
     console.log('Pagination: Page change initiated (Supabase)', {
       fromPage: currentPage,
       toPage: page,
       pageSize,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
     setPaginationError(null);
     setCurrentPage(page);
@@ -53,7 +53,7 @@ const SupabaseDatabase: React.FC = () => {
         page: currentPage,
         pageSize,
         error: error.message,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       });
     } else {
       setPaginationError(null);
@@ -61,25 +61,25 @@ const SupabaseDatabase: React.FC = () => {
   }, [error, currentPage]);
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">
+    <div className='container mx-auto px-4 py-8'>
+      <div className='mb-8'>
+        <h1 className='text-3xl font-bold text-gray-900 mb-2'>
           Supabase Database
         </h1>
-        <p className="text-gray-600">
-          View contacts synchronized from HubSpot to the Supabase database.
-          This data may be slightly delayed from the live HubSpot data.
+        <p className='text-gray-600'>
+          View contacts synchronized from HubSpot to the Supabase database. This
+          data may be slightly delayed from the live HubSpot data.
         </p>
       </div>
 
-      <div className="mb-6 flex items-center justify-between">
-        <div className="text-sm text-gray-500">
+      <div className='mb-6 flex items-center justify-between'>
+        <div className='text-sm text-gray-500'>
           {data ? `${data.total} total contacts` : 'Loading...'}
         </div>
         <button
           onClick={() => refetch()}
           disabled={isLoading}
-          className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+          className='px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed'
         >
           {isLoading ? 'Refreshing...' : 'Refresh'}
         </button>

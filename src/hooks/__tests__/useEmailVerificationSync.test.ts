@@ -34,14 +34,14 @@ vi.mock('../useEmailVerificationRecords', () => ({
         total: 0,
         totalPages: 0,
         hasNext: false,
-        hasPrev: false
-      }
+        hasPrev: false,
+      },
     },
     isLoading: false,
     error: null,
     refetch: vi.fn(),
-    isAuthenticated: true
-  }))
+    isAuthenticated: true,
+  })),
 }));
 
 const createWrapper = () => {
@@ -52,13 +52,14 @@ const createWrapper = () => {
       },
     },
   });
-  return ({ children }: { children: React.ReactNode }) => (
-    React.createElement(QueryClientProvider, { client: queryClient }, children)
-  );
+  return ({ children }: { children: React.ReactNode }) =>
+    React.createElement(QueryClientProvider, { client: queryClient }, children);
 };
 
 // Helper function to create complete mock SupabaseContact
-const createMockSupabaseContact = (overrides: Partial<SupabaseContact> = {}): SupabaseContact => ({
+const createMockSupabaseContact = (
+  overrides: Partial<SupabaseContact> = {}
+): SupabaseContact => ({
   id: 1,
   email: 'test@example.com',
   firstname: 'John',
@@ -69,12 +70,14 @@ const createMockSupabaseContact = (overrides: Partial<SupabaseContact> = {}): Su
   updated_at: '2025-01-02T00:00:00Z',
   createdate: '2025-01-01T00:00:00Z',
   lastmodifieddate: '2025-01-02T00:00:00Z',
-  ...overrides
+  ...overrides,
 });
 
 describe('useEmailVerificationSync', () => {
   const mockAuthService = HubSpotAuthService.getInstance();
-  const mockRecordsHook = vi.mocked(require('../useEmailVerificationRecords').useEmailVerificationRecords);
+  const mockRecordsHook = vi.mocked(
+    require('../useEmailVerificationRecords').useEmailVerificationRecords
+  );
   const mockSyncService = vi.mocked(emailVerificationSyncService);
 
   beforeEach(() => {
@@ -89,23 +92,22 @@ describe('useEmailVerificationSync', () => {
           total: 0,
           totalPages: 0,
           hasNext: false,
-          hasPrev: false
-        }
+          hasPrev: false,
+        },
       },
       isLoading: false,
       error: null,
       refetch: vi.fn(),
-      isAuthenticated: true
+      isAuthenticated: true,
     });
   });
 
   it('should return initial state correctly', () => {
     (mockAuthService.isAuthenticated as Mock).mockReturnValue(true);
 
-    const { result } = renderHook(
-      () => useEmailVerificationSync(),
-      { wrapper: createWrapper() }
-    );
+    const { result } = renderHook(() => useEmailVerificationSync(), {
+      wrapper: createWrapper(),
+    });
 
     expect(result.current.records).toEqual([]);
     expect(result.current.isLoading).toBe(false);
@@ -119,12 +121,13 @@ describe('useEmailVerificationSync', () => {
   it('should handle unauthenticated state', async () => {
     (mockAuthService.isAuthenticated as Mock).mockReturnValue(false);
 
-    const { result } = renderHook(
-      () => useEmailVerificationSync(),
-      { wrapper: createWrapper() }
-    );
+    const { result } = renderHook(() => useEmailVerificationSync(), {
+      wrapper: createWrapper(),
+    });
 
-    await expect(result.current.loadRecords()).rejects.toThrow('User not authenticated');
+    await expect(result.current.loadRecords()).rejects.toThrow(
+      'User not authenticated'
+    );
   });
 
   it('should load records successfully', async () => {
@@ -139,19 +142,18 @@ describe('useEmailVerificationSync', () => {
           total: 0,
           totalPages: 0,
           hasNext: false,
-          hasPrev: false
-        }
+          hasPrev: false,
+        },
       },
       isLoading: false,
       error: null,
       refetch: mockRefetch,
-      isAuthenticated: true
+      isAuthenticated: true,
     });
 
-    const { result } = renderHook(
-      () => useEmailVerificationSync(),
-      { wrapper: createWrapper() }
-    );
+    const { result } = renderHook(() => useEmailVerificationSync(), {
+      wrapper: createWrapper(),
+    });
 
     await act(async () => {
       await result.current.loadRecords({ page: 1, limit: 10 });
@@ -169,7 +171,7 @@ describe('useEmailVerificationSync', () => {
       firstname: 'John',
       lastname: 'Doe',
       email_verification_status: 'verified',
-      hs_object_id: 'contact_123'
+      hs_object_id: 'contact_123',
     });
 
     const mockSyncResult = {
@@ -182,15 +184,14 @@ describe('useEmailVerificationSync', () => {
       sourceValue: 'verified',
       targetValue: 'verified',
       retryCount: 0,
-      initiatedBy: 'system'
+      initiatedBy: 'system',
     };
 
     mockSyncService.syncToHubSpot.mockResolvedValue(mockSyncResult);
 
-    const { result } = renderHook(
-      () => useEmailVerificationSync(),
-      { wrapper: createWrapper() }
-    );
+    const { result } = renderHook(() => useEmailVerificationSync(), {
+      wrapper: createWrapper(),
+    });
 
     await act(async () => {
       await result.current.syncRecord(mockRecord);
@@ -213,7 +214,7 @@ describe('useEmailVerificationSync', () => {
       firstname: 'Jane',
       lastname: 'Smith',
       email_verification_status: 'verified',
-      hs_object_id: 'contact_456'
+      hs_object_id: 'contact_456',
     });
 
     const mockSyncResult = {
@@ -229,16 +230,15 @@ describe('useEmailVerificationSync', () => {
       error: {
         code: 'HUBSPOT_API_ERROR',
         message: 'HubSpot API error',
-        canRetry: true
-      }
+        canRetry: true,
+      },
     };
 
     mockSyncService.syncToHubSpot.mockResolvedValue(mockSyncResult);
 
-    const { result } = renderHook(
-      () => useEmailVerificationSync(),
-      { wrapper: createWrapper() }
-    );
+    const { result } = renderHook(() => useEmailVerificationSync(), {
+      wrapper: createWrapper(),
+    });
 
     await act(async () => {
       await result.current.syncRecord(mockRecord);
@@ -257,13 +257,12 @@ describe('useEmailVerificationSync', () => {
       firstname: 'Bob',
       lastname: 'Wilson',
       email_verification_status: 'verified',
-      hs_object_id: null as any
+      hs_object_id: null as any,
     });
 
-    const { result } = renderHook(
-      () => useEmailVerificationSync(),
-      { wrapper: createWrapper() }
-    );
+    const { result } = renderHook(() => useEmailVerificationSync(), {
+      wrapper: createWrapper(),
+    });
 
     await expect(result.current.syncRecord(mockRecord)).rejects.toThrow(
       'Record missing HubSpot object ID'
@@ -279,13 +278,12 @@ describe('useEmailVerificationSync', () => {
       firstname: 'Alice',
       lastname: 'Brown',
       email_verification_status: null as any,
-      hs_object_id: 'contact_789'
+      hs_object_id: 'contact_789',
     });
 
-    const { result } = renderHook(
-      () => useEmailVerificationSync(),
-      { wrapper: createWrapper() }
-    );
+    const { result } = renderHook(() => useEmailVerificationSync(), {
+      wrapper: createWrapper(),
+    });
 
     await expect(result.current.syncRecord(mockRecord)).rejects.toThrow(
       'Record missing email verification status'
@@ -303,7 +301,7 @@ describe('useEmailVerificationSync', () => {
       email_verification_status: 'verified',
       hs_object_id: 'contact_999',
       created_at: '2025-01-01T00:00:00Z',
-      updated_at: '2025-01-02T00:00:00Z'
+      updated_at: '2025-01-02T00:00:00Z',
     };
 
     const mockSyncResult = {
@@ -316,7 +314,7 @@ describe('useEmailVerificationSync', () => {
       sourceValue: 'verified',
       targetValue: 'verified',
       retryCount: 0,
-      initiatedBy: 'system'
+      initiatedBy: 'system',
     };
 
     mockSyncService.syncToHubSpot.mockResolvedValue(mockSyncResult);
@@ -331,19 +329,18 @@ describe('useEmailVerificationSync', () => {
           total: 1,
           totalPages: 1,
           hasNext: false,
-          hasPrev: false
-        }
+          hasPrev: false,
+        },
       },
       isLoading: false,
       error: null,
       refetch: vi.fn(),
-      isAuthenticated: true
+      isAuthenticated: true,
     });
 
-    const { result } = renderHook(
-      () => useEmailVerificationSync(),
-      { wrapper: createWrapper() }
-    );
+    const { result } = renderHook(() => useEmailVerificationSync(), {
+      wrapper: createWrapper(),
+    });
 
     await act(async () => {
       await result.current.retrySync(5);
@@ -359,10 +356,9 @@ describe('useEmailVerificationSync', () => {
   it('should handle retry for non-existent record', async () => {
     (mockAuthService.isAuthenticated as Mock).mockReturnValue(true);
 
-    const { result } = renderHook(
-      () => useEmailVerificationSync(),
-      { wrapper: createWrapper() }
-    );
+    const { result } = renderHook(() => useEmailVerificationSync(), {
+      wrapper: createWrapper(),
+    });
 
     await expect(result.current.retrySync(999)).rejects.toThrow(
       'Record 999 not found'
@@ -378,33 +374,33 @@ describe('useEmailVerificationSync', () => {
       firstname: 'Status',
       lastname: 'Test',
       email_verification_status: 'verified',
-      hs_object_id: 'contact_111'
+      hs_object_id: 'contact_111',
     });
 
     // Mock a slow sync operation
     mockSyncService.syncToHubSpot.mockImplementation(
-      () => new Promise(resolve => {
-        setTimeout(() => {
-          resolve({
-            id: 'sync_status',
-            supabaseContactId: 6,
-            hubspotContactId: 'contact_111',
-            status: 'completed' as const,
-            startedAt: new Date(),
-            completedAt: new Date(),
-            sourceValue: 'verified',
-            targetValue: 'verified',
-            retryCount: 0,
-            initiatedBy: 'system'
-          });
-        }, 100);
-      })
+      () =>
+        new Promise(resolve => {
+          setTimeout(() => {
+            resolve({
+              id: 'sync_status',
+              supabaseContactId: 6,
+              hubspotContactId: 'contact_111',
+              status: 'completed' as const,
+              startedAt: new Date(),
+              completedAt: new Date(),
+              sourceValue: 'verified',
+              targetValue: 'verified',
+              retryCount: 0,
+              initiatedBy: 'system',
+            });
+          }, 100);
+        })
     );
 
-    const { result } = renderHook(
-      () => useEmailVerificationSync(),
-      { wrapper: createWrapper() }
-    );
+    const { result } = renderHook(() => useEmailVerificationSync(), {
+      wrapper: createWrapper(),
+    });
 
     // Start the sync operation
     act(() => {
@@ -429,13 +425,12 @@ describe('useEmailVerificationSync', () => {
       isLoading: false,
       error: { message: 'Failed to load records' },
       refetch: vi.fn(),
-      isAuthenticated: true
+      isAuthenticated: true,
     });
 
-    const { result } = renderHook(
-      () => useEmailVerificationSync(),
-      { wrapper: createWrapper() }
-    );
+    const { result } = renderHook(() => useEmailVerificationSync(), {
+      wrapper: createWrapper(),
+    });
 
     expect(result.current.error).toBe('Failed to load records');
   });

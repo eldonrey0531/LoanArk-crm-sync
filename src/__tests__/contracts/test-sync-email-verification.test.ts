@@ -12,7 +12,7 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import {
   SyncEmailVerificationRequest,
   SyncEmailVerificationResponse,
-  SyncEmailVerificationProcessingResponse
+  SyncEmailVerificationProcessingResponse,
 } from '../../types/emailVerification';
 
 // Mock the Netlify function endpoint
@@ -26,8 +26,8 @@ const validSyncRequest: SyncEmailVerificationRequest = {
   options: {
     validateContact: true,
     retryOnFailure: false,
-    retryDelay: 1000
-  }
+    retryDelay: 1000,
+  },
 };
 
 const invalidSyncRequest = {
@@ -53,7 +53,7 @@ describe('POST /api/sync-email-verification Contract', () => {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(validSyncRequest)
+        body: JSON.stringify(validSyncRequest),
       });
 
       expect(response.status).not.toBe(404); // Should not be "Not Found"
@@ -65,7 +65,7 @@ describe('POST /api/sync-email-verification Contract', () => {
         headers: {
           'Content-Type': 'text/plain',
         },
-        body: JSON.stringify(validSyncRequest)
+        body: JSON.stringify(validSyncRequest),
       });
 
       // Should return 400 or handle gracefully
@@ -78,7 +78,7 @@ describe('POST /api/sync-email-verification Contract', () => {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(validSyncRequest)
+        body: JSON.stringify(validSyncRequest),
       });
 
       // Should accept valid request
@@ -87,7 +87,7 @@ describe('POST /api/sync-email-verification Contract', () => {
 
     it('should require required fields', async () => {
       const incompleteRequest = {
-        supabaseContactId: 1
+        supabaseContactId: 1,
         // Missing hubspotContactId and emailVerificationStatus
       };
 
@@ -96,7 +96,7 @@ describe('POST /api/sync-email-verification Contract', () => {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(incompleteRequest)
+        body: JSON.stringify(incompleteRequest),
       });
 
       // Should return 400 for missing required fields
@@ -115,7 +115,7 @@ describe('POST /api/sync-email-verification Contract', () => {
     it('should validate supabaseContactId as number', async () => {
       const invalidRequest = {
         ...validSyncRequest,
-        supabaseContactId: 'invalid-string'
+        supabaseContactId: 'invalid-string',
       };
 
       const response = await fetch(`${API_BASE_URL}/sync-email-verification`, {
@@ -123,7 +123,7 @@ describe('POST /api/sync-email-verification Contract', () => {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(invalidRequest)
+        body: JSON.stringify(invalidRequest),
       });
 
       expect([400, 200]).toContain(response.status);
@@ -138,7 +138,7 @@ describe('POST /api/sync-email-verification Contract', () => {
     it('should validate hubspotContactId as non-empty string', async () => {
       const invalidRequest = {
         ...validSyncRequest,
-        hubspotContactId: ''
+        hubspotContactId: '',
       };
 
       const response = await fetch(`${API_BASE_URL}/sync-email-verification`, {
@@ -146,7 +146,7 @@ describe('POST /api/sync-email-verification Contract', () => {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(invalidRequest)
+        body: JSON.stringify(invalidRequest),
       });
 
       expect([400, 200]).toContain(response.status);
@@ -161,7 +161,7 @@ describe('POST /api/sync-email-verification Contract', () => {
     it('should validate emailVerificationStatus as non-empty string', async () => {
       const invalidRequest = {
         ...validSyncRequest,
-        emailVerificationStatus: ''
+        emailVerificationStatus: '',
       };
 
       const response = await fetch(`${API_BASE_URL}/sync-email-verification`, {
@@ -169,7 +169,7 @@ describe('POST /api/sync-email-verification Contract', () => {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(invalidRequest)
+        body: JSON.stringify(invalidRequest),
       });
 
       expect([400, 200]).toContain(response.status);
@@ -187,8 +187,8 @@ describe('POST /api/sync-email-verification Contract', () => {
         options: {
           validateContact: false,
           retryOnFailure: true,
-          retryDelay: 2000
-        }
+          retryDelay: 2000,
+        },
       };
 
       const response = await fetch(`${API_BASE_URL}/sync-email-verification`, {
@@ -196,7 +196,7 @@ describe('POST /api/sync-email-verification Contract', () => {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(requestWithOptions)
+        body: JSON.stringify(requestWithOptions),
       });
 
       // Should handle options gracefully
@@ -211,7 +211,7 @@ describe('POST /api/sync-email-verification Contract', () => {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(validSyncRequest)
+        body: JSON.stringify(validSyncRequest),
       });
 
       const contentType = response.headers.get('content-type');
@@ -224,7 +224,7 @@ describe('POST /api/sync-email-verification Contract', () => {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(validSyncRequest)
+        body: JSON.stringify(validSyncRequest),
       });
 
       const data = await response.json();
@@ -254,7 +254,7 @@ describe('POST /api/sync-email-verification Contract', () => {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(validSyncRequest)
+        body: JSON.stringify(validSyncRequest),
       });
 
       const data = await response.json();
@@ -263,11 +263,15 @@ describe('POST /api/sync-email-verification Contract', () => {
         expect(data.data.status).toBe('completed');
         expect(data.data).toHaveProperty('syncedAt');
         expect(data.data).toHaveProperty('newValue');
-        expect(data.data.newValue).toBe(validSyncRequest.emailVerificationStatus);
+        expect(data.data.newValue).toBe(
+          validSyncRequest.emailVerificationStatus
+        );
         expect(data.data).toHaveProperty('hubspotResponse');
         expect(data.data.hubspotResponse).toHaveProperty('id');
         expect(data.data.hubspotResponse).toHaveProperty('updatedAt');
-        expect(data.data.hubspotResponse.properties).toHaveProperty('email_verification_status');
+        expect(data.data.hubspotResponse.properties).toHaveProperty(
+          'email_verification_status'
+        );
       }
     });
 
@@ -277,7 +281,7 @@ describe('POST /api/sync-email-verification Contract', () => {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(validSyncRequest)
+        body: JSON.stringify(validSyncRequest),
       });
 
       const data = await response.json();
@@ -296,7 +300,7 @@ describe('POST /api/sync-email-verification Contract', () => {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(validSyncRequest)
+        body: JSON.stringify(validSyncRequest),
       });
 
       if (response.status === 202) {
@@ -314,7 +318,7 @@ describe('POST /api/sync-email-verification Contract', () => {
     it('should handle invalid contact ID', async () => {
       const invalidRequest = {
         ...validSyncRequest,
-        hubspotContactId: 'non-existent-id'
+        hubspotContactId: 'non-existent-id',
       };
 
       const response = await fetch(`${API_BASE_URL}/sync-email-verification`, {
@@ -322,7 +326,7 @@ describe('POST /api/sync-email-verification Contract', () => {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(invalidRequest)
+        body: JSON.stringify(invalidRequest),
       });
 
       expect([404, 400, 200]).toContain(response.status);
@@ -337,7 +341,7 @@ describe('POST /api/sync-email-verification Contract', () => {
     it('should handle invalid email verification status', async () => {
       const invalidRequest = {
         ...validSyncRequest,
-        emailVerificationStatus: 'invalid-status'
+        emailVerificationStatus: 'invalid-status',
       };
 
       const response = await fetch(`${API_BASE_URL}/sync-email-verification`, {
@@ -345,7 +349,7 @@ describe('POST /api/sync-email-verification Contract', () => {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(invalidRequest)
+        body: JSON.stringify(invalidRequest),
       });
 
       expect([400, 200]).toContain(response.status);
@@ -364,7 +368,7 @@ describe('POST /api/sync-email-verification Contract', () => {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(validSyncRequest)
+        body: JSON.stringify(validSyncRequest),
       });
 
       const data = await response.json();
@@ -377,15 +381,17 @@ describe('POST /api/sync-email-verification Contract', () => {
 
     it('should handle rate limiting', async () => {
       // Make multiple rapid requests to potentially trigger rate limiting
-      const requests = Array(10).fill(null).map(() =>
-        fetch(`${API_BASE_URL}/sync-email-verification`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(validSyncRequest)
-        })
-      );
+      const requests = Array(10)
+        .fill(null)
+        .map(() =>
+          fetch(`${API_BASE_URL}/sync-email-verification`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(validSyncRequest),
+          })
+        );
 
       const responses = await Promise.all(requests);
       const hasRateLimit = responses.some(r => r.status === 429);
@@ -406,7 +412,7 @@ describe('POST /api/sync-email-verification Contract', () => {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(validSyncRequest)
+        body: JSON.stringify(validSyncRequest),
       });
 
       expect([401, 200]).toContain(response.status);
@@ -421,15 +427,17 @@ describe('POST /api/sync-email-verification Contract', () => {
 
   describe('Idempotency and Concurrency', () => {
     it('should handle concurrent requests for same contact', async () => {
-      const requests = Array(3).fill(null).map(() =>
-        fetch(`${API_BASE_URL}/sync-email-verification`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(validSyncRequest)
-        })
-      );
+      const requests = Array(3)
+        .fill(null)
+        .map(() =>
+          fetch(`${API_BASE_URL}/sync-email-verification`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(validSyncRequest),
+          })
+        );
 
       const responses = await Promise.all(requests);
       const successCount = responses.filter(r => r.status === 200).length;
@@ -454,7 +462,7 @@ describe('POST /api/sync-email-verification Contract', () => {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(validSyncRequest)
+        body: JSON.stringify(validSyncRequest),
       });
 
       const data = await response.json();
@@ -479,7 +487,7 @@ describe('POST /api/sync-email-verification Contract', () => {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(validSyncRequest)
+        body: JSON.stringify(validSyncRequest),
       });
 
       const endTime = Date.now();
@@ -494,7 +502,7 @@ describe('POST /api/sync-email-verification Contract', () => {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: 'invalid json {'
+        body: 'invalid json {',
       });
 
       expect([400, 200]).toContain(response.status);

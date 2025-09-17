@@ -5,7 +5,7 @@ import HubSpotAuthService from '../services/hubspot-auth';
 import {
   ContactComparison,
   ComparisonResponse,
-  TableFilters
+  TableFilters,
 } from '@/types/emailVerificationDataDisplay';
 
 interface UseEmailVerificationSyncDisplayReturn {
@@ -28,7 +28,11 @@ export function useEmailVerificationSyncDisplay(
   const authService = HubSpotAuthService.getInstance();
   const isAuthenticated = authService.isAuthenticated();
 
-  const queryKey = ['email-verification-sync-display', filters, isAuthenticated];
+  const queryKey = [
+    'email-verification-sync-display',
+    filters,
+    isAuthenticated,
+  ];
 
   const query = useQuery({
     queryKey,
@@ -48,21 +52,26 @@ export function useEmailVerificationSyncDisplay(
       const queryParams = new URLSearchParams();
 
       if (filters.page) queryParams.set('page', filters.page.toString());
-      if (filters.pageSize) queryParams.set('limit', filters.pageSize.toString());
-      if (filters.status && filters.status !== 'all') queryParams.set('status', filters.status);
+      if (filters.pageSize)
+        queryParams.set('limit', filters.pageSize.toString());
+      if (filters.status && filters.status !== 'all')
+        queryParams.set('status', filters.status);
 
       // Make API call to combined sync display endpoint
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout
 
-      const response = await fetch(`/.netlify/functions/email-verification-sync-display?${queryParams}`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          ...authHeader, // Include authentication header
-        },
-        signal: controller.signal,
-      });
+      const response = await fetch(
+        `/.netlify/functions/email-verification-sync-display?${queryParams}`,
+        {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            ...authHeader, // Include authentication header
+          },
+          signal: controller.signal,
+        }
+      );
 
       clearTimeout(timeoutId);
 
@@ -75,7 +84,9 @@ export function useEmailVerificationSyncDisplay(
         } else if (response.status === 500) {
           throw new Error('Server error. Please try again later.');
         } else {
-          throw new Error(`Failed to fetch sync display data: ${response.status} ${response.statusText}`);
+          throw new Error(
+            `Failed to fetch sync display data: ${response.status} ${response.statusText}`
+          );
         }
       }
 
@@ -92,12 +103,15 @@ export function useEmailVerificationSyncDisplay(
       const allComparisons: ContactComparison[] = [
         // Matched records
         ...apiData.matchedRecords.map((match: any) => ({
-          id: match.supabase?.hs_object_id || match.hubspot?.id || `match-${Date.now()}`,
+          id:
+            match.supabase?.hs_object_id ||
+            match.hubspot?.id ||
+            `match-${Date.now()}`,
           supabase: match.supabase,
           hubspot: match.hubspot,
           match_status: 'matched' as const,
           differences: [],
-          last_sync: apiData.metadata?.lastSync
+          last_sync: apiData.metadata?.lastSync,
         })),
         // Supabase-only records
         ...apiData.unmatchedRecords.supabaseOnly.map((record: any) => ({
@@ -106,7 +120,7 @@ export function useEmailVerificationSyncDisplay(
           hubspot: null,
           match_status: 'supabase_only' as const,
           differences: [],
-          last_sync: apiData.metadata?.lastSync
+          last_sync: apiData.metadata?.lastSync,
         })),
         // HubSpot-only records
         ...apiData.unmatchedRecords.hubspotOnly.map((record: any) => ({
@@ -115,27 +129,31 @@ export function useEmailVerificationSyncDisplay(
           hubspot: record,
           match_status: 'hubspot_only' as const,
           differences: [],
-          last_sync: apiData.metadata?.lastSync
-        }))
+          last_sync: apiData.metadata?.lastSync,
+        })),
       ];
 
       return {
         data: allComparisons,
         summary: {
           total_matched: apiData.metadata?.matchedCount || 0,
-          total_supabase_only: apiData.unmatchedRecords?.supabaseOnly?.length || 0,
-          total_hubspot_only: apiData.unmatchedRecords?.hubspotOnly?.length || 0,
-          total_mismatches: 0
+          total_supabase_only:
+            apiData.unmatchedRecords?.supabaseOnly?.length || 0,
+          total_hubspot_only:
+            apiData.unmatchedRecords?.hubspotOnly?.length || 0,
+          total_mismatches: 0,
         },
-        pagination: apiData.pagination
+        pagination: apiData.pagination,
       } as ComparisonResponse;
     },
     enabled: isAuthenticated,
     staleTime: 5 * 60 * 1000, // 5 minutes
     retry: (failureCount, error) => {
       // Don't retry on authentication errors
-      if (error.message.includes('Authentication failed') ||
-          error.message.includes('not authenticated')) {
+      if (
+        error.message.includes('Authentication failed') ||
+        error.message.includes('not authenticated')
+      ) {
         return false;
       }
       return failureCount < 3;
