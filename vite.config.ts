@@ -33,7 +33,7 @@ export default defineConfig(({ mode }: ConfigEnv) => {
     },
 
     server: {
-      port: 5173,
+      port: 8080,
       host: 'localhost',
       strictPort: true,
       cors: true,
@@ -49,7 +49,7 @@ export default defineConfig(({ mode }: ConfigEnv) => {
     build: {
       outDir: 'dist',
       sourcemap: isDevelopment,
-      minify: isProduction ? 'esbuild' : false,
+      minify: isProduction ? ('esbuild' as const) : false,
       rollupOptions: {
         output: {
           manualChunks: {
@@ -78,10 +78,6 @@ export default defineConfig(({ mode }: ConfigEnv) => {
         process.env.npm_package_version || '1.0.0'
       ),
       __BUILD_TIME__: JSON.stringify(new Date().toISOString()),
-    },
-
-    esbuild: {
-      drop: isProduction ? ['console', 'debugger'] : [],
     },
   };
 });
