@@ -21,7 +21,7 @@ interface ReactQueryDevToolsProps {
    * Position of the dev tools toggle button
    * @default 'bottom-right'
    */
-  position?: 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right';
+  position?: React.ComponentProps<typeof ReactQueryDevtools>['position'];
 
   /**
    * Initial state of the dev tools panel
@@ -37,7 +37,7 @@ interface ReactQueryDevToolsProps {
 
 export const ReactQueryDevTools: React.FC<ReactQueryDevToolsProps> = ({
   show = process.env.NODE_ENV === 'development',
-  position = 'bottom-right',
+  position,
   initialIsOpen = false,
   panelProps,
 }) => {

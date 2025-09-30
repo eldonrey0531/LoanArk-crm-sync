@@ -57,6 +57,10 @@ export const FilterControls: React.FC<FilterControlsProps> = ({
     filters.dateRange?.end
   );
 
+  const handleFiltersChange = (newFilters: TableFilters) => {
+    onFiltersChange(newFilters);
+  };
+
   // Debounced search
   React.useEffect(() => {
     const timer = setTimeout(() => {
@@ -67,10 +71,6 @@ export const FilterControls: React.FC<FilterControlsProps> = ({
 
     return () => clearTimeout(timer);
   }, [searchValue, filters, handleFiltersChange]);
-
-  const handleFiltersChange = (newFilters: TableFilters) => {
-    onFiltersChange(newFilters);
-  };
 
   const handleSearchChange = (value: string) => {
     setSearchValue(value);
