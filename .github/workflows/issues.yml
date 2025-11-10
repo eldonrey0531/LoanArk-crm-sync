@@ -17,7 +17,7 @@ jobs:
 
     - name: Handle new issues
       if: github.event_name == 'issues' && github.event.action == 'opened'
-      uses: actions/github-script@v7
+      uses: actions/github-script@v8
       with:
         script: |
           const issue = context.payload.issue;
@@ -52,7 +52,7 @@ jobs:
 
     - name: Handle PR labels
       if: github.event_name == 'pull_request' && github.event.action == 'opened'
-      uses: actions/github-script@v7
+      uses: actions/github-script@v8
       with:
         script: |
           const pr = context.payload.pull_request;
@@ -76,7 +76,7 @@ jobs:
 
     - name: Update project board
       if: github.event_name == 'issues' && github.event.action == 'labeled'
-      uses: actions/github-script@v7
+      uses: actions/github-script@v8
       with:
         script: |
           const issue = context.payload.issue;
