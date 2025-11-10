@@ -91,7 +91,7 @@ jobs:
         VITE_API_BASE_URL: ${{ secrets.VITE_API_BASE_URL }}
 
     - name: Run Lighthouse
-      uses: treosh/lighthouse-ci-action@v10
+      uses: treosh/lighthouse-ci-action@v12
       with:
         urls: |
           http://localhost:4173
